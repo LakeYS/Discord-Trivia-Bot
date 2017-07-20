@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/LakeYS/Discord-Trivia-Bot/issues"
   },
-  "homepage": "https://github.com/LakeYS/Discord-Trivia-Bot#readme"
+  "homepage": "https://github.com/LakeYS/Discord-Trivia-Bot#readme",
+  "dependencies": {
+    "discord.js": "^11.1.0"
+  }
 }

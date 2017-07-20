@@ -1,3 +1,7 @@
+# NodeJS
+node_modules
+config_private.json
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
