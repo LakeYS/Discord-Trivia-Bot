@@ -1,6 +1,8 @@
 # NodeJS
 node_modules
 config_private.json
+run_private.bat
+run_private.sh
 
 # Windows image file caches
 Thumbs.db
