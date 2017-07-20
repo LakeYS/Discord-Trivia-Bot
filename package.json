@@ -1,0 +1,19 @@
+{
+  "name": "discord-trivia-bot",
+  "version": "1.0.0",
+  "description": "A trivia bot for Discord; powered by OpenTDB.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LakeYS/Discord-Trivia-Bot.git"
+  },
+  "author": "Lake Y",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/LakeYS/Discord-Trivia-Bot/issues"
+  },
+  "homepage": "https://github.com/LakeYS/Discord-Trivia-Bot#readme"
+}
