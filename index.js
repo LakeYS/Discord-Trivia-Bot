@@ -32,8 +32,18 @@ client.on('ready', () => {
   client.user.setGame("[Type 'trivia help']");
 });
 
-client.on('disconnect', function() {
-  console.log("Client disconnected.");
+client.on('disconnect', function(event) {
+  if(event.code != 1000) {
+    console.log("Discord client disconnected with reason: " + event.reason + " (" + event.code + "). Attempting to reconnect in 6s...");
+    setTimeout(function(){ client.login(token); }, 6000);
+  }
+});
+
+client.on('error', function(err) {
+  console.log("Discord client error '" + err.code + "'. Attempting to reconnect in 6s...");
+
+  client.destroy();
+  setTimeout(function(){ client.login(config.token); }, 6000);
 });
 
 client.on("message", msg => {
