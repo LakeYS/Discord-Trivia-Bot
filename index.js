@@ -30,9 +30,6 @@ client.on('ready', () => {
   console.log('TriviaBot connected to ' + client.guilds.size + ' servers. Running v' + pjson.version);
 
   client.user.setGame("[Type 'trivia help']");
-
-  //if(Cakeclient_DiscordRelayChannel !== null)
-  //  Cakeclient_RelayChannelObject = client.channels.find("id",Cakeclient_DiscordRelayChannel); //Define this so we don't have to find it every time.
 });
 
 client.on('disconnect', function() {
@@ -44,7 +41,7 @@ client.on("message", msg => {
 
   if(msg.channel.type == "text") {
     if(str.startsWith("TRIVIA ")) {
-      msg.channel.send(trivia.parse(str.substring(7,256), msg));
+      trivia.parse(str.substring(7,256), msg);
     }
   }
 });
