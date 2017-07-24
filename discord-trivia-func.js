@@ -43,7 +43,11 @@ exports.parse = function(str, msg) {
         }
 
         //msg.channel.send("**Q:** " + entities.decode(json.results[0].question) + "\n**ANSWERS: **" + entities.decode(answers.toString().replace(/,/g, "/")));
-        msg.channel.send("**" + entities.decode(json.results[0].question) + "**\n" + answerString);
+
+        msg.channel.send({embed: {
+          color: 3447003, // TODO: Adjust for question difficulty?
+          description: "**" + entities.decode(json.results[0].question) + "**\n" + answerString
+        }});
 
         answer = json.results[0].correct_answer;
       });
