@@ -33,6 +33,19 @@ exports.parse = function(str, msg) {
 
         answers = answers.concat(json.results[0].incorrect_answers);
 
+        var color = 3447003;
+        switch(json.results[0].difficulty) {
+          case "easy":
+            color = 4249664;
+            break;
+          case "medium":
+            color = 12632064;
+            break;
+          case "hard":
+            color = 14164000;
+            break;
+        }
+
         // Sort the answers in reverse alphabetical order.
         answers.sort();
         answers.reverse();
@@ -44,8 +57,10 @@ exports.parse = function(str, msg) {
 
         //msg.channel.send("**Q:** " + entities.decode(json.results[0].question) + "\n**ANSWERS: **" + entities.decode(answers.toString().replace(/,/g, "/")));
 
+
+
         msg.channel.send({embed: {
-          color: 3447003, // TODO: Adjust for question difficulty?
+          color: color,
           description: "**" + entities.decode(json.results[0].question) + "**\n" + answerString
         }});
 
