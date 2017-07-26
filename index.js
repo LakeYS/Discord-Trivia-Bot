@@ -51,7 +51,8 @@ client.on("message", msg => {
 
   if(msg.channel.type == "text") {
     if(str.startsWith("TRIVIA ")) {
-      trivia.parse(str.substring(7,256), msg);
+      //trivia.parse(str.substring(7,256), msg);
+      trivia.parse(str, msg);
     }
   }
 });
