@@ -5,6 +5,8 @@ const entities = require("html-entities").AllHtmlEntities;
 
 const letters = ["A", "B", "C", "D"];
 
+question_in_progress = 0;
+
 answer = "N/A";
 
 exports.parse = function(str, msg) {
@@ -19,18 +21,17 @@ exports.parse = function(str, msg) {
   }
 
   if(str == "TRIVIA START")
-    msg.channel.send("Not implemented. Type 'trivia question' for a random question and 'trivia answer' for the answer.");
+    msg.channel.send("Not implemented. Type 'trivia question' for a random question.");
 
   if(str == "TRIVIA QUESTION")
     doTriviaQuestion(msg);
-
-  if(str == "TRIVIA ANSWER") {
-    if(answer !== undefined)
-      msg.channel.send(entities.decode(answer));
-  }
 };
 
 function doTriviaQuestion(msg) {
+  if(question_in_progress) {
+    return;
+  }
+
   https.get("https://opentdb.com/api.php?amount=1", (res) => {
     res.on('data', function(data) {
       var json = JSON.parse(data.toString());
@@ -72,6 +73,16 @@ function doTriviaQuestion(msg) {
       }});
 
       answer = json.results[0].correct_answer;
+
+      question_in_progress = 1;
+
+      setTimeout(function() {
+        msg.channel.send({embed: {
+          color: color,
+          description: entities.decode(answer)
+        }});
+        question_in_progress = 0;
+      }, 8000);
     });
   });
 }
