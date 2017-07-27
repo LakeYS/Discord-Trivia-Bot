@@ -62,10 +62,11 @@ function doTriviaQuestion(msg) {
 
       var answerString = "";
       for(var i = 0; i <= answers.length-1; i++) {
+        if(answers[i] == json.results[0].correct_answer)
+          correct_id = i;
+
         answerString = answerString + "**" + letters[i] + ":** " + entities.decode(answers[i]) + "\n";
       }
-
-      //msg.channel.send("**Q:** " + entities.decode(json.results[0].question) + "\n**ANSWERS: **" + entities.decode(answers.toString().replace(/,/g, "/")));
 
       msg.channel.send({embed: {
         color: color,
@@ -79,7 +80,7 @@ function doTriviaQuestion(msg) {
       setTimeout(function() {
         msg.channel.send({embed: {
           color: color,
-          description: entities.decode(answer)
+          description: "**" + letters[correct_id] + ":** " + entities.decode(answer)
         }});
         question_in_progress = 0;
       }, 8000);
