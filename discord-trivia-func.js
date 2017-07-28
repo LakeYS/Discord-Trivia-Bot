@@ -39,6 +39,11 @@ function doTriviaQuestion(msg) {
 
       var answers = [];
 
+      if(json.response_code !== 0) {
+        msg.channel.send("An error occurred.");
+        return;
+      }
+
       answers[0] = json.results[0].correct_answer;
 
       answers = answers.concat(json.results[0].incorrect_answers);
