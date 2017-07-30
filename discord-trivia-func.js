@@ -73,9 +73,11 @@ function doTriviaQuestion(msg) {
         answerString = answerString + "**" + letters[i] + ":** " + entities.decode(answers[i]) + "\n";
       }
 
+      categoryString = entities.decode(json.results[0].category);
+
       msg.channel.send({embed: {
         color: color,
-        description: "**" + entities.decode(json.results[0].question) + "**\n" + answerString
+        description: "*" + categoryString + "*\n**" + entities.decode(json.results[0].question) + "**\n" + answerString
       }});
 
       answer = json.results[0].correct_answer;
