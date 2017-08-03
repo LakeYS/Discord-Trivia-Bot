@@ -6,15 +6,17 @@ const entities = require("html-entities").AllHtmlEntities;
 const letters = ["A", "B", "C", "D"];
 
 question_in_progress = 0;
-
 answer = "N/A";
+correct_id = 0;
+correct_users = [];
+correct_names = [];
+correct_times = [];
 
 exports.parse = function(str, msg) {
   if(str == "TRIVIA HELP") {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       res.on('data', function(data) {
         var json = JSON.parse(data.toString());
-        console.log();
         msg.channel.send("Let's play trivia! Type 'trivia start' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified trivia questions!\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
       });
     });
@@ -25,6 +27,12 @@ exports.parse = function(str, msg) {
 
   if(str == "TRIVIA QUESTION")
     doTriviaQuestion(msg);
+
+  if(str.toUpperCase() == letters[correct_id] && question_in_progress) {
+    //msg.reply("Correct!");
+    correct_users.push(msg.author.id);
+    correct_names.push(msg.author.username);
+  }
 };
 
 function doTriviaQuestion(msg) {
@@ -83,11 +91,28 @@ function doTriviaQuestion(msg) {
       answer = json.results[0].correct_answer;
 
       question_in_progress = 1;
+      correct_users = [];
+      correct_names = [];
+      correct_times = [];
 
+      // After eight seconds, we reveal the answer!
+      // TODO: Only detect the first answer from each individual.
       setTimeout(function() {
+        correct_users_str = "";
+
+        if(correct_names.length == 0)
+          correct_users_str = 'Nobody!';
+        else {
+          // TODO: Use commas and put all names on one line if there are tons of answers
+          // TODO: Say "Correct!" rather than using a list if only one user participates
+          for(i = 0; i <= correct_names.length-1; i++) {
+            correct_users_str = correct_users_str + correct_names[i] + "\n";
+          }
+        }
+
         msg.channel.send({embed: {
           color: color,
-          description: "**" + letters[correct_id] + ":** " + entities.decode(answer)
+          description: "**" + letters[correct_id] + ":** " + entities.decode(answer) + "\n\n**Correct answers:**\n" + correct_users_str
         }});
         question_in_progress = 0;
       }, 8000);
