@@ -4,7 +4,7 @@ This project is a work in progress.
 
 # Implemented Features
 - Access to a complete database of over 2,500 multiple-choice trivia questions. (Thanks to OpenTDB)
-- Verified functional across simultaneous channels and Discord servers.
+- Works across simultaneous channels and Discord servers. (For example, large servers can have multiple trivia channels)
 - Color-coded and categorized questions of varying difficulty.
 
 # Partially Implemented Features
@@ -15,7 +15,7 @@ This project is a work in progress.
 - Dynamic scoring and statistics for each player (weekly and overall stats, etc.)
 - Polls where players can vote to play a category
 - Token usage to prevent duplicate questions
-- Custom questions and categories set by server administrators.
+- Custom questions and categories, configurable by server administrators.
 
 # Commands
 - `trivia start`  - Not implemented. The command to start a trivia game.
