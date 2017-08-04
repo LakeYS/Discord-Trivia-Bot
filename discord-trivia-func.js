@@ -7,13 +7,14 @@ const letters = ["A", "B", "C", "D"];
 
 question_in_progress = 0;
 answer = "N/A";
+
+game = {};
+
 correct_id = 0;
-participants = [];
-correct_users = [];
-correct_names = [];
-correct_times = [];
 
 exports.parse = function(str, msg) {
+  var id = msg.channel.id;
+
   if(str == "TRIVIA HELP") {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       res.on('data', function(data) {
@@ -29,23 +30,25 @@ exports.parse = function(str, msg) {
   if(str == "TRIVIA QUESTION")
     doTriviaQuestion(msg);
 
-  if(str.toUpperCase() == letters[correct_id] && question_in_progress) {
+  if(str.toUpperCase() == letters[correct_id] && game[id].inProgress) {
     // Only counts if this is the first time they type an answer
-    if(participants.indexOf(msg.author.id)) {
-      correct_users.push(msg.author.id);
-      correct_names.push(msg.author.username);
+    if(game[id].participants.indexOf(msg.author.id)) {
+      game[id].correct_users.push(msg.author.id);
+      game[id].correct_names.push(msg.author.username);
     }
   }
 
   // TODO: Don't count if "C" or "D" is entered on a True/False question.
   if(str == "A" || str == "B" || str == "C" || str == "D")
-    participants.push(msg.author.id);
+    game[id].participants.push(msg.author.id);
 };
 
 function doTriviaQuestion(msg) {
-  if(question_in_progress) {
+  var id = msg.channel.id;
+  if(game[id] === undefined || game[id].inProgress != 1)
+    game[id] = {};
+  else
     return;
-  }
 
   https.get("https://opentdb.com/api.php?amount=1", (res) => {
     res.on('data', function(data) {
@@ -83,7 +86,7 @@ function doTriviaQuestion(msg) {
       var answerString = "";
       for(var i = 0; i <= answers.length-1; i++) {
         if(answers[i] == json.results[0].correct_answer)
-          correct_id = i;
+          game[id].correct_id = i;
 
         answerString = answerString + "**" + letters[i] + ":** " + entities.decode(answers[i]) + "\n";
       }
@@ -95,50 +98,49 @@ function doTriviaQuestion(msg) {
         description: "*" + categoryString + "*\n**" + entities.decode(json.results[0].question) + "**\n" + answerString
       }});
 
-      answer = json.results[0].correct_answer;
-      console.log(answer);
+      game[id].answer = json.results[0].correct_answer;
 
-      question_in_progress = 1;
-      participants = [];
-      correct_users = [];
-      correct_names = [];
-      correct_times = [];
+      game[id].inProgress = 1;
+      game[id].participants = [];
+      game[id].correct_users = [];
+      game[id].correct_names = [];
+      game[id].correct_times = []; // Not implemented
 
       // After eight seconds, we reveal the answer!
       // TODO: Only detect the first answer from each individual.
       setTimeout(function() {
-        correct_users_str = "**Correct answers:**\n";
+        var correct_users_str = "**Correct answers:**\n";
 
-        if(correct_names.length == 0)
+        if(game[id].correct_names.length == 0)
           correct_users_str = correct_users_str + "Nobody!";
         else {
           // TODO: Use commas and put all names on one line if there are tons of answers
           // TODO: Say "Correct!" rather than using a list if only one user participates
-          if(correct_names.length == 1)
+          if(game[id].correct_names.length == 1)
             correct_users_str = "Correct!"; // Only one player, make things simple.
-          else if(correct_names.length > 10) {
+          else if(game[id].correct_names.length > 10) {
               // More than 10 players, player names are separated by comma
               var comma = ", ";
-              for(i = 0; i <= correct_names.length-1; i++) {
-                if(i == correct_names.length-1)
+              for(i = 0; i <= game[id].correct_names.length-1; i++) {
+                if(i == game[id].correct_names.length-1)
                   comma = "";
 
-                correct_users_str = correct_users_str + correct_names[i] + comma;
+                correct_users_str = correct_users_str + game[id].correct_names[i] + comma;
               }
             }
           else {
             // Less than 10 players, all names are on their own line.
-            for(i = 0; i <= correct_names.length-1; i++) {
-              correct_users_str = correct_users_str + correct_names[i] + "\n";
+            for(i = 0; i <= game[id].correct_names.length-1; i++) {
+              correct_users_str = correct_users_str + game[id].correct_names[i] + "\n";
             }
           }
         }
 
         msg.channel.send({embed: {
           color: color,
-          description: "**" + letters[correct_id] + ":** " + entities.decode(answer) + "\n\n" + correct_users_str
+          description: "**" + letters[game[id].correct_id] + ":** " + entities.decode(game[id].answer) + "\n\n" + correct_users_str
         }});
-        question_in_progress = 0;
+        game[id] = {};
       }, 12000);
     });
   });
