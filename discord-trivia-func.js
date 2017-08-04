@@ -5,12 +5,7 @@ const entities = require("html-entities").AllHtmlEntities;
 
 const letters = ["A", "B", "C", "D"];
 
-question_in_progress = 0;
-answer = "N/A";
-
 game = {};
-
-correct_id = 0;
 
 exports.parse = function(str, msg) {
   var id = msg.channel.id;
@@ -30,17 +25,19 @@ exports.parse = function(str, msg) {
   if(str == "TRIVIA QUESTION")
     doTriviaQuestion(msg);
 
-  if(str.toUpperCase() == letters[correct_id] && game[id].inProgress) {
-    // Only counts if this is the first time they type an answer
-    if(game[id].participants.indexOf(msg.author.id)) {
-      game[id].correct_users.push(msg.author.id);
-      game[id].correct_names.push(msg.author.username);
+  if(game[id] !== undefined) {
+    if(str.toUpperCase() == letters[game[id].correct_id] && game[id].inProgress) {
+      // Only counts if this is the first time they type an answer
+      if(game[id].participants.indexOf(msg.author.id)) {
+        game[id].correct_users.push(msg.author.id);
+        game[id].correct_names.push(msg.author.username);
+      }
     }
-  }
 
-  // TODO: Don't count if "C" or "D" is entered on a True/False question.
-  if(str == "A" || str == "B" || str == "C" || str == "D")
-    game[id].participants.push(msg.author.id);
+    // TODO: Don't count if "C" or "D" is entered on a True/False question.
+    if(game[id].inProgress && (str == "A" || str == "B" || str == "C" || str == "D"))
+      game[id].participants.push(msg.author.id);
+  }
 };
 
 function doTriviaQuestion(msg) {
@@ -91,7 +88,7 @@ function doTriviaQuestion(msg) {
         answerString = answerString + "**" + letters[i] + ":** " + entities.decode(answers[i]) + "\n";
       }
 
-      categoryString = entities.decode(json.results[0].category);
+      var categoryString = entities.decode(json.results[0].category);
 
       msg.channel.send({embed: {
         color: color,
@@ -114,14 +111,12 @@ function doTriviaQuestion(msg) {
         if(game[id].correct_names.length == 0)
           correct_users_str = correct_users_str + "Nobody!";
         else {
-          // TODO: Use commas and put all names on one line if there are tons of answers
-          // TODO: Say "Correct!" rather than using a list if only one user participates
           if(game[id].correct_names.length == 1)
             correct_users_str = "Correct!"; // Only one player, make things simple.
           else if(game[id].correct_names.length > 10) {
               // More than 10 players, player names are separated by comma
               var comma = ", ";
-              for(i = 0; i <= game[id].correct_names.length-1; i++) {
+              for(var i = 0; i <= game[id].correct_names.length-1; i++) {
                 if(i == game[id].correct_names.length-1)
                   comma = "";
 
@@ -130,8 +125,8 @@ function doTriviaQuestion(msg) {
             }
           else {
             // Less than 10 players, all names are on their own line.
-            for(i = 0; i <= game[id].correct_names.length-1; i++) {
-              correct_users_str = correct_users_str + game[id].correct_names[i] + "\n";
+            for(var i2 = 0; i2 <= game[id].correct_names.length-1; i2++) {
+              correct_users_str = correct_users_str + game[id].correct_names[i2] + "\n";
             }
           }
         }

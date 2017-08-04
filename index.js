@@ -13,7 +13,7 @@ var options = {
 };
 
 var input = "";
-json = "";
+var json = "";
 var request = https.request(options, (res) => {
   res.on('data', (data) => {
     input = input + data; // Combine the data
@@ -74,7 +74,7 @@ const trivia = require("./discord-trivia-func.js");
 // # Initialize Config # //
 configFile = "./config.json";
 
-for(i = 0; i <= process.argv.length; i++) {
+for(var i = 0; i <= process.argv.length; i++) {
   if(process.argv[i] !== undefined && process.argv[i].startsWith("--configfile=")) {
     var configFile = process.argv[i].replace("--configfile=", "");
   }
