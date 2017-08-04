@@ -8,6 +8,7 @@ const letters = ["A", "B", "C", "D"];
 question_in_progress = 0;
 answer = "N/A";
 correct_id = 0;
+participants = [];
 correct_users = [];
 correct_names = [];
 correct_times = [];
@@ -29,10 +30,16 @@ exports.parse = function(str, msg) {
     doTriviaQuestion(msg);
 
   if(str.toUpperCase() == letters[correct_id] && question_in_progress) {
-    //msg.reply("Correct!");
-    correct_users.push(msg.author.id);
-    correct_names.push(msg.author.username);
+    // Only counts if this is the first time they type an answer
+    if(participants.indexOf(msg.author.id)) {
+      correct_users.push(msg.author.id);
+      correct_names.push(msg.author.username);
+    }
   }
+
+  // TODO: Don't count if "C" or "D" is entered on a True/False question.
+  if(str == "A" || str == "B" || str == "C" || str == "D")
+    participants.push(msg.author.id);
 };
 
 function doTriviaQuestion(msg) {
@@ -89,8 +96,10 @@ function doTriviaQuestion(msg) {
       }});
 
       answer = json.results[0].correct_answer;
+      console.log(answer);
 
       question_in_progress = 1;
+      participants = [];
       correct_users = [];
       correct_names = [];
       correct_times = [];
@@ -98,24 +107,39 @@ function doTriviaQuestion(msg) {
       // After eight seconds, we reveal the answer!
       // TODO: Only detect the first answer from each individual.
       setTimeout(function() {
-        correct_users_str = "";
+        correct_users_str = "**Correct answers:**\n";
 
         if(correct_names.length == 0)
-          correct_users_str = 'Nobody!';
+          correct_users_str = correct_users_str + "Nobody!";
         else {
           // TODO: Use commas and put all names on one line if there are tons of answers
           // TODO: Say "Correct!" rather than using a list if only one user participates
-          for(i = 0; i <= correct_names.length-1; i++) {
-            correct_users_str = correct_users_str + correct_names[i] + "\n";
+          if(correct_names.length == 1)
+            correct_users_str = "Correct!"; // Only one player, make things simple.
+          else if(correct_names.length > 10) {
+              // More than 10 players, player names are separated by comma
+              var comma = ", ";
+              for(i = 0; i <= correct_names.length-1; i++) {
+                if(i == correct_names.length-1)
+                  comma = "";
+
+                correct_users_str = correct_users_str + correct_names[i] + comma;
+              }
+            }
+          else {
+            // Less than 10 players, all names are on their own line.
+            for(i = 0; i <= correct_names.length-1; i++) {
+              correct_users_str = correct_users_str + correct_names[i] + "\n";
+            }
           }
         }
 
         msg.channel.send({embed: {
           color: color,
-          description: "**" + letters[correct_id] + ":** " + entities.decode(answer) + "\n\n**Correct answers:**\n" + correct_users_str
+          description: "**" + letters[correct_id] + ":** " + entities.decode(answer) + "\n\n" + correct_users_str
         }});
         question_in_progress = 0;
-      }, 8000);
+      }, 12000);
     });
   });
 }
