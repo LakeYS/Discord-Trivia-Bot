@@ -19,6 +19,7 @@
   "dependencies": {
     "discord.js": "^11.1.0",
     "html-entities": "^1.2.1",
+    "https": "^1.0.0",
     "semver-compare": "^1.0.0"
   }
 }

@@ -14,13 +14,16 @@ exports.parse = function(str, msg) {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       res.on('data', function(data) {
         var json = JSON.parse(data.toString());
-        msg.channel.send("Let's play trivia! Type 'trivia start' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified trivia questions!\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+        msg.channel.send("Let's play trivia! Type 'trivia play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions.\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
       });
     });
   }
 
   if(str == "TRIVIA START")
-    msg.channel.send("Not implemented. Type 'trivia question' for a random question.");
+    doTriviaQuestion(msg);
+
+  if(str == "TRIVIA PLAY")
+    doTriviaQuestion(msg);
 
   if(str == "TRIVIA QUESTION")
     doTriviaQuestion(msg);
