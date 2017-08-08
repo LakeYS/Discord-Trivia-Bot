@@ -107,7 +107,6 @@ function doTriviaQuestion(msg) {
       game[id].correct_times = []; // Not implemented
 
       // After eight seconds, we reveal the answer!
-      // TODO: Only detect the first answer from each individual.
       setTimeout(function() {
         var correct_users_str = "**Correct answers:**\n";
 
@@ -138,7 +137,13 @@ function doTriviaQuestion(msg) {
           color: color,
           description: "**" + letters[game[id].correct_id] + ":** " + entities.decode(game[id].answer) + "\n\n" + correct_users_str
         }});
+        var participants = game[id].participants;
         game[id] = {};
+
+        if(participants.length != 0)
+          setTimeout(() => {
+            doTriviaQuestion(msg);
+          }, 3500);
       }, 12000);
     });
   });
