@@ -37,8 +37,7 @@ exports.parse = function(str, msg) {
       }
     }
 
-    // TODO: Don't count if "C" or "D" is entered on a True/False question.
-    if(game[id].inProgress && (str == "A" || str == "B" || str == "C" || str == "D"))
+    if(game[id].inProgress && (str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
       game[id].participants.push(msg.author.id);
   }
 };
@@ -53,7 +52,6 @@ function doTriviaQuestion(msg) {
   https.get("https://opentdb.com/api.php?amount=1", (res) => {
     res.on('data', function(data) {
       var json = JSON.parse(data.toString());
-      // TODO: Catch errors from server
 
       var answers = [];
 
@@ -65,6 +63,9 @@ function doTriviaQuestion(msg) {
       answers[0] = json.results[0].correct_answer;
 
       answers = answers.concat(json.results[0].incorrect_answers);
+
+      if(json.results[0].incorrect_answers.length == 1)
+        game[id].isTrueFalse = 1;
 
       var color = 3447003;
       switch(json.results[0].difficulty) {
