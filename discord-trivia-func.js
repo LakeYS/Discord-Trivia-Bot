@@ -8,28 +8,38 @@ const letters = ["A", "B", "C", "D"];
 game = {};
 
 exports.parse = function(str, msg) {
+  // Str is always uppercase
   var id = msg.channel.id;
 
-  if(str == "TRIVIA HELP") {
+  if(str == "TRIVIA HELP" || str == "TRIVIA") {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       res.on('data', function(data) {
         var json = JSON.parse(data.toString());
-        msg.channel.send("Let's play trivia! Type 'trivia play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions.\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+        msg.channel.send("Let's play trivia! Type 'trivia play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions.\nCommands: `trivia play`, `trivia help`, `trivia categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
       });
     });
   }
 
-  if(str == "TRIVIA START")
+  if(str == "TRIVIA START" || str == "TRIVIA PLAY" || str == "TRIVIA QUESTION")
     doTriviaQuestion(msg);
 
-  if(str == "TRIVIA PLAY")
-    doTriviaQuestion(msg);
+  if(str == "TRIVIA CATEGORIES") {
+    https.get("https://opentdb.com/api_category.php", (res) => {
+      res.on('data', function(data) {
+        var json = JSON.parse(data.toString());
 
-  if(str == "TRIVIA QUESTION")
-    doTriviaQuestion(msg);
+        var categories = "**Categories:** ";
+        var i = 0;
+        for(i in json.trivia_categories)
+          categories = categories + "\n" + json.trivia_categories[i].name;
+        msg.author.send(categories);
+        //msg.channel.send("There are " + (i) + " categories. A list has been sent to you via DM.");
+      });
+    });
+  }
 
   if(game[id] !== undefined) {
-    if(str.toUpperCase() == letters[game[id].correct_id] && game[id].inProgress) {
+    if(str == letters[game[id].correct_id] && game[id].inProgress) {
       // Only counts if this is the first time they type an answer
       if(game[id].participants.indexOf(msg.author.id)) {
         game[id].correct_users.push(msg.author.id);
