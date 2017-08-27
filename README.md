@@ -11,7 +11,6 @@ This project is a work in progress.
 # Planned Features
 (Subject to change)
 - Dynamic scoring and statistics for each player (weekly and overall stats, etc.)
-- Polls where players can vote to play a category
 - Token usage to prevent duplicate questions
 - Custom questions and categories, configurable by server administrators.
 - Vote to play in any specific category
