@@ -2,6 +2,7 @@
 /*jshint evil:true */
 
 const https = require("https");
+const fs = require("fs");
 const semver = require("semver-compare");
 
 // # Version Check # //
