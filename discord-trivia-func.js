@@ -20,6 +20,13 @@ exports.parse = function(str, msg) {
     });
   }
 
+  if(str == "TRIVIA STOP" || str == "TRIVIA CANCEL") {
+    msg.channel.send("The game will stop automatically if nobody participates after two rounds.");
+
+    if(config["disable-admin-commands"] !== true && msg.member.permissions.has("MANAGE_GUILD"))
+      msg.channel.send("As a server manager, you can force-cancel a game by typing 'trivia admin cancel'");
+  }
+
   if(str == "TRIVIA START" || str == "TRIVIA PLAY" || str == "TRIVIA QUESTION")
     doTriviaQuestion(msg);
 
@@ -39,6 +46,7 @@ exports.parse = function(str, msg) {
   }
 
   if(game[id] !== undefined) {
+    // Note that inProgress is 'false' between rounds
     if(str == letters[game[id].correct_id] && game[id].inProgress) {
       // Only counts if this is the first time they type an answer
       if(game[id].participants.indexOf(msg.author.id)) {
@@ -49,6 +57,16 @@ exports.parse = function(str, msg) {
 
     if(game[id].inProgress && (str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
       game[id].participants.push(msg.author.id);
+  }
+
+  // **Admin Commands** //
+  if(msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
+    if(str == "TRIVIA ADMIN STOP" || str == "TRIVIA ADMIN CANCEL") {
+      if(game[id] !== undefined && game[id].inProgress) {
+        game[id] = {};
+        msg.channel.send("Game stopped by admin.");
+      }
+    }
   }
 };
 
@@ -119,6 +137,9 @@ function doTriviaQuestion(msg) {
 
       // After eight seconds, we reveal the answer!
       setTimeout(function() {
+        if(game[id] === undefined || !game[id].inProgress)
+          return;
+
         var correct_users_str = "**Correct answers:**\n";
 
         if(game[id].correct_names.length == 0)

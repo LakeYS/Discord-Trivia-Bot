@@ -1,3 +1,5 @@
 {
-  "token": "yourtokenhere"
+  "token": "yourtokenhere",
+
+  "disable-admin-commands": false
 }
