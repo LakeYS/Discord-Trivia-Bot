@@ -89,8 +89,8 @@ client.login(config.token);
 client.on('ready', () => {
   console.log('TriviaBot connected to ' + client.guilds.size + ' servers. Running v' + pjson.version);
 
-  client.user.setGame("[Type 'trivia help']");
-});
+
+client.user.setPresence({ game: { name: "[Type 'trivia help']", type: 0 } });});
 
 client.on('disconnect', function(event) {
   if(event.code != 1000) {
