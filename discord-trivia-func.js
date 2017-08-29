@@ -60,7 +60,7 @@ exports.parse = function(str, msg) {
   }
 
   // **Admin Commands** //
-  if(msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
+  if(config["disable-admin-commands"] !== true && msg.member !== undefined && msg.member.permissions.has("MANAGE_GUILD")) {
     if(str == "TRIVIA ADMIN STOP" || str == "TRIVIA ADMIN CANCEL") {
       if(game[id] !== undefined && game[id].inProgress) {
         game[id] = {};
