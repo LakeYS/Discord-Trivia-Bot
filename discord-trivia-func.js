@@ -23,7 +23,7 @@ exports.parse = function(str, msg) {
   if(str == "TRIVIA STOP" || str == "TRIVIA CANCEL") {
     msg.channel.send("The game will stop automatically if nobody participates after two rounds.");
 
-    if(config["disable-admin-commands"] !== true && msg.member.permissions.has("MANAGE_GUILD"))
+    if(config["disable-admin-commands"] !== true && msg.member !== null && msg.member.permissions.has("MANAGE_GUILD"))
       msg.channel.send("As a server manager, you can force-cancel a game by typing 'trivia admin cancel'");
   }
 
@@ -60,7 +60,7 @@ exports.parse = function(str, msg) {
   }
 
   // **Admin Commands** //
-  if(config["disable-admin-commands"] !== true && msg.member !== undefined && msg.member.permissions.has("MANAGE_GUILD")) {
+  if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
     if(str == "TRIVIA ADMIN STOP" || str == "TRIVIA ADMIN CANCEL") {
       if(game[id] !== undefined && game[id].inProgress) {
         game[id] = {};

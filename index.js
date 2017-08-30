@@ -1,6 +1,8 @@
 /*jshint esversion: 6 */
 /*jshint evil:true */
 
+process.title = "TriviaBot";
+
 const https = require("https");
 const fs = require("fs");
 const semver = require("semver-compare");
