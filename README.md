@@ -19,6 +19,7 @@ This project is a work in progress.
 # Commands
 - `trivia start`  - The command to start a trivia game.
 - `trivia help` - Shows information about the bot.
+- `trivia categories` - Sends you a list of categories via DM.
 
 # Categories (from OpenTDB)
 - General Knowledge
