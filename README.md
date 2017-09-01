@@ -11,10 +11,10 @@ This project is a work in progress.
 # Planned Features
 (Subject to change)
 - Dynamic scoring and statistics for each player (weekly and overall stats, etc.)
-- Token usage to prevent duplicate questions
+- Token usage to prevent duplicate questions.
 - Custom questions and categories, configurable by server administrators.
-- Vote to play in any specific category
-- Instructions to set up and host the bot
+- Vote to play in any specific category, question type, or difficulty level. (Also configurable by administractors)
+- Instructions to set up and host the bot.
 
 # Commands
 - `trivia start`  - The command to start a trivia game.
