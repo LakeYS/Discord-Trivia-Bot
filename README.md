@@ -1,5 +1,5 @@
 # Trivia Bot
-This project is a work in progress.
+TriviaBot brings multiplayer trivia games to your Discord server! With over 2,500 questions and 24 categories, TriviaBot offers endless trivia fun.
 [Click here to invite the bot to your server.](https://discordapp.com/oauth2/authorize?client_id=337654994461261825&scope=bot)
 
 # Implemented Features
