@@ -46,7 +46,7 @@ exports.parse = function(str, msg) {
   }
 
   if(game[id] !== undefined) {
-    // Note that inProgress is 'false' between rounds
+    // inProgress is always true when a game is active, even between rounds.
     if(str == letters[game[id].correct_id] && game[id].inProgress) {
       // Only counts if this is the first time they type an answer
       if(game[id].participants.indexOf(msg.author.id)) {
@@ -70,12 +70,19 @@ exports.parse = function(str, msg) {
   }
 };
 
-function doTriviaQuestion(msg) {
+function doTriviaQuestion(msg, scheduled) {
   var id = msg.channel.id;
-  if(game[id] === undefined || game[id].inProgress != 1)
-    game[id] = {};
-  else
+  if(!scheduled && game[id] !== undefined && game[id].inProgress == 1)
     return;
+
+  // Define the variables for the new game.
+  game[id] = {
+    'inProgress': 1,
+    'participants': [],
+    'correct_users': [],
+    'correct_names': [],
+    'correct_times': [] // Not implemented
+  };
 
   https.get("https://opentdb.com/api.php?amount=1", (res) => {
     res.on('data', function(data) {
@@ -129,12 +136,6 @@ function doTriviaQuestion(msg) {
 
       game[id].answer = json.results[0].correct_answer;
 
-      game[id].inProgress = 1;
-      game[id].participants = [];
-      game[id].correct_users = [];
-      game[id].correct_names = [];
-      game[id].correct_times = []; // Not implemented
-
       // After eight seconds, we reveal the answer!
       setTimeout(function() {
         if(game[id] === undefined || !game[id].inProgress)
@@ -170,12 +171,14 @@ function doTriviaQuestion(msg) {
           description: "**" + letters[game[id].correct_id] + ":** " + entities.decode(game[id].answer) + "\n\n" + correct_users_str
         }});
         var participants = game[id].participants;
-        game[id] = {};
 
         if(participants.length != 0)
           setTimeout(() => {
-            doTriviaQuestion(msg);
+            doTriviaQuestion(msg, 1);
           }, 3500);
+        else {
+          game[id] = {};
+        }
       }, 12000);
     });
   });
