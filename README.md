@@ -15,6 +15,7 @@ TriviaBot brings multiplayer trivia games to your Discord server! With over 2,50
 - Custom questions and categories, configurable by server administrators.
 - Vote to play in any specific category, question type, or difficulty level. (Also configurable by administractors)
 - Instructions to set up and host the bot.
+- Single-player trivia games via DM.
 
 # Commands
 - `trivia start`  - The command to start a trivia game.
