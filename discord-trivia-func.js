@@ -10,7 +10,7 @@ game = {};
 exports.parse = function(str, msg) {
   // Str is always uppercase
   var id = msg.channel.id;
-
+  
   if(str == "TRIVIA HELP" || str == "TRIVIA") {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       res.on('data', function(data) {
