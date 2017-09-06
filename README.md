@@ -18,7 +18,7 @@ TriviaBot brings multiplayer trivia games to your Discord server! With over 2,50
 - Instructions to set up and host the bot.
 
 # Commands
-- `trivia start`  - The command to start a trivia game.
+- `trivia start` - The command to start a trivia game.
 - `trivia help` - Shows information about the bot.
 - `trivia categories` - Sends you a list of categories via DM.
 
