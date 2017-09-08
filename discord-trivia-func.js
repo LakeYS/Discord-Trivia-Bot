@@ -10,7 +10,7 @@ game = {};
 exports.parse = function(str, msg) {
   // Str is always uppercase
   var id = msg.channel.id;
-  
+
   if(str == "TRIVIA HELP" || str == "TRIVIA") {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       res.on('data', function(data) {
@@ -63,7 +63,7 @@ exports.parse = function(str, msg) {
   if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
     if(str == "TRIVIA ADMIN STOP" || str == "TRIVIA ADMIN CANCEL") {
       if(game[id] !== undefined && game[id].inProgress) {
-        game[id] = {};
+        delete game[id];
         msg.channel.send("Game stopped by admin.");
       }
     }
@@ -177,7 +177,7 @@ function doTriviaQuestion(msg, scheduled) {
             doTriviaQuestion(msg, 1);
           }, 3500);
         else {
-          game[id] = {};
+          delete game[id];
         }
       }, 12000);
     });
