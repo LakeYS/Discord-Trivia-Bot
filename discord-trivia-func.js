@@ -75,13 +75,15 @@ function doTriviaQuestion(msg, scheduled) {
   if(!scheduled && game[id] !== undefined && game[id].inProgress == 1)
     return;
 
+
   // Define the variables for the new game.
   game[id] = {
     'inProgress': 1,
     'participants': [],
     'correct_users': [],
     'correct_names': [],
-    'correct_times': [] // Not implemented
+    'correct_times': [], // Not implemented
+    'prev_participants': game[id]!==undefined?game[id].participants:null
   };
 
   https.get("https://opentdb.com/api.php?amount=1", (res) => {
