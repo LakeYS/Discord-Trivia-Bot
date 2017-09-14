@@ -1,5 +1,6 @@
 {
   "token": "yourtokenhere",
 
-  "disable-admin-commands": false
+  "disable-admin-commands": false,
+  "disable-version-check": false
 }
