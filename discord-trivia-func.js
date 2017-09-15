@@ -17,6 +17,8 @@ exports.parse = function(str, msg) {
         var json = JSON.parse(data.toString());
         msg.channel.send("Let's play trivia! Type 'trivia play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions.\nCommands: `trivia play`, `trivia help`, `trivia categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
       });
+    }).on('error', function(err) {
+      msg.channel.send("Let's play trivia! Type 'trivia play' to start a game.\nCommands: `trivia play`, `trivia help`, `trivia categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
     });
   }
 
@@ -40,8 +42,11 @@ exports.parse = function(str, msg) {
         for(i in json.trivia_categories)
           categories = categories + "\n" + json.trivia_categories[i].name;
         msg.author.send(categories);
-        //msg.channel.send("There are " + (i) + " categories. A list has been sent to you via DM.");
+        i++;
+        msg.channel.send("There are " + i + " categories. A list has been sent to you via DM.");
       });
+    }).on('error', function(err) {
+      msg.channel.send("Failed to query category list.");
     });
   }
 
@@ -64,7 +69,10 @@ exports.parse = function(str, msg) {
     if(str == "TRIVIA ADMIN STOP" || str == "TRIVIA ADMIN CANCEL") {
       if(game[id] !== undefined && game[id].inProgress) {
         delete game[id];
-        msg.channel.send("Game stopped by admin.");
+        msg.channel.send({embed: {
+          color: 14164000,
+          description: "Game stopped by admin."
+        }});
       }
     }
   }
@@ -183,5 +191,12 @@ function doTriviaQuestion(msg, scheduled) {
         }
       }, 12000);
     });
+  }).on('error', function(err) {
+    msg.channel.send({embed: {
+      color: 14164000,
+      description: "An error occurred while attempting to query the trivia database."
+    }});
+
+    delete game[id];
   });
 }
