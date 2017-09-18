@@ -96,6 +96,10 @@ function doTriviaQuestion(msg, scheduled) {
 
   https.get("https://opentdb.com/api.php?amount=1", (res) => {
     res.on('data', function(data) {
+      // Make sure the game wasn't cancelled while querying OpenTDB.
+      if(!game[id])
+        return;
+
       var json = JSON.parse(data.toString());
 
       var answers = [];
