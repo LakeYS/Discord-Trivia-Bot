@@ -98,7 +98,7 @@ process.stdin.setEncoding('utf8');
 const pjson = require("./package.json");
 
 const Discord = require("discord.js");
-const client = new Discord.Client();
+client = new Discord.Client();
 
 const trivia = require("./discord-trivia-func.js");
 
