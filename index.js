@@ -157,7 +157,7 @@ process.on('rejectionHandled', (err) => {
   console.log(err);
   console.log("An error occurred. Reconnecting...");
   client.destroy();
-  setTimeout(function(){ client.login(token); }, 2000);
+  setTimeout(function(){ client.login(config.token); }, 2000);
 });
 
 process.on('exit', function() {
