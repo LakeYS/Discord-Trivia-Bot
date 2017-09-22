@@ -41,9 +41,18 @@ exports.parse = function(str, msg) {
         var i = 0;
         for(i in json.trivia_categories)
           categories = categories + "\n" + json.trivia_categories[i].name;
-        msg.author.send(categories);
-        i++;
-        msg.channel.send("There are " + i + " categories. A list has been sent to you via DM.");
+
+        var str = "A list has been sent to you via DM.";
+        msg.author.send(categories)
+          .catch(function(err) {
+            str = "Unable to send you the list because you cannot receive DMs.";
+            if(err != "DiscordAPIError: Cannot send messages to this user")
+              console.log(err);
+          })
+          .then(function() {
+            i++;
+            msg.channel.send("There are " + i + " categories. " + str);
+          });
       });
     }).on('error', function(err) {
       msg.channel.send("Failed to query category list.");
