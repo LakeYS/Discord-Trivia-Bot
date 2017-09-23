@@ -92,7 +92,6 @@ function doTriviaQuestion(msg, scheduled) {
   if(!scheduled && game[id] !== undefined && game[id].inProgress == 1)
     return;
 
-
   // Define the variables for the new game.
   game[id] = {
     'inProgress': 1,
@@ -114,7 +113,15 @@ function doTriviaQuestion(msg, scheduled) {
       var answers = [];
 
       if(json.response_code !== 0) {
-        msg.channel.send("An error occurred.");
+        console.log("Received error from OpenTDB.");
+        console.log(json);
+
+        msg.channel.send({embed: {
+          color: 14164000,
+          description: "An error occurred while attempting to query the trivia database."
+        }});
+
+        delete game[id];
         return;
       }
 
