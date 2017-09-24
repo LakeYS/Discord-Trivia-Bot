@@ -43,6 +43,8 @@ exports.parse = function(str, msg) {
           categories = categories + "\n" + json.trivia_categories[i].name;
 
         var str = "A list has been sent to you via DM.";
+        if(msg.channel.type == 'dm')
+          str = "";
         msg.author.send(categories)
           .catch(function(err) {
             str = "Unable to send you the list because you cannot receive DMs.";
