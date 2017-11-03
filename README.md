@@ -5,8 +5,6 @@ TriviaBot brings multiplayer trivia games to your Discord server! With over 3,00
 [Click here to invite the bot to your server.](https://discordapp.com/oauth2/authorize?client_id=337654994461261825&scope=bot)
 
 # Development and Support
-Note: Development of this project will likely be slow through the month of October as I am be working hard on another project. Normal development will resume soon.
-
 For support, questions, and comments, you can join the Discord server or contact me directly at contact@LakeYS.net. You can also [submit an issue](https://github.com/LakeYS/Discord-Trivia-Bot/issues/new) for bugs and support.
 
 **[Join the Discord](https://discord.gg/sEMrfBT)**
