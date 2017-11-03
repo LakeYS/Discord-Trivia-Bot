@@ -7,7 +7,7 @@ TriviaBot brings multiplayer trivia games to your Discord server! With over 3,00
 # Development and Support
 For support, questions, and comments, you can join the Discord server or contact me directly at contact@LakeYS.net. You can also [submit an issue](https://github.com/LakeYS/Discord-Trivia-Bot/issues/new) for bugs and support.
 
-**[Join the Discord](https://discord.gg/sEMrfBT)**
+**[Join the Discord](https://discord.gg/s3vCQba)**
 
 # Implemented Features
 - Access to a complete database of over 2,500 categorized, multiple-choice trivia questions. (Thanks to [OpenTDB](https://opentdb.com))
