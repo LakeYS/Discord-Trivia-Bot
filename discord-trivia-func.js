@@ -163,7 +163,7 @@ function doTriviaQuestion(msg, scheduled) {
 
       msg.channel.send({embed: {
         color: color,
-        description: "*" + categoryString + "*\n**" + entities.decode(json.results[0].question) + "**\n" + answerString
+        description: "*" + categoryString + "*\n**" + entities.decode(json.results[0].question) + "**\n" + answerString + (!scheduled?"\nType a letter to answer!":"")
       }});
 
       game[id].answer = json.results[0].correct_answer;
