@@ -1,5 +1,6 @@
 {
   "token": "yourtokenhere",
+  "bots.discord.pw-token": "optionaltokenhere",
 
   "disable-admin-commands": false,
   "disable-version-check": false

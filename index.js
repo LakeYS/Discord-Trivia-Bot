@@ -5,6 +5,7 @@ process.title = "TriviaBot";
 
 const https = require("https");
 const fs = require("fs");
+const snekfetch = require("snekfetch");
 
 // # Initialize Config # //
 configFile = "./config.json";
@@ -115,6 +116,7 @@ client.on('ready', () => {
     client.user.setAvatar("./profile.png");
   }
 
+  postBotStats();
 });
 
 client.on('disconnect', function(event) {
@@ -138,6 +140,22 @@ client.on("message", msg => {
     trivia.parse(str, msg);
   }
 });
+
+// # Post to Bot Listings # //
+function postBotStats()
+{
+  // ## bots.discord.pw ## //
+  if(config['bots.discord.pw-token'] && config['bots.discord.pw-token'] !== "optionaltokenhere")
+  {
+    snekfetch.post("https://bots.discord.pw/api/bots/" + client.user.id + "/stats")
+      .set('Authorization',config['bots.discord.pw-token'])
+      .send({
+        server_count: client.guilds.size
+      }).catch(err => {
+        console.log("Error occurred while posting to bots.discord.pw:\n" + err);
+      });
+  }
+}
 
 // # Console Functions # //
 process.stdin.on('data', function (text) {

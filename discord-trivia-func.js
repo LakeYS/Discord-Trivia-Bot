@@ -89,6 +89,10 @@ exports.parse = function(str, msg) {
   }
 };
 
+// # doTriviaQuestion #
+// - msg: The message returned by discord.js
+// - scheduled: Set to true if starting a game scheduled by the bot.
+//              Keep false if starting on a user's command.
 function doTriviaQuestion(msg, scheduled) {
   var id = msg.channel.id;
   if(!scheduled && game[id] !== undefined && game[id].inProgress == 1)
