@@ -1,6 +1,7 @@
 {
   "token": "yourtokenhere",
   "bots.discord.pw-token": "optionaltokenhere",
+  "discordbots.org-token": "optionaltokenhere",
 
   "disable-admin-commands": false,
   "disable-version-check": false
