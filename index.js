@@ -109,7 +109,7 @@ client.login(config.token);
 client.on('ready', () => {
   console.log('TriviaBot connected to ' + client.guilds.size + ' servers. Running v' + pjson.version);
 
-  client.user.setPresence({ game: { name: "[Type 'trivia help']", type: 0 } });
+  client.user.setPresence({ game: { name: "Trivia! Say 'trivia help' to get started.", type: 0 } });
 
   if(client.user.avatar == null) {
     console.log("Set profile image to profile.png");

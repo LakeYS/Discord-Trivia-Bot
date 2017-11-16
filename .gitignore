@@ -5,6 +5,7 @@ config_dev.json
 run_private.bat
 run_private.sh
 run_dev.sh
+update.sh
 
 # Windows image file caches
 Thumbs.db
