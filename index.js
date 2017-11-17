@@ -171,6 +171,14 @@ function postBotStats() {
 // # Console Functions # //
 process.stdin.on('data', function (text) {
   if(text.toString() == "stop\r\n" || text.toString() == "exit\r\n" || text.toString() == "stop\n" || text.toString() == "exit\n")
+  {
+    // TRIVIABOT override: Don't shut down if a game is in progress.
+    if(Object.keys(game).length == 0)
+      process.exit();
+    else
+      console.log("There are " + Object.keys(game).length + " game(s) in progress, bot will not close.\nType 'forceexit' to override.");
+  }
+  else if(text.toString() == "forceexit\r\n") // TRIVIABOT override: Check for 'forceexit'
     process.exit();
   else {
     try {
