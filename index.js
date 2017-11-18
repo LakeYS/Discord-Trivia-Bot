@@ -107,7 +107,7 @@ const trivia = require("./discord-trivia-func.js");
 client.login(config.token);
 
 client.on('ready', () => {
-  console.log('TriviaBot connected to ' + client.guilds.size + ' servers. Running v' + pjson.version);
+  console.log('TriviaBot connected to ' + client.guilds.size + ' server' + (client.guilds.size==1?'':'s') + '. Running v' + pjson.version);
 
   client.user.setPresence({ game: { name: "Trivia! Say 'trivia help' to get started.", type: 0 } });
 
