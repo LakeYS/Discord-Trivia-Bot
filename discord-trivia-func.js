@@ -211,11 +211,11 @@ function doTriviaQuestion(msg, scheduled) {
         if(participants.length != 0)
           setTimeout(() => {
             doTriviaQuestion(msg, 1);
-          }, 3500);
+          }, 5500);
         else {
           delete game[id];
         }
-      }, 12000);
+      }, 15000);
     });
   }).on('error', function(err) {
     msg.channel.send({embed: {
