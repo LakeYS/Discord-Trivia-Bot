@@ -4,6 +4,7 @@ config_private.json
 config_dev.json
 run_private.bat
 run_private.sh
+run_dev.bat
 run_dev.sh
 update.sh
 

@@ -1,11 +1,16 @@
 /*jshint esversion: 6 */
 /*jshint evil:true */
 
-process.title = "TriviaBot";
-
 const https = require("https");
 const fs = require("fs");
 const snekfetch = require("snekfetch");
+
+const pjson = require("./package.json");
+
+// Note that the spacing of the artwork will mess up with double-digit version numbers (such as '1.10.0')
+console.log("                 ########\n            ##################\n         ###      #######     ###\n       ###    ###############   ###\n     ###    ####################  ###\n    ###     #########    ########  ###\n   ###     ########      ########   ###\n  ###       #####       ########     ###\n ###                  ##########      ### \x1b[7m TriviaBot " + pjson.version + "   \x1b[0m\n ###               ###########        ### \x1b[7m By Lake Y         \x1b[0m\n ###              #########           ### \x1b[7m http://lakeys.net \x1b[0m\n  ###             ########           ###\n   ###            ######            ###\n    ###            ####            ###\n      ###         ######         ###\n        ###      #######       ###\n          #####    ####    #####\n               ############\n                  ######");
+
+process.title = "TriviaBot " + pjson.version;
 
 // # Initialize Config # //
 configFile = "./config.json";
@@ -27,7 +32,7 @@ if(!config['disable-version-check']) {
     semver = require('semver-compare');
   } catch(err) {
     if(err.code == 'MODULE_NOT_FOUND') {
-      console.warn("********\nWARNING: semver-compare module not found. The version check will be skipped.\nMake sure to keep the bot up-to-date! Check here for newer versions:\nhttps://github.com/LakeYS/Discord-Trivia-Bot/releases\n********");
+      console.warn("********\nWARNING: semver-compare module not found. The version check will be skipped.\nMake sure to keep the bot up-to-date! Check here for newer versions:\n\x1b[1mhttps://github.com/LakeYS/Discord-Trivia-Bot/releases\x1b[0m\n********");
       skipVersionCheck = 1;
     }
     else
@@ -66,10 +71,10 @@ if(!config['disable-version-check']) {
             var releaseRelative = semver(pjson.version, release);
 
             if(releaseRelative == 1)
-              console.log("********\nNOTICE: You are currently running v" + pjson.version + ". This build is considered unstable.\nCheck here for the latest stable versions of this script:\nhttps://github.com/LakeYS/Discord-Trivia-Bot/releases\n********");
+              console.log("********\nNOTICE: You are currently running \x1b[1mv" + pjson.version + "\x1b[0m. This build is considered unstable.\nCheck here for the latest stable versions of this script:\n\x1b[1mhttps://github.com/LakeYS/Discord-Trivia-Bot/releases\x1b[0m\n********");
 
             if(releaseRelative == -1)
-              console.log("********\nNOTICE: You are currently running v" + pjson.version + ". A newer version is available.\nCheck here for the latest version of this script:\nhttps://github.com/LakeYS/Discord-Trivia-Bot/releases\n********");
+              console.log("********\nNOTICE: You are currently running \x1b[1mv" + pjson.version + "\x1b[0m. A newer version is available.\nCheck here for the latest version of this script:\n\x1b[1mhttps://github.com/LakeYS/Discord-Trivia-Bot/releases\x1b[0m\n********");
             } else {
               console.log(json);
               console.warn("WARNING: Unable to parse version data.");
@@ -96,8 +101,6 @@ if(!config['disable-version-check']) {
 process.stdin.resume();
 process.stdin.setEncoding('utf8');
 
-const pjson = require("./package.json");
-
 const Discord = require("discord.js");
 client = new Discord.Client();
 
@@ -107,7 +110,7 @@ const trivia = require("./discord-trivia-func.js");
 client.login(config.token);
 
 client.on('ready', () => {
-  console.log('TriviaBot connected to ' + client.guilds.size + ' server' + (client.guilds.size==1?'':'s') + '. Running v' + pjson.version);
+  console.log('Discord client connected to \x1b[1m' + client.guilds.size + '\x1b[0m server' + (client.guilds.size==1?'':'s') + '.');
 
   client.user.setPresence({ game: { name: "Trivia! Say 'trivia help' to get started.", type: 0 } });
 
@@ -176,7 +179,7 @@ process.stdin.on('data', function (text) {
     if(Object.keys(game).length == 0)
       process.exit();
     else
-      console.log("There are " + Object.keys(game).length + " game(s) in progress, bot will not close.\nType 'forceexit' to override.");
+      console.log("There are \x1b[1m" + Object.keys(game).length + "\x1b[0m game(s) in progress, bot will not close.\nType 'forceexit' to override.");
   }
   else if(text.toString() == "forceexit\r\n") // TRIVIABOT override: Check for 'forceexit'
     process.exit();
