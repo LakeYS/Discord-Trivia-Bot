@@ -11,6 +11,10 @@ exports.parse = function(str, msg) {
   // Str is always uppercase
   var id = msg.channel.id;
 
+  // Other bots can't use commands
+  if(msg.author.bot == 1)
+    return;
+
   if(str == "TRIVIA HELP" || str == "TRIVIA") {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       res.on('data', function(data) {
