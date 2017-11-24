@@ -83,7 +83,17 @@ exports.parse = function(str, msg) {
   if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
     if(str == "TRIVIA ADMIN STOP" || str == "TRIVIA ADMIN CANCEL") {
       if(game[id] !== undefined && game[id].inProgress) {
+        var timeout = game[id].timeout;
+
+        // If a round is in progress, display the answers before cancelling the game.
+        if(game[id].inRound)
+          timeout._onTimeout();
+
+        if(game[id] !== undefined)
+          clearTimeout(game[id].timeout);
+          
         delete game[id];
+
         msg.channel.send({embed: {
           color: 14164000,
           description: "Game stopped by admin."
@@ -96,7 +106,8 @@ exports.parse = function(str, msg) {
 // # doTriviaQuestion #
 // - msg: The message returned by discord.js
 // - scheduled: Set to true if starting a game scheduled by the bot.
-//              Keep false if starting on a user's command.
+//              Keep false if starting on a user's command. (must
+//              already have a game initialized to start)
 function doTriviaQuestion(msg, scheduled) {
   var id = msg.channel.id;
   if(!scheduled && game[id] !== undefined && game[id].inProgress == 1)
@@ -105,6 +116,7 @@ function doTriviaQuestion(msg, scheduled) {
   // Define the variables for the new game.
   game[id] = {
     'inProgress': 1,
+    'inRound': 1,
     'participants': [],
     'correct_users': [],
     'correct_names': [],
@@ -176,10 +188,12 @@ function doTriviaQuestion(msg, scheduled) {
 
       game[id].answer = json.results[0].correct_answer;
 
-      // After eight seconds, we reveal the answer!
-      setTimeout(function() {
+      // Reveal the answer after the time is up
+      game[id].timeout = setTimeout(function() {
         if(game[id] === undefined || !game[id].inProgress)
           return;
+
+        game[id].inRound = 0;
 
         var correct_users_str = "**Correct answers:**\n";
 
@@ -213,7 +227,7 @@ function doTriviaQuestion(msg, scheduled) {
         var participants = game[id].participants;
 
         if(participants.length != 0)
-          setTimeout(() => {
+          game[id].timeout = setTimeout(() => {
             doTriviaQuestion(msg, 1);
           }, 5500);
         else {
