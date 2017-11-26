@@ -91,7 +91,7 @@ exports.parse = function(str, msg) {
 
         if(game[id] !== undefined)
           clearTimeout(game[id].timeout);
-          
+
         delete game[id];
 
         msg.channel.send({embed: {
@@ -113,6 +113,20 @@ function doTriviaQuestion(msg, scheduled) {
   if(!scheduled && game[id] !== undefined && game[id].inProgress == 1)
     return;
 
+
+  // ## Permission Checks ##
+  // Check if we have proper permissions for the channel.
+  if(!msg.channel.permissionsFor(msg.guild.me).has('SEND_MESSAGES')) {
+    msg.author.send("Unable to start a Trivia game in this channel. (Bot does not have permission to send messages)");
+    return;
+  }
+
+  if(!msg.channel.permissionsFor(msg.guild.me).has('EMBED_LINKS')) {
+    msg.channel.send("Unable to start a trivia game because this channel does not have the 'Embed Links' permission.");
+    return;
+  }
+
+  // ## Game ##
   // Define the variables for the new game.
   game[id] = {
     'inProgress': 1,
