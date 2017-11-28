@@ -4,5 +4,7 @@
   "discordbots.org-token": "optionaltokenhere",
 
   "disable-admin-commands": false,
+  "use-reactions": false,
+
   "disable-version-check": false
 }
