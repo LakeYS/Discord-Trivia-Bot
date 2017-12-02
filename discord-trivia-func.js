@@ -88,10 +88,11 @@ exports.parse = function(str, msg) {
         let timeout = game[id].timeout;
 
         // If a round is in progress, display the answers before cancelling the game.
-        if(game[id].inRound)
+        if(game[id].inRound && timeout !== undefined)
           timeout._onTimeout();
 
-        if(typeof game[id] !== undefined)
+        // If there's still a timeout, clear it.
+        if(game[id] !== undefined && game[id].timeout !== undefined)
           clearTimeout(game[id].timeout);
 
         delete game[id];
@@ -120,6 +121,14 @@ function doTriviaQuestion(msg, scheduled) {
   var useReactions = 0;
   if(msg.channel.type !== 'dm') {
     // Check if we have proper permissions for the channel.
+    var permissions = msg.channel.permissionsFor(msg.guild.me);
+
+    // Permissions sometimes return null for some reason, so this is a workaround.
+    if(permissions == null) {
+      msg.author.send("Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)");
+      return;
+    }
+
     if(!msg.channel.permissionsFor(msg.guild.me).has('SEND_MESSAGES')) {
       msg.author.send("Unable to start a Trivia game in this channel. (Bot does not have permission to send messages)");
       return;
@@ -334,7 +343,7 @@ client.on('messageReactionAdd', (reaction, user) => {
   var str = reaction.emoji.name;
 
   // If a game is in progress, the reaction is on the right message, the game uses reactions, and the reactor isn't the TriviaBot client...
-  if(game[id] !== undefined && reaction.message.id == game[id].message.id && game[id].useReactions && user !== client.user) {
+  if(game[id] !== undefined && game[id].message !== undefined && reaction.message.id == game[id].message.id && game[id].useReactions && user !== client.user) {
     if(str == "🇦")
       str = "A";
     else if(str == "🇧")
