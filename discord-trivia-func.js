@@ -357,15 +357,15 @@ client.on('messageReactionAdd', (reaction, user) => {
       return; // The reaction isn't a letter, ignore it.
 
     // Note that the following is copied and modified from above.
-    if(str == letters[game[id].correct_id] && game[id].inProgress) {
-      // Only counts if this is the first time they type an answer
-      if(game[id].participants.indexOf(user.id)) {
+    if(game[id].participants.indexOf(user.id)) {
+      if(str == letters[game[id].correct_id] && game[id].inProgress) {
+        // Only counts if this is the first time they type an answer
         game[id].correct_users.push(user.id);
         game[id].correct_names.push(user.username);
       }
-    }
 
-    if(game[id].inProgress && (str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
-      game[id].participants.push(user.id);
+      if(game[id].inProgress && (str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
+        game[id].participants.push(user.id);
+    }
   }
 });
