@@ -7,6 +7,25 @@ const letters = ["A", "B", "C", "D"];
 
 game = {};
 
+// Generic message sending function.
+// This is to avoid repeating the same error catchers throughout the script.
+function triviaSend(channel, author, msg) {
+  channel.send(msg)
+  .catch((err) => {
+    if(author !== undefined) {
+      author.send({embed: {
+        color: 14164000,
+        description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
+      }})
+      .catch((err) => {
+        console.warn("Failed to send message to user " + author.id);
+      });
+    }
+    else
+      console.warn("Failed to send message (no user)");
+  });
+}
+
 exports.parse = function(str, msg) {
   // Str is always uppercase
   var id = msg.channel.id;
@@ -19,18 +38,17 @@ exports.parse = function(str, msg) {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       res.on('data', function(data) {
         var json = JSON.parse(data.toString());
-        msg.channel.send("Let's play trivia! Type 'trivia play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. Currently in " + client.guilds.size + " guild" + (client.guilds.size==1?'':'s') + ".\nCommands: `trivia play`, `trivia help`, `trivia categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+        triviaSend(msg.channel, msg.author, "Let's play trivia! Type 'trivia play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. Currently in " + client.guilds.size + " guild" + (client.guilds.size==1?'':'s') + ".\nCommands: `trivia play`, `trivia help`, `trivia categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
       });
     }).on('error', function(err) {
-      msg.channel.send("Let's play trivia! Type 'trivia play' to start a game.\nCurrently in " + client.guilds.size + " guilds. \nCommands: `trivia play`, `trivia help`, `trivia categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+      triviaSend(msg.channel, msg.author, "Let's play trivia! Type 'trivia play' to start a game.\nCurrently in " + client.guilds.size + " guilds. \nCommands: `trivia play`, `trivia help`, `trivia categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
     });
   }
 
   if(str == "TRIVIA STOP" || str == "TRIVIA CANCEL") {
-    msg.channel.send("The game will stop automatically if nobody participates after two rounds.");
+    triviaSend(msg.channel, msg.author, "Trivia games will stop automatically if nobody participates after two rounds.\nServer managers can type 'trivia admin cancel' to force-cancel a round.");
 
-    if(config["disable-admin-commands"] !== true && msg.member !== null && msg.member.permissions.has("MANAGE_GUILD"))
-      msg.channel.send("As a server manager, you can force-cancel a game by typing 'trivia admin cancel'");
+    //if(config["disable-admin-commands"] !== true && msg.member !== null && msg.member.permissions.has("MANAGE_GUILD"))
   }
 
   if(str == "TRIVIA START" || str == "TRIVIA PLAY" || str == "TRIVIA QUESTION")
@@ -98,7 +116,7 @@ exports.parse = function(str, msg) {
 
         delete game[id];
 
-        msg.channel.send({embed: {
+        triviaSend(msg.channel, undefined, {embed: {
           color: 14164000,
           description: "Game stopped by admin."
         }});
