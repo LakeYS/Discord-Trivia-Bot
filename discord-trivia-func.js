@@ -69,16 +69,17 @@ exports.parse = function(str, msg) {
   // Note that this is copied below for reaction mode.
   if(game[id] !== undefined && !game[id].useReactions) {
     // inProgress is always true when a game is active, even between rounds.
-    if(str == letters[game[id].correct_id] && game[id].inProgress) {
-      // Only counts if this is the first time they type an answer
-      if(game[id].participants.indexOf(msg.author.id)) {
+
+    // Make sure they haven't already submitted an answer
+    if(game[id].participants.indexOf(msg.author.id)) {
+      if(str == letters[game[id].correct_id] && game[id].inProgress) {
         game[id].correct_users.push(msg.author.id);
         game[id].correct_names.push(msg.author.username);
       }
-    }
 
-    if(game[id].inProgress && (str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
-      game[id].participants.push(msg.author.id);
+      if(game[id].inProgress && (str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
+        game[id].participants.push(msg.author.id);
+      }
   }
 
   // **Admin Commands** //
