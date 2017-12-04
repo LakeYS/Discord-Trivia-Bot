@@ -45,11 +45,8 @@ exports.parse = function(str, msg) {
     });
   }
 
-  if(str == "TRIVIA STOP" || str == "TRIVIA CANCEL") {
+  if(str == "TRIVIA STOP" || str == "TRIVIA CANCEL")
     triviaSend(msg.channel, msg.author, "Trivia games will stop automatically if nobody participates after two rounds.\nServer managers can type 'trivia admin cancel' to force-cancel a round.");
-
-    //if(config["disable-admin-commands"] !== true && msg.member !== null && msg.member.permissions.has("MANAGE_GUILD"))
-  }
 
   if(str == "TRIVIA START" || str == "TRIVIA PLAY" || str == "TRIVIA QUESTION")
     doTriviaQuestion(msg);
@@ -132,9 +129,24 @@ exports.parse = function(str, msg) {
 //              already have a game initialized to start)
 function doTriviaQuestion(msg, scheduled) {
   var id = msg.channel.id;
-  if(!scheduled && game[id] !== undefined && game[id].inProgress == 1)
-    return;
 
+  // Check if there is a game running. If there is one, make sure it isn't frozen.
+  if(game[id] !== undefined) {
+    if(!scheduled && game[id].inProgress == 1)
+      return; // If there's already a game in progress, don't start another unless scheduled by the script.
+    else if(!scheduled && game[id].timeout._called == true) {
+      // The timeout should never be stuck on 'called' during a round.
+      // Dump the game in the console, clear it, and continue.
+      console.error(game + "\nERROR: Unscheduled game '" + id + "' timeout appears to be stuck in the 'called' state. Cancelling game...");
+      delete game[id];
+    }
+    else if(game[id].timeout._idleTimeout == -1) {
+      // The timeout reads -1. (Can occur if clearTimeout is called without deleting.)
+      // Dump the game in the console, clear it, and continue.
+      console.error(game + "\nERROR: Game '" + id + "' timeout reads -1. Game will be cancelled.");
+      delete game[id];
+    }
+  }
 
   // ## Permission Checks ##
   var useReactions = 0;
