@@ -34,7 +34,7 @@ exports.parse = function(str, msg) {
   if(msg.author.bot == 1)
     return;
 
-  if(str == "TRIVIA HELP" || str == "TRIVIA") {
+  if(str == "TRIVIA HELP" || str == "TRIVIA" || str.includes("<@" + client.user.id + ">")) {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       res.on('data', function(data) {
         var json = JSON.parse(data.toString());
