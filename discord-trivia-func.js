@@ -31,7 +31,7 @@ exports.parse = function(str, msg) {
   var id = msg.channel.id;
 
   // Other bots can't use commands
-  if(msg.author.bot == 1)
+  if(msg.author.bot == 1 && config['allow-bots'] !== true)
     return;
 
   if(str == "TRIVIA HELP" || str == "TRIVIA" || str.includes("<@" + client.user.id + ">")) {
@@ -47,6 +47,9 @@ exports.parse = function(str, msg) {
 
   if(str == "TRIVIA STOP" || str == "TRIVIA CANCEL")
     triviaSend(msg.channel, msg.author, "Trivia games will stop automatically if nobody participates after two rounds.\nServer managers can type 'trivia admin cancel' to force-cancel a round.");
+
+  if(str == "TRIVIA TEST")
+    triviaSend(msg.channel, msg.author, "trivia play");
 
   if(str == "TRIVIA START" || str == "TRIVIA PLAY" || str == "TRIVIA QUESTION")
     doTriviaQuestion(msg);

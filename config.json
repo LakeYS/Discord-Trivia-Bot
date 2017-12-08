@@ -6,5 +6,6 @@
   "disable-admin-commands": false,
   "use-reactions": false,
 
-  "disable-version-check": false
+  "disable-version-check": false,
+  "allow-bots": false
 }
