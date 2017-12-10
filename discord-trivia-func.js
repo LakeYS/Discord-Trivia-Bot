@@ -320,7 +320,7 @@ function doTriviaQuestion(msg, scheduled) {
         }
       });
 
-      game[id].difficulty = json.results[0]
+      game[id].difficulty = json.results[0].difficulty
       game[id].answer = json.results[0].correct_answer;
 
       // Reveal the answer after the time is up
