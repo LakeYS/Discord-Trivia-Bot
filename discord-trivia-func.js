@@ -48,9 +48,6 @@ exports.parse = function(str, msg) {
   if(str == "TRIVIA STOP" || str == "TRIVIA CANCEL")
     triviaSend(msg.channel, msg.author, "Trivia games will stop automatically if nobody participates after two rounds.\nServer managers can type 'trivia admin cancel' to force-cancel a round.");
 
-  if(str == "TRIVIA TEST")
-    triviaSend(msg.channel, msg.author, "trivia play");
-
   if(str == "TRIVIA START" || str == "TRIVIA PLAY" || str == "TRIVIA QUESTION")
     doTriviaQuestion(msg);
 
