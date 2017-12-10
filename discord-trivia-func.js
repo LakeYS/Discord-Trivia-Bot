@@ -26,6 +26,18 @@ function triviaSend(channel, author, msg) {
   });
 }
 
+// Function to end trivia games
+function triviaEndGame(id) {
+  if(game[id] == undefined) {
+    console.warn("Attempting to clear empty game, ignoring.");
+    return;
+  }
+  if(game[id].timeout !== undefined)
+    clearTimeout(game[id].timeout);
+
+  delete game[id];
+}
+
 exports.parse = function(str, msg) {
   // Str is always uppercase
   var id = msg.channel.id;
@@ -107,11 +119,10 @@ exports.parse = function(str, msg) {
         if(game[id].inRound && timeout !== undefined)
           timeout._onTimeout();
 
-        // If there's still a timeout, clear it.
-        if(game[id] !== undefined && game[id].timeout !== undefined)
-          clearTimeout(game[id].timeout);
+        // If there's still a game, clear it.
+        if(game[id] !== undefined)
+          triviaEndGame(id);
 
-        delete game[id];
 
         triviaSend(msg.channel, undefined, {embed: {
           color: 14164000,
@@ -138,13 +149,13 @@ function doTriviaQuestion(msg, scheduled) {
       // The timeout should never be stuck on 'called' during a round.
       // Dump the game in the console, clear it, and continue.
       console.error(game + "\nERROR: Unscheduled game '" + id + "' timeout appears to be stuck in the 'called' state. Cancelling game...");
-      delete game[id];
+      triviaEndGame(id);
     }
     else if(game[id].timeout._idleTimeout == -1) {
       // The timeout reads -1. (Can occur if clearTimeout is called without deleting.)
       // Dump the game in the console, clear it, and continue.
       console.error(game + "\nERROR: Game '" + id + "' timeout reads -1. Game will be cancelled.");
-      delete game[id];
+      triviaEndGame(id);
     }
   }
 
@@ -213,7 +224,7 @@ function doTriviaQuestion(msg, scheduled) {
           description: "An error occurred while attempting to query the trivia database."
         }});
 
-        delete game[id];
+        triviaEndGame(id);
         return;
       }
 
@@ -299,7 +310,7 @@ function doTriviaQuestion(msg, scheduled) {
                   }});
 
                   msg.delete();
-                  delete game[id];
+                  triviaEndGame(id);
                   return;
                 }
               });
@@ -309,6 +320,7 @@ function doTriviaQuestion(msg, scheduled) {
         }
       });
 
+      game[id].difficulty = json.results[0]
       game[id].answer = json.results[0].correct_answer;
 
       // Reveal the answer after the time is up
@@ -354,7 +366,7 @@ function doTriviaQuestion(msg, scheduled) {
             doTriviaQuestion(msg, 1);
           }, 5500);
         else {
-          delete game[id];
+          triviaEndGame(id);
         }
       }, 15000);
     });
@@ -364,7 +376,7 @@ function doTriviaQuestion(msg, scheduled) {
       description: "An error occurred while attempting to query the trivia database."
     }});
 
-    delete game[id];
+    triviaEndGame(id);
   });
 }
 
