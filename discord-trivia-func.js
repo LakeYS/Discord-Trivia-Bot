@@ -9,20 +9,21 @@ game = {};
 
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
+// Beware: This is not used for every message. For corner cases, 'channel.send' is used.
 function triviaSend(channel, author, msg) {
-  channel.send(msg)
+  return channel.send(msg)
   .catch((err) => {
-    if(author !== undefined) {
+    if(author !== undefined && channel.type != 'dm') {
       author.send({embed: {
         color: 14164000,
         description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
       }})
       .catch((err) => {
-        console.warn("Failed to send message to user " + author.id);
+        console.warn("Failed to send message to user " + author.id + ". (DM failed)");
       });
     }
     else
-      console.warn("Failed to send message (no user)");
+      console.warn("Failed to send message to user " + author.id + ". (no user or already in DM)");
   });
 }
 
@@ -84,11 +85,14 @@ exports.parse = function(str, msg) {
           })
           .then(function() {
             i++;
-            msg.channel.send("There are " + i + " categories. " + str);
+            msg.channel.send("There are " + i + " categories. " + str) // This is a DM-based command; will not use triviaSend
+            .catch((err) => {
+              console.warn("Failed to send message to user " + msg.author.id + " (Will not fall back to DM)");
+            });
           });
       });
     }).on('error', function(err) {
-      msg.channel.send("Failed to query category list.");
+      triviaSend(msg.channel, msg.author, "Failed to query category list.");
     });
   }
 
@@ -167,17 +171,26 @@ function doTriviaQuestion(msg, scheduled) {
 
     // Permissions sometimes return null for some reason, so this is a workaround.
     if(permissions == null) {
-      msg.author.send("Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)");
+      msg.author.send("Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)")
+      .catch((err) => {
+        console.warn("Failed to send message to user " + author.id);
+      });
       return;
     }
 
     if(!msg.channel.permissionsFor(msg.guild.me).has('SEND_MESSAGES')) {
-      msg.author.send("Unable to start a Trivia game in this channel. (Bot does not have permission to send messages)");
+      msg.author.send("Unable to start a Trivia game in this channel. (Bot does not have permission to send messages)")
+      .catch((err) => {
+        console.warn("Failed to send message to user " + author.id);
+      });
       return;
     }
 
     if(!msg.channel.permissionsFor(msg.guild.me).has('EMBED_LINKS')) {
-      msg.channel.send("Unable to start a trivia game because this channel does not have the 'Embed Links' permission.");
+      msg.channel.send("Unable to start a trivia game because this channel does not have the 'Embed Links' permission.")
+      .catch((err) => {
+        console.warn("Failed to send message to user " + author.id);
+      });
       return;
     }
 
@@ -219,7 +232,7 @@ function doTriviaQuestion(msg, scheduled) {
         console.log("Received error from OpenTDB.");
         console.log(json);
 
-        msg.channel.send({embed: {
+        triviaSend(msg.channel, msg.author, {embed: {
           color: 14164000,
           description: "An error occurred while attempting to query the trivia database."
         }});
@@ -262,7 +275,7 @@ function doTriviaQuestion(msg, scheduled) {
 
       var categoryString = entities.decode(json.results[0].category);
 
-      msg.channel.send({embed: {
+      triviaSend(msg.channel, msg.author, {embed: {
         color: color,
         description: "*" + categoryString + "*\n**" + entities.decode(json.results[0].question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer!":"")
       }})
@@ -304,7 +317,7 @@ function doTriviaQuestion(msg, scheduled) {
 
               process.nextTick(() => {
                 if(error) {
-                  msg.channel.send({embed: {
+                  triviaSend(msg.channel, msg.author, {embed: {
                     color: 14164000,
                     description: "Error: Failed to add reaction. This may be due to the channel's configuration."
                   }});
@@ -320,7 +333,7 @@ function doTriviaQuestion(msg, scheduled) {
         }
       });
 
-      game[id].difficulty = json.results[0].difficulty
+      game[id].difficulty = json.results[0].difficulty;
       game[id].answer = json.results[0].correct_answer;
 
       // Reveal the answer after the time is up
@@ -355,7 +368,7 @@ function doTriviaQuestion(msg, scheduled) {
           }
         }
 
-        msg.channel.send({embed: {
+        triviaSend(msg.channel, msg.author, {embed: {
           color: color,
           description: "**" + letters[game[id].correct_id] + ":** " + entities.decode(game[id].answer) + "\n\n" + correct_users_str
         }});
@@ -371,7 +384,7 @@ function doTriviaQuestion(msg, scheduled) {
       }, 15000);
     });
   }).on('error', function(err) {
-    msg.channel.send({embed: {
+    triviaSend(msg.channel, msg.author, {embed: {
       color: 14164000,
       description: "An error occurred while attempting to query the trivia database."
     }});
