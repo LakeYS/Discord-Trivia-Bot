@@ -7,6 +7,7 @@ run_private.sh
 run_private2.sh
 run_dev.bat
 run_dev.sh
+run_dev2.sh
 update.sh
 
 # Windows image file caches
