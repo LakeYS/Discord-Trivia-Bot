@@ -1,10 +1,6 @@
 /*jshint esversion: 6 */
 /*jshint evil:true */
 
-const https = require("https");
-const fs = require("fs");
-const snekfetch = require("snekfetch");
-
 const pjson = require("./package.json");
 
 // Note that the spacing of the artwork will mess up with double-digit version numbers (such as '1.10.0')
@@ -13,7 +9,9 @@ if(process.stdout.columns > 61)
 else
   console.log("                 ########\n            ##################\n         ###      #######     ###\n       ###    ###############   ###\n     ###    ####################  ###\n    ###     #########    ########  ###\n   ###     ########      ########   ###\n  ###       #####       ########     ###\n ###                  ##########      ###\n ###               ###########        ###\n ###              #########           ###\n  ###             ########           ###\n   ###            ######            ###\n    ###            ####            ###\n      ###         ######         ###\n        ###      #######       ###\n          #####    ####    #####\n               ############\n                  ######\n\x1b[7m TriviaBot " + pjson.version + "   \x1b[0m\n\x1b[7m By Lake Y         \x1b[0m\n\x1b[7m http://lakeys.net \x1b[0m");
 
-
+const https = require("https");
+const fs = require("fs");
+const snekfetch = require("snekfetch");
 
 process.title = "TriviaBot " + pjson.version;
 
