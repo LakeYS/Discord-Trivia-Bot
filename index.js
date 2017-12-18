@@ -10,7 +10,6 @@ else
   console.log("                 ########\n            ##################\n         ###      #######     ###\n       ###    ###############   ###\n     ###    ####################  ###\n    ###     #########    ########  ###\n   ###     ########      ########   ###\n  ###       #####       ########     ###\n ###                  ##########      ###\n ###               ###########        ###\n ###              #########           ###\n  ###             ########           ###\n   ###            ######            ###\n    ###            ####            ###\n      ###         ######         ###\n        ###      #######       ###\n          #####    ####    #####\n               ############\n                  ######\n\x1b[7m TriviaBot " + pjson.version + "   \x1b[0m\n\x1b[7m By Lake Y         \x1b[0m\n\x1b[7m http://lakeys.net \x1b[0m");
 
 const https = require("https");
-const fs = require("fs");
 const snekfetch = require("snekfetch");
 
 process.title = "TriviaBot " + pjson.version;

@@ -2,6 +2,7 @@
 
 const https = require("https");
 const entities = require("html-entities").AllHtmlEntities;
+const fs = require("fs");
 
 const letters = ["A", "B", "C", "D"];
 
@@ -40,6 +41,10 @@ function triviaEndGame(id) {
 }
 
 exports.parse = function(str, msg) {
+  // No games in fallback mode
+  if(config["fallback-mode"])
+    return;
+
   // Str is always uppercase
   var id = msg.channel.id;
 
@@ -335,6 +340,7 @@ function doTriviaQuestion(msg, scheduled) {
 
       game[id].difficulty = json.results[0].difficulty;
       game[id].answer = json.results[0].correct_answer;
+      game[id].dateStr = Date();
 
       // Reveal the answer after the time is up
       game[id].timeout = setTimeout(function() {
@@ -424,3 +430,13 @@ client.on('messageReactionAdd', (reaction, user) => {
     }
   }
 });
+
+// # Fallback Mode Functionality #
+if(config["fallback-mode"]) {
+  client.on("message", msg => {
+    if(msg.author == client.user)
+      console.log("Received message from self");
+    else
+      console.log("Received message");
+  });
+}

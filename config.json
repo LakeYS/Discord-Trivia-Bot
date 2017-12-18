@@ -7,5 +7,6 @@
   "use-reactions": false,
 
   "disable-version-check": false,
-  "allow-bots": false
+  "allow-bots": false,
+  "fallback-mode": false
 }
