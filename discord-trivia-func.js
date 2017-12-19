@@ -431,6 +431,27 @@ client.on('messageReactionAdd', (reaction, user) => {
   }
 });
 
+// # Game Exporter #
+// Export the current game data to a file.
+function exportGame() {
+  var gameExport = game;
+  for(var i in gameExport)
+    delete gameExport[i].timeout; // The timeout must be deleted to avoid exporting a circular structure
+  fs.writeFile("./game.json.bak", JSON.stringify(gameExport, null, '\t'), "utf8", (err) => {
+  if(err)
+    console.error("Failed to write to game.json.bak with the following err:\n" + err + "\nMake sure your config file is not read-only or missing.");
+  else
+    console.log("Game exported to game.json.bak");
+  });
+}
+
+// # Console Commands #
+process.stdin.on('data', function (text) {
+  if(text.toString() == "export\r\n") {
+    exportGame();
+  }
+});
+
 // # Fallback Mode Functionality #
 if(config["fallback-mode"]) {
   client.on("message", msg => {
