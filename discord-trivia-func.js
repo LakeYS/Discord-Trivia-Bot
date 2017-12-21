@@ -265,6 +265,7 @@ function doTriviaQuestion(msg, scheduled) {
           color = 14164000;
           break;
       }
+      game[id].color = color;
 
       // Sort the answers in reverse alphabetical order.
       answers.sort();
@@ -281,7 +282,7 @@ function doTriviaQuestion(msg, scheduled) {
       var categoryString = entities.decode(json.results[0].category);
 
       triviaSend(msg.channel, msg.author, {embed: {
-        color: color,
+        color: game[id].color,
         description: "*" + categoryString + "*\n**" + entities.decode(json.results[0].question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer!":"")
       }})
       .then(msg => {
@@ -343,50 +344,8 @@ function doTriviaQuestion(msg, scheduled) {
       game[id].dateStr = Date();
 
       // Reveal the answer after the time is up
-      game[id].timeout = setTimeout(function() {
-        if(game[id] === undefined || !game[id].inProgress)
-          return;
-
-        game[id].inRound = 0;
-
-        var correct_users_str = "**Correct answers:**\n";
-
-        if(game[id].correct_names.length == 0)
-          correct_users_str = correct_users_str + "Nobody!";
-        else {
-          if(game[id].correct_names.length == 1)
-            correct_users_str = "Correct!"; // Only one player, make things simple.
-          else if(game[id].correct_names.length > 10) {
-              // More than 10 players, player names are separated by comma
-              var comma = ", ";
-              for(var i = 0; i <= game[id].correct_names.length-1; i++) {
-                if(i == game[id].correct_names.length-1)
-                  comma = "";
-
-                correct_users_str = correct_users_str + game[id].correct_names[i] + comma;
-              }
-            }
-          else {
-            // Less than 10 players, all names are on their own line.
-            for(var i2 = 0; i2 <= game[id].correct_names.length-1; i2++) {
-              correct_users_str = correct_users_str + game[id].correct_names[i2] + "\n";
-            }
-          }
-        }
-
-        triviaSend(msg.channel, msg.author, {embed: {
-          color: color,
-          description: "**" + letters[game[id].correct_id] + ":** " + entities.decode(game[id].answer) + "\n\n" + correct_users_str
-        }});
-        var participants = game[id].participants;
-
-        if(participants.length != 0)
-          game[id].timeout = setTimeout(() => {
-            doTriviaQuestion(msg, 1);
-          }, 5500);
-        else {
-          triviaEndGame(id);
-        }
+      game[id].timeout = setTimeout(() => {
+         triviaRevealAnswer(id, msg);
       }, 15000);
     });
   }).on('error', function(err) {
@@ -397,6 +356,53 @@ function doTriviaQuestion(msg, scheduled) {
 
     triviaEndGame(id);
   });
+}
+
+// Function to reveal the answer
+function triviaRevealAnswer(id, msg) {
+  if(game[id] === undefined || !game[id].inProgress)
+    return;
+    
+  game[id].inRound = 0;
+
+  var correct_users_str = "**Correct answers:**\n";
+
+  if(game[id].correct_names.length == 0)
+    correct_users_str = correct_users_str + "Nobody!";
+  else {
+    if(game[id].correct_names.length == 1)
+      correct_users_str = "Correct!"; // Only one player, make things simple.
+    else if(game[id].correct_names.length > 10) {
+        // More than 10 players, player names are separated by comma
+        var comma = ", ";
+        for(var i = 0; i <= game[id].correct_names.length-1; i++) {
+          if(i == game[id].correct_names.length-1)
+            comma = "";
+
+          correct_users_str = correct_users_str + game[id].correct_names[i] + comma;
+        }
+      }
+    else {
+      // Less than 10 players, all names are on their own line.
+      for(var i2 = 0; i2 <= game[id].correct_names.length-1; i2++) {
+        correct_users_str = correct_users_str + game[id].correct_names[i2] + "\n";
+      }
+    }
+  }
+
+  triviaSend(msg.channel, msg.author, {embed: {
+    color: game[id].color,
+    description: "**" + letters[game[id].correct_id] + ":** " + entities.decode(game[id].answer) + "\n\n" + correct_users_str
+  }});
+  var participants = game[id].participants;
+
+  if(participants.length != 0)
+    game[id].timeout = setTimeout(() => {
+      doTriviaQuestion(msg, 1);
+    }, 5500);
+  else {
+    triviaEndGame(id);
+  }
 }
 
 // Detect reaction answers
@@ -437,6 +443,7 @@ function exportGame() {
   var gameExport = game;
   for(var i in gameExport)
     delete gameExport[i].timeout; // The timeout must be deleted to avoid exporting a circular structure
+
   fs.writeFile("./game.json.bak", JSON.stringify(gameExport, null, '\t'), "utf8", (err) => {
   if(err)
     console.error("Failed to write to game.json.bak with the following err:\n" + err + "\nMake sure your config file is not read-only or missing.");
