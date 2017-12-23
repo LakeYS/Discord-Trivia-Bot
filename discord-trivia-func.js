@@ -67,7 +67,7 @@ exports.parse = function(str, msg) {
     triviaSend(msg.channel, msg.author, "Trivia games will stop automatically if nobody participates after two rounds.\nServer managers can type 'trivia admin cancel' to force-cancel a round.");
 
   if(str == "TRIVIA START" || str == "TRIVIA PLAY" || str == "TRIVIA QUESTION")
-    doTriviaQuestion(msg);
+    doTriviaQuestion(msg.channel.id, msg.channel, msg.author, 0);
 
   if(str == "TRIVIA CATEGORIES") {
     https.get("https://opentdb.com/api_category.php", (res) => {
@@ -143,13 +143,14 @@ exports.parse = function(str, msg) {
 };
 
 // # doTriviaQuestion #
-// - msg: The message returned by discord.js
+// - id: The unique identifier for the channel that the game is in.
+// - channel: The channel object that correlates with the game.
+// - author: The user that started the game. Can be left 'undefined'
+//           if the game is scheduled.
 // - scheduled: Set to true if starting a game scheduled by the bot.
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
-function doTriviaQuestion(msg, scheduled) {
-  var id = msg.channel.id;
-
+function doTriviaQuestion(id, channel, author, scheduled) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   if(game[id] !== undefined) {
     if(!scheduled && game[id].inProgress == 1)
@@ -170,36 +171,39 @@ function doTriviaQuestion(msg, scheduled) {
 
   // ## Permission Checks ##
   var useReactions = 0;
-  if(msg.channel.type !== 'dm') {
+
+  if(channel.type !== 'dm') {
     // Check if we have proper permissions for the channel.
-    var permissions = msg.channel.permissionsFor(msg.guild.me);
+    var permissions = channel.permissionsFor(channel.guild.me);
+
+    var authorid = (author==undefined?"Unknown":author.id);
 
     // Permissions sometimes return null for some reason, so this is a workaround.
     if(permissions == null) {
-      msg.author.send("Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)")
+      author.send("Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)")
       .catch((err) => {
-        console.warn("Failed to send message to user " + author.id);
+        console.warn("Failed to send message to user " + authorid);
       });
       return;
     }
 
-    if(!msg.channel.permissionsFor(msg.guild.me).has('SEND_MESSAGES')) {
-      msg.author.send("Unable to start a Trivia game in this channel. (Bot does not have permission to send messages)")
+    if(!channel.permissionsFor(channel.guild.me).has('SEND_MESSAGES')) {
+      author.send("Unable to start a Trivia game in this channel. (Bot does not have permission to send messages)")
       .catch((err) => {
-        console.warn("Failed to send message to user " + author.id);
+        console.warn("Failed to send message to user " + authorid);
       });
       return;
     }
 
-    if(!msg.channel.permissionsFor(msg.guild.me).has('EMBED_LINKS')) {
-      msg.channel.send("Unable to start a trivia game because this channel does not have the 'Embed Links' permission.")
+    if(!channel.permissionsFor(channel.guild.me).has('EMBED_LINKS')) {
+      channel.send("Unable to start a trivia game because this channel does not have the 'Embed Links' permission.")
       .catch((err) => {
-        console.warn("Failed to send message to user " + author.id);
+        console.warn("Failed to send message to user " + authorid);
       });
       return;
     }
 
-    if(config['use-reactions'] &&  msg.channel.permissionsFor(msg.guild.me).has('ADD_REACTIONS') && msg.channel.permissionsFor(msg.guild.me).has('READ_MESSAGE_HISTORY'))
+    if(config['use-reactions'] &&  channel.permissionsFor(channel.guild.me).has('ADD_REACTIONS') && channel.permissionsFor(channel.guild.me).has('READ_MESSAGE_HISTORY'))
       useReactions = 1;
   }
   else {
@@ -237,7 +241,8 @@ function doTriviaQuestion(msg, scheduled) {
         console.log("Received error from OpenTDB.");
         console.log(json);
 
-        triviaSend(msg.channel, msg.author, {embed: {
+        // Author is passed through; triviaSend will handle it if author is undefined.
+        triviaSend(channel, author, {embed: {
           color: 14164000,
           description: "An error occurred while attempting to query the trivia database."
         }});
@@ -281,7 +286,7 @@ function doTriviaQuestion(msg, scheduled) {
 
       var categoryString = entities.decode(json.results[0].category);
 
-      triviaSend(msg.channel, msg.author, {embed: {
+      triviaSend(channel, author, {embed: {
         color: game[id].color,
         description: "*" + categoryString + "*\n**" + entities.decode(json.results[0].question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer!":"")
       }})
@@ -323,7 +328,7 @@ function doTriviaQuestion(msg, scheduled) {
 
               process.nextTick(() => {
                 if(error) {
-                  triviaSend(msg.channel, msg.author, {embed: {
+                  triviaSend(channel, author, {embed: {
                     color: 14164000,
                     description: "Error: Failed to add reaction. This may be due to the channel's configuration."
                   }});
@@ -345,11 +350,11 @@ function doTriviaQuestion(msg, scheduled) {
 
       // Reveal the answer after the time is up
       game[id].timeout = setTimeout(() => {
-         triviaRevealAnswer(id, msg);
+         triviaRevealAnswer(id, channel);
       }, 15000);
     });
   }).on('error', function(err) {
-    triviaSend(msg.channel, msg.author, {embed: {
+    triviaSend(channel, author, {embed: {
       color: 14164000,
       description: "An error occurred while attempting to query the trivia database."
     }});
@@ -358,11 +363,12 @@ function doTriviaQuestion(msg, scheduled) {
   });
 }
 
-// Function to reveal the answer
-function triviaRevealAnswer(id, msg) {
+// # triviaRevealAnswer #
+// Ends the round, reveals the answer, and schedules a new round if necessary.
+function triviaRevealAnswer(id, channel) {
   if(game[id] === undefined || !game[id].inProgress)
     return;
-    
+
   game[id].inRound = 0;
 
   var correct_users_str = "**Correct answers:**\n";
@@ -390,7 +396,7 @@ function triviaRevealAnswer(id, msg) {
     }
   }
 
-  triviaSend(msg.channel, msg.author, {embed: {
+  triviaSend(channel, undefined, {embed: {
     color: game[id].color,
     description: "**" + letters[game[id].correct_id] + ":** " + entities.decode(game[id].answer) + "\n\n" + correct_users_str
   }});
@@ -398,11 +404,27 @@ function triviaRevealAnswer(id, msg) {
 
   if(participants.length != 0)
     game[id].timeout = setTimeout(() => {
-      doTriviaQuestion(msg, 1);
+      doTriviaQuestion(id, channel, undefined, 1);
     }, 5500);
   else {
     triviaEndGame(id);
   }
+}
+
+// triviaResumeGame
+// Restores a game that does not have an active timeout.
+function triviaResumeGame(json, id) {
+  game[id] = json;
+
+  var channel = client.channels.find('id', id);
+
+  if(!game[id].inProgress)
+    return;
+
+  if(game[id].inRound)
+    triviaRevealAnswer(id);
+  else
+    doTriviaQuestion(id, channel, undefined, 0);
 }
 
 // Detect reaction answers
