@@ -8,6 +8,12 @@ const letters = ["A", "B", "C", "D"];
 
 game = {};
 
+if(config["round-timeout"] == undefined)
+  config["round-timeout"] = 5500;
+
+if(config["round-length"] == undefined)
+  config["round-length"] = 15000;
+
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
 // Beware: This is not used for every message. For corner cases, 'channel.send' is used.
@@ -351,7 +357,7 @@ function doTriviaQuestion(id, channel, author, scheduled) {
       // Reveal the answer after the time is up
       game[id].timeout = setTimeout(() => {
          triviaRevealAnswer(id, channel);
-      }, 15000);
+      }, config["round-length"]);
     });
   }).on('error', function(err) {
     triviaSend(channel, author, {embed: {
@@ -405,7 +411,7 @@ function triviaRevealAnswer(id, channel) {
   if(participants.length != 0)
     game[id].timeout = setTimeout(() => {
       doTriviaQuestion(id, channel, undefined, 1);
-    }, 5500);
+    }, config["round-timeout"]);
   else {
     triviaEndGame(id);
   }
