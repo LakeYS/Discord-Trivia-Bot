@@ -413,6 +413,7 @@ function triviaRevealAnswer(id, channel) {
       doTriviaQuestion(id, channel, undefined, 1);
     }, config["round-timeout"]);
   else {
+    game[id].timeout = undefined;
     triviaEndGame(id);
   }
 }
