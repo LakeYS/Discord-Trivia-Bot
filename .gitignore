@@ -2,25 +2,15 @@
 node_modules
 update.sh
 game.json.bak
-config_private.json
-config_private2.json
-config_private3.json
-config_dev.json
-config_dev2.json
-config_dev3.json
-run_private.bat
-run_private2.bat
-run_private3.bat
-run_private.sh
-run_private2.sh
-run_private3.sh
-run_dev.bat
-run_dev2.bat
-run_dev3.bat
-run_dev.sh
-run_dev2.sh
-run_dev3.sh
-
+config_private*.json
+config_dev*.json
+config_beta*.json
+run_private*.bat
+run_private*.sh
+run_dev*.bat
+run_dev*.sh
+run_beta*.bat
+run_beta*.sh
 
 # Windows image file caches
 Thumbs.db

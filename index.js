@@ -122,6 +122,9 @@ client.on('ready', () => {
   }
 
   postBotStats();
+
+  if(client.guilds.size == 0)
+    console.log("********\nWARNING: The bot is currently not in a Discord server. You can invite it to a guild using this invite link:\nhttps://discordapp.com/oauth2/authorize?client_id=" + client.user.id + "&scope=bot\n********");
 });
 
 client.on('disconnect', function(event) {
