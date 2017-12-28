@@ -5,6 +5,7 @@
 
   "disable-admin-commands": false,
   "use-reactions": false,
+  "prefix": "trivia ",
 
   "round-length": 15000,
   "round-timeout": 5500,

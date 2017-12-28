@@ -9,11 +9,19 @@ const letters = ["A", "B", "C", "D"];
 
 game = {};
 
+// Initialize missing config options to their defaults
 if(config["round-timeout"] == undefined)
   config["round-timeout"] = 5500;
 
 if(config["round-length"] == undefined)
   config["round-length"] = 15000;
+
+if(config.prefix == undefined)
+  config.prefix = "trivia ";
+
+client.on('ready', () => {
+  client.user.setPresence({ game: { name: "Trivia! Type '" + config.prefix + "help' to get started.", type: 0 } });
+});
 
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
@@ -47,6 +55,7 @@ function triviaEndGame(id) {
   delete game[id];
 }
 
+// # trivia.parse #
 exports.parse = function(str, msg) {
   // No games in fallback mode
   if(config["fallback-mode"])
@@ -59,91 +68,100 @@ exports.parse = function(str, msg) {
   if(msg.author.bot == 1 && config['allow-bots'] !== true)
     return;
 
-  if(str == "TRIVIA HELP" || str == "TRIVIA" || str.includes("<@" + client.user.id + ">")) {
+  var prefix = config.prefix.toUpperCase();
+
+  // ## Help Command ##
+  if(str == prefix + "HELP" || str.includes("<@" + client.user.id + ">")) {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       res.on('data', function(data) {
         var json = JSON.parse(data.toString());
-        triviaSend(msg.channel, msg.author, "Let's play trivia! Type 'trivia play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. Currently in " + client.guilds.size + " guild" + (client.guilds.size==1?'':'s') + ".\nCommands: `trivia play`, `trivia help`, `trivia categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+        triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. Currently in " + client.guilds.size + " guild" + (client.guilds.size==1?'':'s') + ".\nCommands: `" + config.prefix + "play`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
       });
     }).on('error', function(err) {
-      triviaSend(msg.channel, msg.author, "Let's play trivia! Type 'trivia play' to start a game.\nCurrently in " + client.guilds.size + " guilds. \nCommands: `trivia play`, `trivia help`, `trivia categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+      triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nCurrently in " + client.guilds.size + " guilds. \nCommands: `" + config.prefix + "play`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
     });
   }
 
-  if(str == "TRIVIA STOP" || str == "TRIVIA CANCEL")
-    triviaSend(msg.channel, msg.author, "Trivia games will stop automatically if nobody participates after two rounds.\nServer managers can type 'trivia admin cancel' to force-cancel a round.");
+  // ## Normal Commands ##
+  // If the string starts with the specified prefix (converted to uppercase)
+  if(str.startsWith(prefix)) {
+    var cmd = str.replace(prefix, "");
 
-  if(str == "TRIVIA START" || str == "TRIVIA PLAY" || str == "TRIVIA QUESTION")
-    doTriviaQuestion(msg.channel.id, msg.channel, msg.author, 0);
+    if(cmd == "STOP" || cmd == "CANCEL")
+      triviaSend(msg.channel, msg.author, "Trivia games will stop automatically if nobody participates after two rounds.\nServer managers can type 'trivia admin cancel' to force-cancel a round.");
 
-  if(str == "TRIVIA CATEGORIES") {
-    https.get("https://opentdb.com/api_category.php", (res) => {
-      res.on('data', function(data) {
-        var json = JSON.parse(data.toString());
+    if(cmd == "START" || cmd == "PLAY" || cmd == "QUESTION")
+      doTriviaQuestion(msg.channel.id, msg.channel, msg.author, 0);
 
-        var categories = "**Categories:** ";
-        var i = 0;
-        for(i in json.trivia_categories)
-          categories = categories + "\n" + json.trivia_categories[i].name;
+    if(cmd == "CATEGORIES") {
+      https.get("https://opentdb.com/api_category.php", (res) => {
+        res.on('data', function(data) {
+          var json = JSON.parse(data.toString());
 
-        var str = "A list has been sent to you via DM.";
-        if(msg.channel.type == 'dm')
-          str = "";
-        msg.author.send(categories)
-          .catch(function(err) {
-            str = "Unable to send you the list because you cannot receive DMs.";
-            if(err != "DiscordAPIError: Cannot send messages to this user")
-              console.log(err);
-          })
-          .then(function() {
-            i++;
-            msg.channel.send("There are " + i + " categories. " + str) // This is a DM-based command; will not use triviaSend
-            .catch((err) => {
-              console.warn("Failed to send message to user " + msg.author.id + " (Will not fall back to DM)");
+          var categories = "**Categories:** ";
+          var i = 0;
+          for(i in json.trivia_categories)
+            categories = categories + "\n" + json.trivia_categories[i].name;
+
+          var str = "A list has been sent to you via DM.";
+          if(msg.channel.type == 'dm')
+            str = "";
+          msg.author.send(categories)
+            .catch(function(err) {
+              str = "Unable to send you the list because you cannot receive DMs.";
+              if(err != "DiscordAPIError: Cannot send messages to this user")
+                console.log(err);
+            })
+            .then(function() {
+              i++;
+              msg.channel.send("There are " + i + " categories. " + str) // This is a DM-based command; will not use triviaSend
+              .catch((err) => {
+                console.warn("Failed to send message to user " + msg.author.id + " (Will not fall back to DM)");
+              });
             });
-          });
+        });
+      }).on('error', function(err) {
+        triviaSend(msg.channel, msg.author, "Failed to query category list.");
       });
-    }).on('error', function(err) {
-      triviaSend(msg.channel, msg.author, "Failed to query category list.");
-    });
-  }
+    }
 
-  // Check for letters if not using reactions
-  // Note that this is copied below for reaction mode.
-  if(game[id] !== undefined && !game[id].useReactions) {
-    // inProgress is always true when a game is active, even between rounds.
+    // Check for letters if not using reactions
+    // Note that this is copied below for reaction mode.
+    if(game[id] !== undefined && !game[id].useReactions) {
+      // inProgress is always true when a game is active, even between rounds.
 
-    // Make sure they haven't already submitted an answer
-    if(game[id].participants.indexOf(msg.author.id)) {
-      if(str == letters[game[id].correct_id] && game[id].inProgress) {
-        game[id].correct_users.push(msg.author.id);
-        game[id].correct_names.push(msg.author.username);
-      }
+      // Make sure they haven't already submitted an answer
+      if(game[id].participants.indexOf(msg.author.id)) {
+        if(str == letters[game[id].correct_id] && game[id].inProgress) {
+          game[id].correct_users.push(msg.author.id);
+          game[id].correct_names.push(msg.author.username);
+        }
 
-      if(game[id].inProgress && (str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
-        game[id].participants.push(msg.author.id);
-      }
-  }
+        if(game[id].inProgress && (str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
+          game[id].participants.push(msg.author.id);
+        }
+    }
 
-  // **Admin Commands** //
-  if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
-    if(str == "TRIVIA ADMIN STOP" || str == "TRIVIA ADMIN CANCEL") {
-      if(game[id] !== undefined && game[id].inProgress) {
-        let timeout = game[id].timeout;
+    // **Admin Commands** //
+    if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
+      if(cmd == "TADMIN STOP" || cmd == "ADMIN CANCEL") {
+        if(game[id] !== undefined && game[id].inProgress) {
+          let timeout = game[id].timeout;
 
-        // If a round is in progress, display the answers before cancelling the game.
-        if(game[id].inRound && timeout !== undefined)
-          timeout._onTimeout();
+          // If a round is in progress, display the answers before cancelling the game.
+          if(game[id].inRound && timeout !== undefined)
+            timeout._onTimeout();
 
-        // If there's still a game, clear it.
-        if(game[id] !== undefined)
-          triviaEndGame(id);
+          // If there's still a game, clear it.
+          if(game[id] !== undefined)
+            triviaEndGame(id);
 
 
-        triviaSend(msg.channel, undefined, {embed: {
-          color: 14164000,
-          description: "Game stopped by admin."
-        }});
+          triviaSend(msg.channel, undefined, {embed: {
+            color: 14164000,
+            description: "Game stopped by admin."
+          }});
+        }
       }
     }
   }

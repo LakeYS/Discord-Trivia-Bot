@@ -114,8 +114,6 @@ client.login(config.token);
 client.on('ready', () => {
   console.log('Discord client connected to\x1b[1m ' + client.guilds.size + ' \x1b[0mserver' + (client.guilds.size==1?'':'s') + '.');
 
-  client.user.setPresence({ game: { name: "Trivia! Say 'trivia help' to get started.", type: 0 } });
-
   if(client.user.avatar == null) {
     console.log("Set profile image to profile.png");
     client.user.setAvatar("./profile.png");
