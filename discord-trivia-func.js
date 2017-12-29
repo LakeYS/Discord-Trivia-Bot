@@ -70,6 +70,24 @@ exports.parse = function(str, msg) {
 
   var prefix = config.prefix.toUpperCase();
 
+  // ## Answers ##
+  // Check for letters if not using reactions
+  // Note that this is copied below for reaction mode.
+  if(game[id] !== undefined && !game[id].useReactions) {
+    // inProgress is always true when a game is active, even between rounds.
+
+    // Make sure they haven't already submitted an answer
+    if(game[id].participants.indexOf(msg.author.id)) {
+      if(str == letters[game[id].correct_id] && game[id].inProgress) {
+        game[id].correct_users.push(msg.author.id);
+        game[id].correct_names.push(msg.author.username);
+      }
+
+      if(game[id].inProgress && (str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
+        game[id].participants.push(msg.author.id);
+      }
+  }
+
   // ## Help Command ##
   if(str == prefix + "HELP" || str.includes("<@" + client.user.id + ">")) {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
@@ -125,26 +143,9 @@ exports.parse = function(str, msg) {
       });
     }
 
-    // Check for letters if not using reactions
-    // Note that this is copied below for reaction mode.
-    if(game[id] !== undefined && !game[id].useReactions) {
-      // inProgress is always true when a game is active, even between rounds.
-
-      // Make sure they haven't already submitted an answer
-      if(game[id].participants.indexOf(msg.author.id)) {
-        if(str == letters[game[id].correct_id] && game[id].inProgress) {
-          game[id].correct_users.push(msg.author.id);
-          game[id].correct_names.push(msg.author.username);
-        }
-
-        if(game[id].inProgress && (str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
-          game[id].participants.push(msg.author.id);
-        }
-    }
-
     // **Admin Commands** //
     if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
-      if(cmd == "TADMIN STOP" || cmd == "ADMIN CANCEL") {
+      if(cmd == "ADMIN STOP" || cmd == "ADMIN CANCEL") {
         if(game[id] !== undefined && game[id].inProgress) {
           let timeout = game[id].timeout;
 
@@ -178,20 +179,25 @@ exports.parse = function(str, msg) {
 function doTriviaQuestion(id, channel, author, scheduled) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   if(game[id] !== undefined) {
-    if(!scheduled && game[id].inProgress == 1)
-      return; // If there's already a game in progress, don't start another unless scheduled by the script.
-    else if(!scheduled && game[id].timeout._called == true) {
+    if(!scheduled && game[id].timeout !== undefined && game[id].timeout._called == true) {
       // The timeout should never be stuck on 'called' during a round.
       // Dump the game in the console, clear it, and continue.
-      console.error(game + "\nERROR: Unscheduled game '" + id + "' timeout appears to be stuck in the 'called' state. Cancelling game...");
+      console.error("ERROR: Unscheduled game '" + id + "' timeout appears to be stuck in the 'called' state. Cancelling game...");
       triviaEndGame(id);
     }
-    else if(game[id].timeout._idleTimeout == -1) {
+    else if(game[id].timeout !== undefined && game[id].timeout._idleTimeout == -1) {
+      // This check may not be working, have yet to see it catch any games.
       // The timeout reads -1. (Can occur if clearTimeout is called without deleting.)
       // Dump the game in the console, clear it, and continue.
-      console.error(game + "\nERROR: Game '" + id + "' timeout reads -1. Game will be cancelled.");
+      console.error("ERROR: Game '" + id + "' timeout reads -1. Game will be cancelled.");
       triviaEndGame(id);
     }
+    else if(game[id].answer == undefined) {
+      console.error("ERROR: Game '" + id + "' is missing information. Game will be cancelled.");
+      triviaEndGame(id);
+    }
+    else if(!scheduled && game[id].inProgress == 1)
+      return; // If there's already a game in progress, don't start another unless scheduled by the script.
   }
 
   // ## Permission Checks ##
