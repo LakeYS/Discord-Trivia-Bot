@@ -1,5 +1,5 @@
 @ECHO OFF
-node index.js --configfile="./config_dev.json"
+node index.js
 :loop
 echo The bot will restart in 5 seconds. Press N to cancel.
 choice /t 5 /c yn /cs /d y /m "Start bot Y/N?"

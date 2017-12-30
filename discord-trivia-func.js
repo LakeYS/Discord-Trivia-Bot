@@ -48,6 +48,21 @@ function triviaSend(channel, author, msg) {
 
 }
 
+// getTriviaQuestion
+// Returns a promise, fetches a random question from the database.
+function getTriviaQuestion() {
+  return new Promise((resolve, reject) => {
+    https.get("https://opentdb.com/api.php?amount=1", (res) => {
+      res.on('data', (data) => {
+        resolve(data);
+      });
+    })
+    .on('error', (error) => {
+      reject(error);
+    });
+  });
+}
+
 // Function to end trivia games
 function triviaEndGame(id) {
   if(game[id] == undefined) {
@@ -243,7 +258,7 @@ function doTriviaQuestion(id, channel, author, scheduled) {
       return;
     }
 
-    if(config['use-reactions'] &&  channel.permissionsFor(channel.guild.me).has('ADD_REACTIONS') && channel.permissionsFor(channel.guild.me).has('READ_MESSAGE_HISTORY'))
+    if(config['use-reactions'] && channel.permissionsFor(channel.guild.me).has('ADD_REACTIONS') && channel.permissionsFor(channel.guild.me).has('READ_MESSAGE_HISTORY'))
       useReactions = 1;
   }
   else {
@@ -267,136 +282,136 @@ function doTriviaQuestion(id, channel, author, scheduled) {
     'prev_participants': game[id]!==undefined?game[id].participants:null
   };
 
-  https.get("https://opentdb.com/api.php?amount=1", (res) => {
-    res.on('data', function(data) {
-      // Make sure the game wasn't cancelled while querying OpenTDB.
-      if(!game[id])
-        return;
+  getTriviaQuestion()
+  .then((data) => {
+    // Make sure the game wasn't cancelled while querying OpenTDB.
+    if(!game[id])
+      return;
 
-      var json = JSON.parse(data.toString());
+    var json = JSON.parse(data.toString());
 
-      var answers = [];
+    var answers = [];
 
-      if(json.response_code !== 0) {
-        console.log("Received error from OpenTDB.");
-        console.log(json);
+    if(json.response_code !== 0) { // TODO: Integrate this in getTriviaQuestion()
+      console.log("Received error from OpenTDB.");
+      console.log(json);
 
-        // Author is passed through; triviaSend will handle it if author is undefined.
-        triviaSend(channel, author, {embed: {
-          color: 14164000,
-          description: "An error occurred while attempting to query the trivia database."
-        }});
-
-        triviaEndGame(id);
-        return;
-      }
-
-      answers[0] = json.results[0].correct_answer;
-
-      answers = answers.concat(json.results[0].incorrect_answers);
-
-      if(json.results[0].incorrect_answers.length == 1)
-        game[id].isTrueFalse = 1;
-
-      var color = 3447003;
-      switch(json.results[0].difficulty) {
-        case "easy":
-          color = 4249664;
-          break;
-        case "medium":
-          color = 12632064;
-          break;
-        case "hard":
-          color = 14164000;
-          break;
-      }
-      game[id].color = color;
-
-      // Sort the answers in reverse alphabetical order.
-      answers.sort();
-      answers.reverse();
-
-      var answerString = "";
-      for(var i = 0; i <= answers.length-1; i++) {
-        if(answers[i] == json.results[0].correct_answer)
-          game[id].correct_id = i;
-
-        answerString = answerString + "**" + letters[i] + ":** " + entities.decode(answers[i]) + "\n";
-      }
-
-      var categoryString = entities.decode(json.results[0].category);
-
+      // Author is passed through; triviaSend will handle it if author is undefined.
       triviaSend(channel, author, {embed: {
-        color: game[id].color,
-        description: "*" + categoryString + "*\n**" + entities.decode(json.results[0].question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer!":"")
-      }})
-      .then(msg => {
-        // Add reaction emojis if configured to do so.
-        // Blahhh. Can this be simplified?
-        if(useReactions) {
-          var error = 0; // This will be set to 1 if something goes wrong.
+        color: 14164000,
+        description: "An error occurred while attempting to query the trivia database."
+      }});
 
-          game[id].message = msg;
+      triviaEndGame(id);
+      return;
+    }
 
-          msg.react('🇦')
+    answers[0] = json.results[0].correct_answer;
+
+    answers = answers.concat(json.results[0].incorrect_answers);
+
+    if(json.results[0].incorrect_answers.length == 1)
+      game[id].isTrueFalse = 1;
+
+    var color = 3447003;
+    switch(json.results[0].difficulty) {
+      case "easy":
+        color = 4249664;
+        break;
+      case "medium":
+        color = 12632064;
+        break;
+      case "hard":
+        color = 14164000;
+        break;
+    }
+    game[id].color = color;
+
+    // Sort the answers in reverse alphabetical order.
+    answers.sort();
+    answers.reverse();
+
+    var answerString = "";
+    for(var i = 0; i <= answers.length-1; i++) {
+      if(answers[i] == json.results[0].correct_answer)
+        game[id].correct_id = i;
+
+      answerString = answerString + "**" + letters[i] + ":** " + entities.decode(answers[i]) + "\n";
+    }
+
+    var categoryString = entities.decode(json.results[0].category);
+
+    triviaSend(channel, author, {embed: {
+      color: game[id].color,
+      description: "*" + categoryString + "*\n**" + entities.decode(json.results[0].question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer!":"")
+    }})
+    .then(msg => {
+      // Add reaction emojis if configured to do so.
+      // Blahhh. Can this be simplified?
+      if(useReactions) {
+        var error = 0; // This will be set to 1 if something goes wrong.
+
+        game[id].message = msg;
+
+        msg.react('🇦')
+        .catch(err => {
+          console.log("Failed to add reaction A: " + err);
+          error = 1;
+        })
+        .then(() => {
+          msg.react('🇧')
           .catch(err => {
-            console.log("Failed to add reaction A: " + err);
+            console.log("Failed to add reaction B: " + err);
             error = 1;
           })
           .then(() => {
-            msg.react('🇧')
-            .catch(err => {
-              console.log("Failed to add reaction B: " + err);
-              error = 1;
-            })
-            .then(() => {
-              // Only add C and D if it isn't a true/false question
-              if(!game[id].isTrueFalse) {
-                msg.react('🇨')
+            // Only add C and D if it isn't a true/false question
+            if(!game[id].isTrueFalse) {
+              msg.react('🇨')
+              .catch(err => {
+                console.log("Failed to add reaction C: " + err);
+                error = 1;
+              })
+              .then(() => {
+                msg.react('🇩')
                 .catch(err => {
-                  console.log("Failed to add reaction C: " + err);
+                  console.log("Failed to add reaction D: " + err);
                   error = 1;
-                })
-                .then(() => {
-                  msg.react('🇩')
-                  .catch(err => {
-                    console.log("Failed to add reaction D: " + err);
-                    error = 1;
-                  });
                 });
-              }
-
-              process.nextTick(() => {
-                if(error) {
-                  triviaSend(channel, author, {embed: {
-                    color: 14164000,
-                    description: "Error: Failed to add reaction. This may be due to the channel's configuration."
-                  }});
-
-                  msg.delete();
-                  triviaEndGame(id);
-                  return;
-                }
               });
+            }
 
+            process.nextTick(() => {
+              if(error) {
+                triviaSend(channel, author, {embed: {
+                  color: 14164000,
+                  description: "Error: Failed to add reaction. This may be due to the channel's configuration."
+                }});
+
+                msg.delete();
+                triviaEndGame(id);
+                return;
+              }
             });
+
           });
-        }
-      });
-
-      game[id].difficulty = json.results[0].difficulty;
-      game[id].answer = json.results[0].correct_answer;
-      game[id].dateStr = Date();
-
-      // Reveal the answer after the time is up
-      game[id].timeout = setTimeout(() => {
-         triviaRevealAnswer(id, channel);
-      }, config["round-length"]);
+        });
+      }
     });
-  }).on('error', function(err) {
+
+    game[id].difficulty = json.results[0].difficulty;
+    game[id].answer = json.results[0].correct_answer;
+    game[id].dateStr = Date();
+
+    // Reveal the answer after the time is up
+    game[id].timeout = setTimeout(() => {
+       triviaRevealAnswer(id, channel);
+    }, config["round-length"]);
+  })
+  .catch((err) => {
     triviaSend(channel, author, {embed: {
       color: 14164000,
-      description: "An error occurred while attempting to query the trivia database."
+      description: "An error occurred while attempting to query the trivia database:\n*" + err.message + "*"
     }});
 
     triviaEndGame(id);
