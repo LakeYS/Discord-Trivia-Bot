@@ -29,18 +29,23 @@ client.on('ready', () => {
 function triviaSend(channel, author, msg) {
   return channel.send(msg)
   .catch((err) => {
-    if(author !== undefined && channel.type != 'dm') {
-      author.send({embed: {
-        color: 14164000,
-        description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
-      }})
-      .catch((err) => {
-        console.warn("Failed to send message to user " + author.id + ". (DM failed)");
-      });
-    }
-    else
-      console.warn("Failed to send message to user " + author.id + ". (no user or already in DM)");
-  });
+    if(author !== undefined) {
+      if(channel.type != 'dm') {
+        author.send({embed: {
+          color: 14164000,
+          description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
+        }})
+        .catch((err) => {
+          console.warn("Failed to send message to user " + author.id + ". (DM failed)");
+        });
+      }
+      else
+        console.warn("Failed to send message to user " + author.id + ". (already in DM)");
+      }
+      else
+        console.warn("Failed to send message to channel. (no user)");
+    });
+
 }
 
 // Function to end trivia games
@@ -211,10 +216,14 @@ function doTriviaQuestion(id, channel, author, scheduled) {
 
     // Permissions sometimes return null for some reason, so this is a workaround.
     if(permissions == null) {
-      author.send("Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)")
-      .catch((err) => {
-        console.warn("Failed to send message to user " + authorid);
-      });
+      if(author !== undefined)
+        author.send("Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)")
+        .catch((err) => {
+          console.warn("Failed to send message to user " + authorid);
+        });
+      else
+        console.warn("Failed to send message. (null permissions, no author)");
+
       return;
     }
 
@@ -519,3 +528,8 @@ if(config["fallback-mode"]) {
       console.log("Received message");
   });
 }
+
+// # Patreon Mode Functionality #
+client.on('guildCreate', (guild) => {
+  guild.leave();
+});
