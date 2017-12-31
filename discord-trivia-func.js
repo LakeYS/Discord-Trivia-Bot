@@ -545,6 +545,8 @@ if(config["fallback-mode"]) {
 }
 
 // # Patreon Mode Functionality #
-client.on('guildCreate', (guild) => {
-  guild.leave();
-});
+if(config["patreon-mode"]) {
+  client.on('guildCreate', (guild) => {
+    guild.leave();
+  });
+}
