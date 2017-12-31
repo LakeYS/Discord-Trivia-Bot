@@ -7,7 +7,10 @@ const util = require("util");
 
 const letters = ["A", "B", "C", "D"];
 
+const opentdb_responses = ["Success", "No results", "Invalid parameter", "Token not found", "Token empty"];
+
 game = {};
+questions = {};
 
 // Initialize missing config options to their defaults
 if(config["round-timeout"] == undefined)
@@ -54,7 +57,19 @@ function getTriviaQuestion() {
   return new Promise((resolve, reject) => {
     https.get("https://opentdb.com/api.php?amount=1", (res) => {
       res.on('data', (data) => {
-        resolve(data);
+        var json = JSON.parse(data.toString());
+
+        if(json.response_code !== 0) {
+          console.log("Received error from OpenTDB.");
+          console.log(json);
+
+          // Author is passed through; triviaSend will handle it if author is undefined.
+          reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + opentdb_responses[json.response_code] + ")"));
+          return;
+        }
+
+        resolve(JSON.parse(JSON.stringify(json.results[0])));
+        delete json.results[0];
       });
     })
     .on('error', (error) => {
@@ -129,7 +144,7 @@ exports.parse = function(str, msg) {
       triviaSend(msg.channel, msg.author, "Trivia games will stop automatically if nobody participates after two rounds.\nServer managers can type 'trivia admin cancel' to force-cancel a round.");
 
     if(cmd == "START" || cmd == "PLAY" || cmd == "QUESTION")
-      doTriviaQuestion(msg.channel.id, msg.channel, msg.author, 0);
+      doTriviaGame(msg.channel.id, msg.channel, msg.author, 0);
 
     if(cmd == "CATEGORIES") {
       https.get("https://opentdb.com/api_category.php", (res) => {
@@ -188,7 +203,7 @@ exports.parse = function(str, msg) {
   }
 };
 
-// # doTriviaQuestion #
+// # doTriviaGame #
 // - id: The unique identifier for the channel that the game is in.
 // - channel: The channel object that correlates with the game.
 // - author: The user that started the game. Can be left 'undefined'
@@ -196,7 +211,7 @@ exports.parse = function(str, msg) {
 // - scheduled: Set to true if starting a game scheduled by the bot.
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
-function doTriviaQuestion(id, channel, author, scheduled) {
+function doTriviaGame(id, channel, author, scheduled) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   if(game[id] !== undefined) {
     if(!scheduled && game[id].timeout !== undefined && game[id].timeout._called == true) {
@@ -283,38 +298,22 @@ function doTriviaQuestion(id, channel, author, scheduled) {
   };
 
   getTriviaQuestion()
-  .then((data) => {
+  .then((question) => {
     // Make sure the game wasn't cancelled while querying OpenTDB.
     if(!game[id])
       return;
 
-    var json = JSON.parse(data.toString());
-
     var answers = [];
 
-    if(json.response_code !== 0) { // TODO: Integrate this in getTriviaQuestion()
-      console.log("Received error from OpenTDB.");
-      console.log(json);
+    answers[0] = question.correct_answer;
 
-      // Author is passed through; triviaSend will handle it if author is undefined.
-      triviaSend(channel, author, {embed: {
-        color: 14164000,
-        description: "An error occurred while attempting to query the trivia database."
-      }});
+    answers = answers.concat(question.incorrect_answers);
 
-      triviaEndGame(id);
-      return;
-    }
-
-    answers[0] = json.results[0].correct_answer;
-
-    answers = answers.concat(json.results[0].incorrect_answers);
-
-    if(json.results[0].incorrect_answers.length == 1)
+    if(question.incorrect_answers.length == 1)
       game[id].isTrueFalse = 1;
 
     var color = 3447003;
-    switch(json.results[0].difficulty) {
+    switch(question.difficulty) {
       case "easy":
         color = 4249664;
         break;
@@ -333,17 +332,17 @@ function doTriviaQuestion(id, channel, author, scheduled) {
 
     var answerString = "";
     for(var i = 0; i <= answers.length-1; i++) {
-      if(answers[i] == json.results[0].correct_answer)
+      if(answers[i] == question.correct_answer)
         game[id].correct_id = i;
 
       answerString = answerString + "**" + letters[i] + ":** " + entities.decode(answers[i]) + "\n";
     }
 
-    var categoryString = entities.decode(json.results[0].category);
+    var categoryString = entities.decode(question.category);
 
     triviaSend(channel, author, {embed: {
       color: game[id].color,
-      description: "*" + categoryString + "*\n**" + entities.decode(json.results[0].question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer!":"")
+      description: "*" + categoryString + "*\n**" + entities.decode(question.question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer!":"")
     }})
     .then(msg => {
       // Add reaction emojis if configured to do so.
@@ -399,8 +398,8 @@ function doTriviaQuestion(id, channel, author, scheduled) {
       }
     });
 
-    game[id].difficulty = json.results[0].difficulty;
-    game[id].answer = json.results[0].correct_answer;
+    game[id].difficulty = question.difficulty;
+    game[id].answer = question.correct_answer;
     game[id].dateStr = Date();
 
     // Reveal the answer after the time is up
@@ -459,7 +458,7 @@ function triviaRevealAnswer(id, channel) {
 
   if(participants.length != 0)
     game[id].timeout = setTimeout(() => {
-      doTriviaQuestion(id, channel, undefined, 1);
+      doTriviaGame(id, channel, undefined, 1);
     }, config["round-timeout"]);
   else {
     game[id].timeout = undefined;
@@ -480,7 +479,7 @@ function triviaResumeGame(json, id) {
   if(game[id].inRound)
     triviaRevealAnswer(id);
   else
-    doTriviaQuestion(id, channel, undefined, 0);
+    doTriviaGame(id, channel, undefined, 0);
 }
 
 // Detect reaction answers
