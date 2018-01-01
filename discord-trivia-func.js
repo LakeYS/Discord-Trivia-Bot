@@ -238,7 +238,7 @@ function doTriviaGame(id, channel, author, scheduled) {
   // ## Permission Checks ##
   var useReactions = 0;
 
-  if(channel.type !== 'dm') {
+  if(channel.type !== 'dm' && author !== undefined) {
     // Check if we have proper permissions for the channel.
     var permissions = channel.permissionsFor(channel.guild.me);
 
