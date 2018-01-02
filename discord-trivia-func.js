@@ -5,6 +5,8 @@ const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const util = require("util");
 
+const config = require("./config.json");
+
 const letters = ["A", "B", "C", "D"];
 
 const opentdb_responses = ["Success", "No results", "Invalid parameter", "Token not found", "Token empty"];
@@ -18,13 +20,6 @@ if(config["round-timeout"] == undefined)
 
 if(config["round-length"] == undefined)
   config["round-length"] = 15000;
-
-if(config.prefix == undefined)
-  config.prefix = "trivia ";
-
-client.on('ready', () => {
-  client.user.setPresence({ game: { name: "Trivia! Type '" + config.prefix + "help' to get started.", type: 0 } });
-});
 
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
@@ -128,10 +123,10 @@ exports.parse = function(str, msg) {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       res.on('data', function(data) {
         var json = JSON.parse(data.toString());
-        triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. Currently in " + client.guilds.size + " guild" + (client.guilds.size==1?'':'s') + ".\nCommands: `" + config.prefix + "play`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+        triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. Commands: `" + config.prefix + "play`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
       });
     }).on('error', function(err) {
-      triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nCurrently in " + client.guilds.size + " guilds. \nCommands: `" + config.prefix + "play`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+      triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nCommands: `" + config.prefix + "play`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
     });
   }
 
@@ -487,7 +482,7 @@ function triviaResumeGame(json, id) {
 }
 
 // Detect reaction answers
-client.on('messageReactionAdd', (reaction, user) => {
+exports.reactionAdd = function(reation, user) {
   var id = reaction.message.channel.id;
   var str = reaction.emoji.name;
 
@@ -516,7 +511,7 @@ client.on('messageReactionAdd', (reaction, user) => {
         game[id].participants.push(user.id);
     }
   }
-});
+};
 
 // # Game Exporter #
 // Export the current game data to a file.
