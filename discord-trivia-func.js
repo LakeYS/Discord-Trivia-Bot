@@ -304,9 +304,7 @@ function doTriviaGame(id, channel, author, scheduled) {
       return;
 
     var answers = [];
-
     answers[0] = question.correct_answer;
-
     answers = answers.concat(question.incorrect_answers);
 
     if(question.incorrect_answers.length == 1)
@@ -404,7 +402,7 @@ function doTriviaGame(id, channel, author, scheduled) {
 
     // Reveal the answer after the time is up
     game[id].timeout = setTimeout(() => {
-       triviaRevealAnswer(id, channel);
+       triviaRevealAnswer(id, channel, question.correct_answer);
     }, config["round-length"]);
   })
   .catch((err) => {
@@ -419,9 +417,15 @@ function doTriviaGame(id, channel, author, scheduled) {
 
 // # triviaRevealAnswer #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
-function triviaRevealAnswer(id, channel) {
-  if(game[id] === undefined || !game[id].inProgress)
+function triviaRevealAnswer(id, channel, answer) {
+  if(game[id] == undefined || !game[id].inProgress)
     return;
+
+  // Quick fix for timeouts not clearing correctly.
+  if(answer !== game[id].answer) {
+    console.warn("WARNING: Mismatched answers in timeout for game " + id + " (" + answer + "||" + game[id].answer + ")");
+    return;
+  }
 
   game[id].inRound = 0;
 
