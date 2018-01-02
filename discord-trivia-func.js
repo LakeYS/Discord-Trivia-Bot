@@ -482,7 +482,7 @@ function triviaResumeGame(json, id) {
 }
 
 // Detect reaction answers
-exports.reactionAdd = function(reation, user) {
+exports.reactionAdd = function(reaction, user) {
   var id = reaction.message.channel.id;
   var str = reaction.emoji.name;
 
