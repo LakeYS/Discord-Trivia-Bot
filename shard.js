@@ -4,6 +4,7 @@
 const Discord = require("discord.js");
 client = new Discord.Client();
 const trivia = require("./discord-trivia-func.js");
+const snekfetch = require("snekfetch");
 
 config = require(process.argv[2]);
 
