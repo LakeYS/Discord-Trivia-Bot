@@ -115,33 +115,6 @@ manager.on('launch', shard => {
   console.log(`Successfully launched shard ${shard.id}`);
 });
 
-// # Post to Bot Listings # //
-function postBotStats() {
-  // ## bots.discord.pw ## //
-  if(config['bots.discord.pw-token'] && config['bots.discord.pw-token'] !== "optionaltokenhere")
-  {
-    snekfetch.post("https://bots.discord.pw/api/bots/" + client.user.id + "/stats")
-      .set('Authorization',config['bots.discord.pw-token'])
-      .send({
-        server_count: client.guilds.size
-      }).catch(err => {
-        console.log("Error occurred while posting to bots.discord.pw:\n" + err);
-      });
-  }
-
-  // ## discordbots.org ## //
-  if(config['discordbots.org-token'] && config['discordbots.org-token'] !== "optionaltokenhere")
-  {
-    snekfetch.post("https://discordbots.org/api/bots/" + client.user.id + "/stats")
-      .set('Authorization',config['discordbots.org-token'])
-      .send({
-        server_count: client.guilds.size
-      }).catch(err => {
-        console.log("Error occurred while posting to discordbots.org:\n" + err);
-      });
-  }
-}
-
 process.on('rejectionHandled', (err) => {
   console.log(err);
   console.log("An error occurred. Reconnecting...");

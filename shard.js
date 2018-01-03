@@ -23,7 +23,7 @@ client.on('ready', () => {
   client.user.setPresence({ game: { name: "Trivia! Type '" + config.prefix + "help' to get started.", type: 0 } });
 
   // TODO: Fix posting and guild count check
-  //postBotStats();
+  postBotStats();
 
   //if(client.guilds.size == 0)
   //  console.log("********\nWARNING: The bot is currently not in a Discord server. You can invite it to a guild using this invite link:\nhttps://discordapp.com/oauth2/authorize?client_id=" + client.user.id + "&scope=bot\n********");
@@ -77,3 +77,34 @@ process.stdin.on('data', function (text) {
     });
   }
 });
+
+// # Post to Bot Listings # //
+function postBotStats() {
+  // ## bots.discord.pw ## //
+  if(config['bots.discord.pw-token'] && config['bots.discord.pw-token'] !== "optionaltokenhere")
+  {
+    snekfetch.post("https://bots.discord.pw/api/bots/" + client.user.id + "/stats")
+      .set('Authorization',config['bots.discord.pw-token'])
+      .send({
+        shard_id: client.shard.id,
+        shard_count: client.shard.count,
+        server_count: client.guilds.size
+      }).catch(err => {
+        console.log("Error occurred while posting to bots.discord.pw on shard " + client.shard.id + ":\n" + err);
+      });
+  }
+
+  // ## discordbots.org ## //
+  if(config['discordbots.org-token'] && config['discordbots.org-token'] !== "optionaltokenhere")
+  {
+    snekfetch.post("https://discordbots.org/api/bots/" + client.user.id + "/stats")
+      .set('Authorization',config['discordbots.org-token'])
+      .send({
+        shard_id: client.shard.id,
+        shard_count: client.shard.count,
+        server_count: client.guilds.size
+      }).catch(err => {
+        console.log("Error occurred while posting to discordbots.org on shard " + client.shard.id + ":\n" + err);
+      });
+  }
+}
