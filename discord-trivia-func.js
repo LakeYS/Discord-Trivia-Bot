@@ -5,7 +5,7 @@ const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const util = require("util");
 
-const config = require("./config.json");
+const config = require(process.argv[2]);
 
 const letters = ["A", "B", "C", "D"];
 
