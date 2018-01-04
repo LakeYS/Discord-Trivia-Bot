@@ -537,10 +537,3 @@ if(config["fallback-mode"]) {
       console.log("Msg - Shard " + client.shard.id + " - Channel " + msg.channel.id);
   });
 }
-
-// # Patreon Mode Functionality #
-if(config["patreon-mode"]) {
-  client.on('guildCreate', (guild) => {
-    guild.leave();
-  });
-}
