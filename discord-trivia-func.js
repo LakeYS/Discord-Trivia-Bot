@@ -162,7 +162,7 @@ exports.parse = function(str, msg) {
           var str = "A list has been sent to you via DM.";
           if(msg.channel.type == 'dm')
             str = "";
-          msg.author.send(categories)
+          triviaSend(msg.author, undefined, categories)
             .catch(function(err) {
               str = "Unable to send you the list because you cannot receive DMs.";
               if(err != "DiscordAPIError: Cannot send messages to this user")
@@ -170,10 +170,7 @@ exports.parse = function(str, msg) {
             })
             .then(function() {
               i++;
-              msg.channel.send("There are " + i + " categories. " + str) // This is a DM-based command; will not use triviaSend
-              .catch((err) => {
-                console.warn("Failed to send message to user " + msg.author.id + " (Will not fall back to DM)");
-              });
+              triviaSend(msg.channel, undefined, "There are " + i + " categories. " + str);
             });
         });
       }).on('error', function(err) {
@@ -250,10 +247,7 @@ function doTriviaGame(id, channel, author, scheduled) {
     // Permissions sometimes return null for some reason, so this is a workaround.
     if(permissions == null) {
       if(author !== undefined)
-        author.send("Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)")
-        .catch((err) => {
-          console.warn("Failed to send message to user " + authorid);
-        });
+        triviaSend(author, undefined, "Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)");
       else
         console.warn("Failed to send message. (null permissions, no author)");
 
@@ -261,18 +255,12 @@ function doTriviaGame(id, channel, author, scheduled) {
     }
 
     if(!channel.permissionsFor(channel.guild.me).has('SEND_MESSAGES')) {
-      author.send("Unable to start a Trivia game in this channel. (Bot does not have permission to send messages)")
-      .catch((err) => {
-        console.warn("Failed to send message to user " + authorid);
-      });
+      triviaSend(author, undefined, "Unable to start a Trivia game in this channel. (Bot does not have permission to send messages)");
       return;
     }
 
     if(!channel.permissionsFor(channel.guild.me).has('EMBED_LINKS')) {
-      channel.send("Unable to start a trivia game because this channel does not have the 'Embed Links' permission.")
-      .catch((err) => {
-        console.warn("Failed to send message to user " + authorid);
-      });
+      triviaSend(channel, author, "Unable to start a trivia game because this channel does not have the 'Embed Links' permission.");
       return;
     }
 
@@ -544,9 +532,9 @@ process.stdin.on('data', function (text) {
 if(config["fallback-mode"]) {
   client.on("message", msg => {
     if(msg.author == client.user)
-      console.log("Received message from self");
+      console.log("Msg (Self) - Shard " + client.shard.id + " - Channel " + msg.channel.id);
     else
-      console.log("Received message");
+      console.log("Msg - Shard " + client.shard.id + " - Channel " + msg.channel.id);
   });
 }
 

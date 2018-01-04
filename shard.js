@@ -23,7 +23,7 @@ client.on('ready', () => {
 
   client.user.setPresence({ game: { name: "Trivia! Type '" + config.prefix + "help' to get started.", type: 0 } });
 
-  // TODO: Fix posting and guild count check
+  // TODO: Fix guild count check
   postBotStats();
 
   //if(client.guilds.size == 0)
@@ -81,6 +81,9 @@ process.stdin.on('data', function (text) {
 
 // # Post to Bot Listings # //
 function postBotStats() {
+  if(config["fallback-mode"])
+    return;
+
   // ## bots.discord.pw ## //
   if(config['bots.discord.pw-token'] && config['bots.discord.pw-token'] !== "optionaltokenhere")
   {
