@@ -11,6 +11,7 @@ run_dev*.bat
 run_dev*.sh
 run_beta*.bat
 run_beta*.sh
+TriviaBot/*
 
 # Windows image file caches
 Thumbs.db
