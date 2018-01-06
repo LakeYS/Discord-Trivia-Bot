@@ -425,10 +425,10 @@ function triviaRevealAnswer(id, channel, answer) {
   if(game[id].correct_names.length == 0)
     correct_users_str = correct_users_str + "Nobody!";
   else {
-    if(game[id].correct_names.length == 1)
-      correct_users_str = "Correct!"; // Only one player, make things simple.
+    if(game[id].participants.length == 1)
+      correct_users_str = "Correct!"; // Only one player overall, simply say "Correct!"
     else if(game[id].correct_names.length > 10) {
-        // More than 10 players, player names are separated by comma
+        // More than 10 correct players, player names are separated by comma to save space.
         var comma = ", ";
         for(var i = 0; i <= game[id].correct_names.length-1; i++) {
           if(i == game[id].correct_names.length-1)
@@ -438,7 +438,7 @@ function triviaRevealAnswer(id, channel, answer) {
         }
       }
     else {
-      // Less than 10 players, all names are on their own line.
+      // Less than 10 correct players, all names are on their own line.
       for(var i2 = 0; i2 <= game[id].correct_names.length-1; i2++) {
         correct_users_str = correct_users_str + game[id].correct_names[i2] + "\n";
       }
