@@ -58,25 +58,17 @@ client.on('messageReactionAdd', (reaction, user) => {
 
 // # Console Functions # //
 process.stdin.on('data', function (text) {
-  if(text.toString() == "stop\r\n" || text.toString() == "exit\r\n" || text.toString() == "stop\n" || text.toString() == "exit\n")
-  {
-    // TRIVIABOT override: Don't shut down if a game is in progress.
-    if(Object.keys(game).length == 0)
-      process.exit();
-    else
-      console.log("There are\x1b[1m " + Object.keys(game).length + " \x1b[0mgame(s) in progress, bot will not close.\nType 'forceexit' to override.");
-  }
-  else if(text.toString() == "forceexit\r\n") // TRIVIABOT override: Check for 'forceexit'
-    process.exit();
-  else {
-    client.shard.broadcastEval(text.toString())
-    .then(res => {
-      console.log(res);
-    })
-    .catch(err => {
-      console.log("Eval err " + err);
-    });
-  }
+  var id = process.pid;
+  if(client.shard !== null)
+    id = id + ":" + client.shard.id;
+
+  client.shard.broadcastEval(text.toString())
+  .then(res => {
+    console.log("#" + id + ": " + res);
+  })
+  .catch(err => {
+    console.log("#" + id + ": Eval err " + err);
+  });
 });
 
 // # Post to Bot Listings # //

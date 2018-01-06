@@ -1,4 +1,5 @@
 /*jshint esversion: 6 */
+/*jshint evil:true */
 
 const pjson = require("./package.json");
 
@@ -123,4 +124,27 @@ process.on('rejectionHandled', (err) => {
 
 process.on('exit', function() {
   client.destroy();
+});
+
+// # Console Functions # //
+process.stdin.on('data', function (text) {
+  if(text.toString() == "stop\r\n" || text.toString() == "exit\r\n" || text.toString() == "stop\n" || text.toString() == "exit\n")
+  {
+    // TRIVIABOT override: Don't shut down if a game is in progress.
+    if(Object.keys(game).length == 0)
+      process.exit();
+    else
+      console.log("There are\x1b[1m " + Object.keys(game).length + " \x1b[0mgame(s) in progress, bot will not close.\nType 'forceexit' to override.");
+  }
+  else if(text.toString() == "forceexit\r\n") // TRIVIABOT override: Check for 'forceexit'
+    process.exit();
+  else {
+    console.log("Eval on index:");
+    try {
+      eval(text.toString());
+    }
+    catch(err) {
+      console.log(err);
+    }
+  }
 });
