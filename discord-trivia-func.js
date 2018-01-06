@@ -107,13 +107,13 @@ exports.parse = function(str, msg) {
     // inProgress is always true when a game is active, even between rounds.
 
     // Make sure they haven't already submitted an answer
-    if(game[id].participants.indexOf(msg.author.id)) {
-      if(str == letters[game[id].correct_id] && game[id].inProgress) {
+    if(game[id].inProgress && game[id].participants.includes(msg.author.id) == false) {
+      if(str == letters[game[id].correct_id]) {
         game[id].correct_users.push(msg.author.id);
         game[id].correct_names.push(msg.author.username);
       }
 
-      if(game[id].inProgress && (str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
+      if((str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
         game[id].participants.push(msg.author.id);
       }
   }

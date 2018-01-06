@@ -14,7 +14,7 @@ if(config.prefix == undefined)
 client.login(client.token);
 
 client.on('ready', () => {
-  console.log('Discord client connected to\x1b[1m ' + client.guilds.size + ' \x1b[0mserver' + (client.guilds.size==1?'':'s') + '.');
+  console.log('Shard ' + client.shard.id + ' connected to\x1b[1m ' + client.guilds.size + ' \x1b[0mserver' + (client.guilds.size==1?'':'s') + '.');
 
   if(client.user.avatar == null) {
     console.log("Set profile image to profile.png");
