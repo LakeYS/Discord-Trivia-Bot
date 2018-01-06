@@ -13,11 +13,11 @@ For support, questions, and comments, you can join the Discord server or contact
 **[Join the Discord](https://discord.gg/s3vCQba)**
 
 # Implemented Features
-- Access to a complete database of over 2,500 categorized, multiple-choice trivia questions. (Thanks to [OpenTDB](https://opentdb.com))
+- Access to a complete database of over 3,000 categorized, multiple-choice trivia questions. (Thanks to [OpenTDB](https://opentdb.com))
 - Works across simultaneous channels and Discord servers. (For example, large servers can have multiple trivia channels)
-- Color-coded and categorized questions of varying difficulty.
-- A scalable game system that adapts to the player count.
+- Responsive game system that automatically adapts to the player count.
 - Single-player trivia games via DM.
+- Easy to install and configure for server owners that wish to host the bot themselves.
 
 # Planned Features
 (Subject to change)
