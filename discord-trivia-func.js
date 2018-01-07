@@ -184,9 +184,14 @@ exports.parse = function(str, msg) {
         if(game[id] !== undefined && game[id].inProgress) {
           let timeout = game[id].timeout;
 
-          // If a round is in progress, display the answers before cancelling the game.
-          if(game[id].inRound && timeout !== undefined)
-            timeout._onTimeout();
+          if(timeout !== undefined) {
+            var onTimeout = timeout._onTimeout;
+            clearTimeout(timeout);
+
+            // If a round is in progress, display the answers before cancelling the game.
+            if(game[id].inRound && timeout !== undefined)
+              onTimeout();
+            }
 
           // If there's still a game, clear it.
           if(game[id] !== undefined)
