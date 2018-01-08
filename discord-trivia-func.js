@@ -102,7 +102,7 @@ exports.parse = function(str, msg) {
 
   // ## Answers ##
   // Check for letters if not using reactions
-  // Note that this is copied below for reaction mode.
+  ////////// **Note that this is copied below for reaction mode.**
   if(game[id] !== undefined && !game[id].useReactions) {
     // inProgress is always true when a game is active, even between rounds.
 
@@ -500,15 +500,15 @@ exports.reactionAdd = function(reaction, user) {
     else
       return; // The reaction isn't a letter, ignore it.
 
-    // Note that the following is copied and modified from above.
-    if(game[id].participants.indexOf(user.id)) {
-      if(str == letters[game[id].correct_id] && game[id].inProgress) {
+    ////////// **Note that the following is copied and modified from above.**
+    if(game[id].inProgress && game[id].participants.includes(user.id) == false) {
+      if(str == letters[game[id].correct_id]) {
         // Only counts if this is the first time they type an answer
         game[id].correct_users.push(user.id);
         game[id].correct_names.push(user.username);
       }
 
-      if(game[id].inProgress && (str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
+      if(str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D"))
         game[id].participants.push(user.id);
     }
   }
