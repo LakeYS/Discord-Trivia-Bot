@@ -12,7 +12,7 @@ const letters = ["A", "B", "C", "D"];
 const opentdb_responses = ["Success", "No results", "Invalid parameter", "Token not found", "Token empty"];
 
 game = {};
-questions = {};
+questions = [];
 
 // Initialize missing config options to their defaults
 if(config["round-timeout"] == undefined)
@@ -48,30 +48,77 @@ function triviaSend(channel, author, msg) {
 
 // getTriviaQuestion
 // Returns a promise, fetches a random question from the database.
-function getTriviaQuestion() {
+function getTriviaQuestion(initial) {
   return new Promise((resolve, reject) => {
-    https.get("https://opentdb.com/api.php?amount=1", (res) => {
-      res.on('data', (data) => {
-        var json = JSON.parse(data.toString());
+    var length = questions.length;
 
-        if(json.response_code !== 0) {
-          console.log("Received error from OpenTDB.");
-          console.log(json);
+    // To keep the question response quick, the bot always stays one question ahead.
+    // This way, we're never waiting for OpenTDB to respond.
+    if(length == undefined || length < 2) {
+      https.get("https://opentdb.com/api.php?amount=16", (res) => {
+        res.on('data', (data) => {
+          var json = JSON.parse(data.toString());
 
-          // Author is passed through; triviaSend will handle it if author is undefined.
-          reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + opentdb_responses[json.response_code] + ")"));
+          if(json.response_code !== 0) {
+            console.log("Received error from OpenTDB.");
+            console.log(json);
+
+            // Author is passed through; triviaSend will handle it if author is undefined.
+            reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + opentdb_responses[json.response_code] + ")"));
+            return;
+          }
+          //console.log(json);
+
+          questions = json.results;
+
+          // Now we'll return a question from the cache.
+          ////////// **Copied below**
+          if(!initial) {
+            // Just in case, check the cached question count first.
+            if(questions.length < 1)
+              reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
+            else {
+
+              resolve(questions[0]);
+
+              delete questions[0];
+              questions = questions.filter(val => Object.keys(val).length !== 0);
+
+            }
+          }
+          //////////
           return;
-        }
-
-        resolve(JSON.parse(JSON.stringify(json.results[0])));
-        delete json.results[0];
+        });
+      })
+      .on('error', (error) => {
+        reject(error);
       });
-    })
-    .on('error', (error) => {
-      reject(error);
-    });
+    }
+    else {
+      ////////// **Copied above**
+      if(!initial) {
+        // Just in case, check the cached question count first.
+        if(questions.length < 1)
+          reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
+        else {
+
+          resolve(questions[0]);
+
+          delete questions[0];
+          questions = questions.filter(val => Object.keys(val).length !== 0);
+
+        }
+      }
+      //////////
+    }
   });
 }
+
+// Initialize the question cache
+getTriviaQuestion(1)
+.catch(err => {
+  console.log("An error occurred while attempting to initialize the question cache:\n" + err);
+});
 
 // Function to end trivia games
 function triviaEndGame(id) {
@@ -358,8 +405,9 @@ function doTriviaGame(id, channel, author, scheduled) {
             error = 1;
           })
           .then(() => {
-            // Only add C and D if it isn't a true/false question
-            if(!game[id].isTrueFalse) {
+            // Only add C and D if it isn't a true/false question.
+            // Reactions will stop here if the game has since been cancelled.
+            if(game[id] == undefined || !game[id].isTrueFalse) {
               msg.react('🇨')
               .catch(err => {
                 console.log("Failed to add reaction C: " + err);
@@ -406,6 +454,8 @@ function doTriviaGame(id, channel, author, scheduled) {
       color: 14164000,
       description: "An error occurred while attempting to query the trivia database:\n*" + err.message + "*"
     }});
+
+    console.log("Database query error: " + err.message);
 
     triviaEndGame(id);
   });
@@ -507,9 +557,6 @@ exports.reactionAdd = function(reaction, user) {
         game[id].correct_users.push(user.id);
         game[id].correct_names.push(user.username);
       }
-
-      if(str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D"))
-        game[id].participants.push(user.id);
     }
   }
 };
