@@ -55,8 +55,10 @@ function getTriviaQuestion(initial) {
     // To keep the question response quick, the bot always stays one question ahead.
     // This way, we're never waiting for OpenTDB to respond.
     if(length == undefined || length < 2) {
-      https.get("https://opentdb.com/api.php?amount=16", (res) => {
-        res.on('data', (data) => {
+      var data = "";
+      https.get("https://opentdb.com/api.php?amount=32", (res) => {
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
           var json = JSON.parse(data.toString());
 
           if(json.response_code !== 0) {
@@ -168,7 +170,9 @@ exports.parse = function(str, msg) {
   // ## Help Command ##
   if(str == prefix + "HELP" || str.includes("<@" + client.user.id + ">")) {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
-      res.on('data', function(data) {
+      var data = "";
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
         var json = JSON.parse(data.toString());
         client.shard.fetchClientValues('guilds.size')
         .then(results => {
@@ -198,7 +202,9 @@ exports.parse = function(str, msg) {
 
     if(cmd == "CATEGORIES") {
       https.get("https://opentdb.com/api_category.php", (res) => {
-        res.on('data', function(data) {
+        var data = "";
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
           var json = JSON.parse(data.toString());
 
           var categories = "**Categories:** ";
