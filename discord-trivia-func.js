@@ -21,42 +21,40 @@ if(config["round-timeout"] == undefined)
 if(config["round-length"] == undefined)
   config["round-length"] = 15000;
 
-// Generic message sending function.
-// This is to avoid repeating the same error catchers throughout the script.
-// Beware: This is not used for every message. For corner cases, 'channel.send' is used.
-function triviaSend(channel, author, msg) {
-  return channel.send(msg)
-  .catch((err) => {
-    if(author !== undefined) {
-      if(channel.type != 'dm') {
-        author.send({embed: {
-          color: 14164000,
-          description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
-        }})
-        .catch((err) => {
-          console.warn("Failed to send message to user " + author.id + ". (DM failed)");
-        });
-      }
-      else
-        console.warn("Failed to send message to user " + author.id + ". (already in DM)");
-      }
-      else
-        console.warn("Failed to send message to channel. (no user)");
+function initCategories() {
+  // Initialize the categories
+  // TODO: Error handling
+  https.get("https://opentdb.com/api_category.php", (res) => {
+    var data = "";
+    res.on('data', (chunk) => { data += chunk; });
+    res.on('end', () => {
+      categories = JSON.parse(data).trivia_categories;
     });
-
+  });
 }
+initCategories();
 
 // getTriviaQuestion
 // Returns a promise, fetches a random question from the database.
-function getTriviaQuestion(initial) {
+// If initial is set to true, a question will not be returned. (For initializing the cache)
+function getTriviaQuestion(initial, category) {
   return new Promise((resolve, reject) => {
     var length = questions.length;
 
     // To keep the question response quick, the bot always stays one question ahead.
     // This way, we're never waiting for OpenTDB to respond.
-    if(length == undefined || length < 2) {
+    if(length == undefined || length < 2 || category !== undefined) {
       var data = "";
-      https.get("https://opentdb.com/api.php?amount=32", (res) => {
+      var args = "";
+
+      // TODO: Check the cache for a question in the category
+      if(category !== undefined)
+        args += "?amount=1&category=" + category;
+      else {
+        args += "?amount=32";
+      }
+
+      https.get("https://opentdb.com/api.php" + args, (res) => {
         res.on('data', (chunk) => { data += chunk; });
         res.on('end', () => {
           var json = JSON.parse(data.toString());
@@ -103,7 +101,6 @@ function getTriviaQuestion(initial) {
         if(questions.length < 1)
           reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
         else {
-
           resolve(questions[0]);
 
           delete questions[0];
@@ -121,6 +118,30 @@ getTriviaQuestion(1)
 .catch(err => {
   console.log("An error occurred while attempting to initialize the question cache:\n" + err);
 });
+
+// Generic message sending function.
+// This is to avoid repeating the same error catchers throughout the script.
+// Beware: This is not used for every message. For corner cases, 'channel.send' is used.
+function triviaSend(channel, author, msg) {
+  return channel.send(msg)
+  .catch((err) => {
+    if(author !== undefined) {
+      if(channel.type != 'dm') {
+        author.send({embed: {
+          color: 14164000,
+          description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
+        }})
+        .catch((err) => {
+          console.warn("Failed to send message to user " + author.id + ". (DM failed)");
+        });
+      }
+      else
+        console.warn("Failed to send message to user " + author.id + ". (already in DM)");
+      }
+      else
+        console.warn("Failed to send message to channel. (no user)");
+    });
+}
 
 // Function to end trivia games
 function triviaEndGame(id) {
@@ -269,7 +290,7 @@ exports.parse = function(str, msg) {
 // - scheduled: Set to true if starting a game scheduled by the bot.
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
-function doTriviaGame(id, channel, author, scheduled) {
+function doTriviaGame(id, channel, author, scheduled, category) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   if(game[id] !== undefined) {
     if(!scheduled && game[id].timeout !== undefined && game[id].timeout._called == true) {
@@ -346,7 +367,7 @@ function doTriviaGame(id, channel, author, scheduled) {
     'prev_participants': game[id]!==undefined?game[id].participants:null
   };
 
-  getTriviaQuestion()
+  getTriviaQuestion(0, category)
   .then((question) => {
     // Make sure the game wasn't cancelled while querying OpenTDB.
     if(!game[id])
