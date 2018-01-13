@@ -197,7 +197,7 @@ exports.parse = function(str, msg) {
         var json = JSON.parse(data.toString());
         client.shard.fetchClientValues('guilds.size')
         .then(results => {
-          triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+          triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
         })
         .catch(err => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
       });
@@ -218,8 +218,26 @@ exports.parse = function(str, msg) {
     if(cmd == "STOP" || cmd == "CANCEL")
       triviaSend(msg.channel, msg.author, "Trivia games will stop automatically if nobody participates after two rounds.\nServer managers can type 'trivia admin cancel' to force-cancel a round.");
 
-    if(cmd == "START" || cmd == "PLAY" || cmd == "QUESTION")
-      doTriviaGame(msg.channel.id, msg.channel, msg.author, 0);
+    if(cmd.startsWith("PLAY")) {
+      var categoryInput = cmd.replace("PLAY ","");
+
+      if(categoryInput.length >= 3 && categoryInput !== "PLAY") {
+        category = categories.find((el) => {
+          return el.name.toUpperCase().includes(categoryInput);
+        });
+
+        if(category == undefined)
+          triviaSend(msg.channel, msg.author, {embed: {
+            color: 14164000,
+            description: "Unable to find the category you specified.\nType `trivia play` to play in a random category, or type `trivia categories` to see a list of categories."
+          }});
+        else
+          doTriviaGame(msg.channel.id, msg.channel, msg.author, 0, category.id);
+      }
+      else // No category specified, start a normal game. (OpenTDB will pick a random category for us)
+        doTriviaGame(msg.channel.id, msg.channel, msg.author, 0);
+
+    }
 
     if(cmd == "CATEGORIES") {
       https.get("https://opentdb.com/api_category.php", (res) => {
@@ -358,6 +376,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     'inRound': 1,
 
     'useReactions': useReactions,
+    'category': game[id]!==undefined?game[id].category:category,
 
     'participants': [],
     'correct_users': [],
@@ -367,7 +386,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     'prev_participants': game[id]!==undefined?game[id].participants:null
   };
 
-  getTriviaQuestion(0, category)
+  getTriviaQuestion(0, game[id].category)
   .then((question) => {
     // Make sure the game wasn't cancelled while querying OpenTDB.
     if(!game[id])
