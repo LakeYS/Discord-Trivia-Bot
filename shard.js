@@ -24,7 +24,7 @@ client.on('ready', () => {
   client.user.setPresence({ game: { name: "Trivia! Type '" + config.prefix + "help' to get started.", type: 0 } });
 
   // TODO: Fix guild count check
-  postBotStats();
+  global.postBotStats();
 
   //if(client.guilds.size == 0)
   //  console.log("********\nWARNING: The bot is currently not in a Discord server. You can invite it to a guild using this invite link:\nhttps://discordapp.com/oauth2/authorize?client_id=" + client.user.id + "&scope=bot\n********");
@@ -72,10 +72,7 @@ process.stdin.on('data', function (text) {
 });
 
 // # Post to Bot Listings # //
-function postBotStats() {
-  if(config["fallback-mode"])
-    return;
-
+global.postBotStats = function() {
   // ## bots.discord.pw ## //
   if(config['bots.discord.pw-token'] && config['bots.discord.pw-token'] !== "optionaltokenhere")
   {
@@ -86,6 +83,7 @@ function postBotStats() {
         shard_count: client.shard.count,
         server_count: client.guilds.size
       }).catch(err => {
+        console.log("Error occurred while posting to bots.discord.pw on shard " + client.shard.id + ":\n" + err);
         console.log("Error occurred while posting to bots.discord.pw on shard " + client.shard.id + ":\n" + err);
       });
   }
@@ -103,4 +101,4 @@ function postBotStats() {
         console.log("Error occurred while posting to discordbots.org on shard " + client.shard.id + ":\n" + err);
       });
   }
-}
+};

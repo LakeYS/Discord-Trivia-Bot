@@ -11,6 +11,8 @@ run_dev*.bat
 run_dev*.sh
 run_beta*.bat
 run_beta*.sh
+update*.bat
+update*.sh
 TriviaBot/*
 
 # Windows image file caches
