@@ -9,16 +9,16 @@ const config = require(process.argv[2]);
 
 const letters = ["A", "B", "C", "D"];
 
-const opentdb_responses = ["Success", "No results", "Invalid parameter", "Token not found", "Token empty"];
+const openTDBResponses = ["Success", "No results", "Invalid parameter", "Token not found", "Token empty"];
 
 game = {};
 questions = [];
 
 // Initialize missing config options to their defaults
-if(config["round-timeout"] == undefined)
+if(config["round-timeout"] === undefined)
   config["round-timeout"] = 5500;
 
-if(config["round-length"] == undefined)
+if(config["round-length"] === undefined)
   config["round-length"] = 15000;
 
 function initCategories() {
@@ -64,7 +64,7 @@ function getTriviaQuestion(initial, category) {
             console.log(json);
 
             // Author is passed through; triviaSend will handle it if author is undefined.
-            reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + opentdb_responses[json.response_code] + ")"));
+            reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + openTDBResponses[json.response_code] + ")"));
             return;
           }
           //console.log(json);
@@ -126,7 +126,7 @@ function triviaSend(channel, author, msg) {
   return channel.send(msg)
   .catch((err) => {
     if(author !== undefined) {
-      if(channel.type != 'dm') {
+      if(channel.type !== 'dm') {
         author.send({embed: {
           color: 14164000,
           description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
@@ -145,7 +145,7 @@ function triviaSend(channel, author, msg) {
 
 // Function to end trivia games
 function triviaEndGame(id) {
-  if(game[id] == undefined) {
+  if(game[id] === undefined) {
     console.warn("Attempting to clear empty game, ignoring.");
     return;
   }

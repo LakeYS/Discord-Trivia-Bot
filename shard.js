@@ -45,7 +45,7 @@ client.on('error', function(err) {
 });
 
 client.on("message", msg => {
-  str = msg.toString().toUpperCase();
+  var str = msg.toString().toUpperCase();
 
   if(msg.channel.type == "text" || msg.channel.type == "dm") {
     trivia.parse(str, msg);

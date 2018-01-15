@@ -25,14 +25,14 @@ for(var i = 0; i <= process.argv.length; i++) {
 config = require(configFile);
 
 // # Version Check # //
-skipVersionCheck = 0;
+var skipVersionCheck = 0;
 
 if(!config['disable-version-check']) {
   // If, for whatever reason, semver-compare isn't installed, we'll skip the version check.
   try {
     semver = require('semver-compare');
   } catch(err) {
-    if(err.code == 'MODULE_NOT_FOUND') {
+    if(err.code == "MODULE_NOT_FOUND") {
       console.warn("********\nWARNING: semver-compare module not found. The version check will be skipped.\nMake sure to keep the bot up-to-date! Check here for newer versions:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
       skipVersionCheck = 1;
     }
@@ -49,7 +49,7 @@ if(!config['disable-version-check']) {
     };
 
     var input = "";
-    json = "";
+    var json = "";
     var request = https.request(options, (res) => {
       res.on('data', (data) => {
         input = input + data; // Combine the data
@@ -65,20 +65,20 @@ if(!config['disable-version-check']) {
       res.on('end', function() {
         if(input !== undefined) {
           json = JSON.parse(input.toString());
-          if(json.tag_name !== undefined) {
-            release = json.tag_name.replace("v",""); // Mark the release
-
-            // Compare this build's version to the latest release.
-            var releaseRelative = semver(pjson.version, release);
-
-            if(releaseRelative == 1)
-              console.log("********\nNOTICE: You are currently running\x1b[1m v" + pjson.version + "\x1b[0m. This build is considered unstable.\nCheck here for the latest stable versions of this script:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
-
-            if(releaseRelative == -1)
-              console.log("********\nNOTICE: You are currently running\x1b[1m v " + pjson.version + "\x1b[0m. A newer version is available.\nCheck here for the latest version of this script:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
+          if(json.tag_name === undefined) {
+            console.log(json);
+            console.warn("WARNING: Unable to parse version data.");
             } else {
-              console.log(json);
-              console.warn("WARNING: Unable to parse version data.");
+              release = json.tag_name.replace("v",""); // Mark the release
+
+              // Compare this build's version to the latest release.
+              var releaseRelative = semver(pjson.version, release);
+
+              if(releaseRelative == 1)
+                console.log("********\nNOTICE: You are currently running\x1b[1m v" + pjson.version + "\x1b[0m. This build is considered unstable.\nCheck here for the latest stable versions of this script:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
+
+              if(releaseRelative == -1)
+                console.log("********\nNOTICE: You are currently running\x1b[1m v" + pjson.version + "\x1b[0m. A newer version is available.\nCheck here for the latest version of this script:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
             }
           }
         else {
