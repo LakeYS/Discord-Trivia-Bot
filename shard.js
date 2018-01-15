@@ -74,7 +74,7 @@ process.stdin.on('data', function (text) {
 // # Post to Bot Listings # //
 global.postBotStats = function() {
   // ## bots.discord.pw ## //
-  if(config['bots.discord.pw-token'] && config['bots.discord.pw-token'] !== "optionaltokenhere")
+  if(config["bots.discord.pw-token"] && config["bots.discord.pw-token"] !== "optionaltokenhere")
   {
     snekfetch.post("https://bots.discord.pw/api/bots/" + client.user.id + "/stats")
       .set('Authorization',config['bots.discord.pw-token'])

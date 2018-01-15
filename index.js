@@ -62,13 +62,14 @@ if(!config['disable-version-check']) {
       });
 
       // Note that if there is an error while parsing the JSON data, the bot will crash.
-      res.on('end', function() {
+      res.on("end", () => {
         if(input !== undefined) {
           json = JSON.parse(input.toString());
           if(json.tag_name === undefined) {
             console.log(json);
             console.warn("WARNING: Unable to parse version data.");
-            } else {
+            }
+            else {
               release = json.tag_name.replace("v",""); // Mark the release
 
               // Compare this build's version to the latest release.
@@ -90,7 +91,7 @@ if(!config['disable-version-check']) {
 
     request.end();
     process.nextTick(() => {
-      request.on('error', (err) => {
+      request.on("error", (err) => {
         console.log(err);
         console.log("ERROR: Unable to query version data.");
       });
@@ -119,7 +120,7 @@ process.on('rejectionHandled', (err) => {
   console.log(err);
   console.log("An error occurred. Reconnecting...");
   client.destroy();
-  setTimeout(function(){ client.login(config.token); }, 2000);
+  setTimeout(() => { client.login(config.token); }, 2000);
 });
 
 process.on('exit', function() {

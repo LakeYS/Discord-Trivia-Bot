@@ -144,8 +144,9 @@ function triviaSend(channel, author, msg) {
           console.warn("Failed to send message to user " + author.id + ". (DM failed)");
         });
       }
-      else
-        console.warn("Failed to send message to user " + author.id + ". (already in DM)");
+      else {
+          console.warn("Failed to send message to user " + author.id + ". (already in DM)");
+        }
       }
       else
         console.warn("Failed to send message to channel. (no user)");
@@ -167,8 +168,9 @@ function triviaEndGame(id) {
 // # trivia.parse #
 exports.parse = function(str, msg) {
   // No games in fallback mode
-  if(config["fallback-mode"])
+  if(config["fallback-mode"]) {
     return;
+  }
 
   // Str is always uppercase
   var id = msg.channel.id;
