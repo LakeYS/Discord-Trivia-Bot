@@ -14,6 +14,8 @@ run_beta*.sh
 update*.bat
 update*.sh
 TriviaBot/*
+triviabot.tar.gz
+TriviaBot.zip
 
 # Windows image file caches
 Thumbs.db
