@@ -24,15 +24,24 @@ if(config["round-length"] === undefined)
 function initCategories() {
   // Initialize the categories
   // TODO: Error handling
-  https.get("https://opentdb.com/api_category.php", (res) => {
-    var data = "";
-    res.on('data', (chunk) => { data += chunk; });
-    res.on('end', () => {
-      categories = JSON.parse(data).trivia_categories;
+  return new Promise((resolve, reject) => {
+    https.get("https://opentdb.com/api_category.php", (res) => {
+      var data = "";
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        categories = JSON.parse(data).trivia_categories;
+        resolve(categories);
+      });
+    })
+    .on('error', (error) => {
+      reject(error);
     });
   });
 }
-initCategories();
+initCategories()
+.catch((err) => {
+  console.log("Failed to retrieve category list:\n" + err);
+});
 
 // getTriviaQuestion
 // Returns a promise, fetches a random question from the database.
@@ -222,21 +231,50 @@ exports.parse = function(str, msg) {
       var categoryInput = cmd.replace("PLAY ","");
 
       if(categoryInput.length >= 3 && categoryInput !== "PLAY") {
-        category = categories.find((el) => {
-          return el.name.toUpperCase().includes(categoryInput);
-        });
+        new Promise((resolve, reject) => {
+          if(typeof categories === 'undefined') {
+            // Categories are missing, so we'll try to re-initialize them.
+            initCategories()
+            .then(() => {
+              // Success, we'll continue as normal.
+              resolve();
+            })
+            .catch((err) => {
+              // Should this fail, the error will be passed to the check below.
+              reject(err);
+            });
+          }
+          else {
+            // Categories are already defined and ready to use, so we'll continue.
+            resolve();
+          }
+        })
+        .then(() => {
+          category = categories.find((el) => {
+            return el.name.toUpperCase().includes(categoryInput);
+          });
 
-        if(category == undefined)
+          if(category == undefined) {
+            triviaSend(msg.channel, msg.author, {embed: {
+              color: 14164000,
+              description: "Unable to find the category you specified.\nType `trivia play` to play in a random category, or type `trivia categories` to see a list of categories."
+            }});
+            return;
+          }
+          else {
+            doTriviaGame(msg.channel.id, msg.channel, msg.author, 0, category.id);
+          }
+        })
+        .catch((err) => {
           triviaSend(msg.channel, msg.author, {embed: {
             color: 14164000,
-            description: "Unable to find the category you specified.\nType `trivia play` to play in a random category, or type `trivia categories` to see a list of categories."
+            description: "Failed to retrieve the category list:\n" + err
           }});
-        else
-          doTriviaGame(msg.channel.id, msg.channel, msg.author, 0, category.id);
+          return;
+        });
       }
       else // No category specified, start a normal game. (OpenTDB will pick a random category for us)
         doTriviaGame(msg.channel.id, msg.channel, msg.author, 0);
-
     }
 
     if(cmd == "CATEGORIES") {
