@@ -29,7 +29,11 @@ function initCategories() {
       var data = "";
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
-        categories = JSON.parse(data).trivia_categories;
+        try {
+          categories = JSON.parse(data).trivia_categories;
+        } catch(error) {
+          reject(error);
+        }
         resolve(categories);
       });
     })
