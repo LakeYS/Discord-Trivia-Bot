@@ -33,6 +33,7 @@ function initCategories() {
           categories = JSON.parse(data).trivia_categories;
           resolve(categories);
         } catch(error) {
+          console.log(data);
           reject(error);
         }
       });
