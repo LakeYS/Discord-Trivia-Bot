@@ -31,10 +31,10 @@ function initCategories() {
       res.on('end', () => {
         try {
           categories = JSON.parse(data).trivia_categories;
+          resolve(categories);
         } catch(error) {
           reject(error);
         }
-        resolve(categories);
       });
     })
     .on('error', (error) => {
@@ -276,6 +276,7 @@ exports.parse = function(str, msg) {
             color: 14164000,
             description: "Failed to retrieve the category list:\n" + err
           }});
+          console.log("Failed to retrieve category list:\n" + err);
           return;
         });
       }
