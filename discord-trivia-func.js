@@ -33,7 +33,7 @@ function initCategories() {
           categories = JSON.parse(data).trivia_categories;
           resolve(categories);
         } catch(error) {
-          console.log(data);
+          JSONData = data;
           reject(error);
         }
       });
@@ -71,7 +71,14 @@ function getTriviaQuestion(initial, category) {
       https.get("https://opentdb.com/api.php" + args, (res) => {
         res.on('data', (chunk) => { data += chunk; });
         res.on('end', () => {
-          var json = JSON.parse(data.toString());
+          var json = "";
+          try {
+            json = JSON.parse(data.toString());
+          } catch(error) {
+            JSONData = data;
+            reject(error);
+            return;
+          }
 
           if(json.response_code !== 0) {
             console.log("Received error from OpenTDB.");
@@ -290,7 +297,18 @@ exports.parse = function(str, msg) {
         var data = "";
         res.on('data', (chunk) => { data += chunk; });
         res.on('end', () => {
-          var json = JSON.parse(data.toString());
+          var json = "";
+          try {
+            json = JSON.parse(data.toString());
+          } catch(error) {
+            triviaSend(msg.channel, msg.author, {embed: {
+              color: 14164000,
+              description: "Failed to query category list.\n" + error
+            }});
+            console.log("Failed to retrieve category list for 'trivia categories'.\n" + error);
+            JSONData = data;
+            return;
+          }
 
           var categories = "**Categories:** ";
           var i = 0;
@@ -311,8 +329,11 @@ exports.parse = function(str, msg) {
               triviaSend(msg.channel, undefined, "There are " + i + " categories. " + str);
             });
         });
-      }).on('error', function(err) {
-        triviaSend(msg.channel, msg.author, "Failed to query category list.");
+      }).on('error', function(error) {
+        triviaSend(msg.channel, msg.author, {embed: {
+          color: 14164000,
+          description: "Failed to query category list.\n" + error
+        }});
       });
     }
 
