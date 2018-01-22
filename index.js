@@ -27,10 +27,10 @@ config = require(configFile);
 // # Version Check # //
 var skipVersionCheck = 0;
 
-if(!config['disable-version-check']) {
+if(!config["disable-version-check"]) {
   // If, for whatever reason, semver-compare isn't installed, we'll skip the version check.
   try {
-    semver = require('semver-compare');
+    semver = require("semver-compare");
   } catch(err) {
     if(err.code == "MODULE_NOT_FOUND") {
       console.warn("********\nWARNING: semver-compare module not found. The version check will be skipped.\nMake sure to keep the bot up-to-date! Check here for newer versions:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
@@ -42,22 +42,22 @@ if(!config['disable-version-check']) {
 
   if(!skipVersionCheck) {
     var options = {
-      host: 'api.github.com',
-      path: '/repos/LakeYS/Discord-Trivia-Bot/releases/latest',
-      method: 'GET',
-      headers: {'user-agent':'Discord-Trivia-Bot'}
+      host: "api.github.com",
+      path: "/repos/LakeYS/Discord-Trivia-Bot/releases/latest",
+      method: "GET",
+      headers: {"user-agent":"Discord-Trivia-Bot"}
     };
 
     var input = "";
     var json = "";
     var request = https.request(options, (res) => {
-      res.on('data', (data) => {
+      res.on("data", (data) => {
         input = input + data; // Combine the data
       });
-      res.on('error', (err) => {
+      res.on("error", (err) => {
         console.log(err);
       });
-      res.on('uncaughtException', (err) => {
+      res.on("uncaughtException", (err) => {
         console.log(err);
       });
 
@@ -101,34 +101,34 @@ if(!config['disable-version-check']) {
 
 // # Requirements/Init # //
 process.stdin.resume();
-process.stdin.setEncoding('utf8');
+process.stdin.setEncoding("utf8");
 
 const Discord = require("discord.js");
 client = new Discord.Client();
 
 // # Discord # //
-const { ShardingManager } = require('discord.js');
+const { ShardingManager } = require("discord.js");
 var token = config.token;
 const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: 2, token: token, shardArgs: [configFile] });
 
 manager.spawn();
-manager.on('launch', shard => {
+manager.on("launch", shard => {
   console.log(`Successfully launched shard ${shard.id}`);
 });
 
-process.on('rejectionHandled', (err) => {
+process.on("rejectionHandled", (err) => {
   console.log(err);
   console.log("An error occurred. Reconnecting...");
   client.destroy();
   setTimeout(() => { client.login(config.token); }, 2000);
 });
 
-process.on('exit', function() {
+process.on("exit", function() {
   client.destroy();
 });
 
 // # Console Functions # //
-process.stdin.on('data', function (text) {
+process.stdin.on("data", function (text) {
   if(text.toString() == "stop\r\n" || text.toString() == "exit\r\n" || text.toString() == "stop\n" || text.toString() == "exit\n")
   {
     // TRIVIABOT override: Don't shut down if a game is in progress.

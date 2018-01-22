@@ -13,8 +13,8 @@ if(config.prefix == undefined)
 
 client.login(client.token);
 
-client.on('ready', () => {
-  console.log('Shard ' + client.shard.id + ' connected to\x1b[1m ' + client.guilds.size + ' \x1b[0mserver' + (client.guilds.size==1?'':'s') + '.');
+client.on("ready", () => {
+  console.log("Shard " + client.shard.id + " connected to\x1b[1m " + client.guilds.size + " \x1b[0mserver" + (client.guilds.size==1?"":"s") + ".");
 
   if(client.user.avatar == null) {
     console.log("Set profile image to profile.png");
@@ -30,14 +30,14 @@ client.on('ready', () => {
   //  console.log("********\nWARNING: The bot is currently not in a Discord server. You can invite it to a guild using this invite link:\nhttps://discordapp.com/oauth2/authorize?client_id=" + client.user.id + "&scope=bot\n********");
 });
 
-client.on('disconnect', function(event) {
+client.on("disconnect", function(event) {
   if(event.code != 1000) {
     console.log("Discord client disconnected with reason: " + event.reason + " (" + event.code + "). Attempting to reconnect in 6s...");
     setTimeout(function(){ client.login(config.token); }, 6000);
   }
 });
 
-client.on('error', function(err) {
+client.on("error", function(err) {
   console.log("Discord client error '" + err.code + "'. Attempting to reconnect in 6s...");
 
   client.destroy();
@@ -52,12 +52,12 @@ client.on("message", msg => {
   }
 });
 
-client.on('messageReactionAdd', (reaction, user) => {
+client.on("messageReactionAdd", (reaction, user) => {
   trivia.reactionAdd(reaction, user);
 });
 
 // # Console Functions # //
-process.stdin.on('data', function (text) {
+process.stdin.on("data", function (text) {
   var id = process.pid;
   if(client.shard !== null)
     id = id + ":" + client.shard.id;

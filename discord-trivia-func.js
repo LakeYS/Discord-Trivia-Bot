@@ -27,8 +27,8 @@ function initCategories() {
   return new Promise((resolve, reject) => {
     https.get("https://opentdb.com/api_category.php", (res) => {
       var data = "";
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => {
+      res.on("data", (chunk) => { data += chunk; });
+      res.on("end", () => {
         try {
           categories = JSON.parse(data).trivia_categories;
           resolve(categories);
@@ -38,7 +38,7 @@ function initCategories() {
         }
       });
     })
-    .on('error', (error) => {
+    .on("error", (error) => {
       reject(error);
     });
   });
@@ -69,8 +69,8 @@ function getTriviaQuestion(initial, category) {
       }
 
       https.get("https://opentdb.com/api.php" + args, (res) => {
-        res.on('data', (chunk) => { data += chunk; });
-        res.on('end', () => {
+        res.on("data", (chunk) => { data += chunk; });
+        res.on("end", () => {
           var json = "";
           try {
             json = JSON.parse(data.toString());
@@ -111,7 +111,7 @@ function getTriviaQuestion(initial, category) {
           return;
         });
       })
-      .on('error', (error) => {
+      .on("error", (error) => {
         reject(error);
       });
     }
@@ -147,7 +147,7 @@ function triviaSend(channel, author, msg) {
   return channel.send(msg)
   .catch((err) => {
     if(author !== undefined) {
-      if(channel.type !== 'dm') {
+      if(channel.type !== "dm") {
         author.send({embed: {
           color: 14164000,
           description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
@@ -188,7 +188,7 @@ exports.parse = function(str, msg) {
   var id = msg.channel.id;
 
   // Other bots can't use commands
-  if(msg.author.bot == 1 && config['allow-bots'] !== true)
+  if(msg.author.bot == 1 && config["allow-bots"] !== true)
     return;
 
   var prefix = config.prefix.toUpperCase();
@@ -215,17 +215,17 @@ exports.parse = function(str, msg) {
   if(str == prefix + "HELP" || str.includes("<@" + client.user.id + ">")) {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       var data = "";
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => {
+      res.on("data", (chunk) => { data += chunk; });
+      res.on("end", () => {
         var json = JSON.parse(data.toString());
-        client.shard.fetchClientValues('guilds.size')
+        client.shard.fetchClientValues("guilds.size")
         .then(results => {
           triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
         })
         .catch(err => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
       });
-    }).on('error', function(err) {
-      client.shard.fetchClientValues('guilds.size')
+    }).on("error", function(err) {
+      client.shard.fetchClientValues("guilds.size")
       .then(results => {
         triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\n" + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
       })
@@ -246,7 +246,7 @@ exports.parse = function(str, msg) {
 
       if(categoryInput.length >= 3 && categoryInput !== "PLAY") {
         new Promise((resolve, reject) => {
-          if(typeof categories === 'undefined') {
+          if(typeof categories === "undefined") {
             // Categories are missing, so we'll try to re-initialize them.
             initCategories()
             .then(() => {
@@ -295,8 +295,8 @@ exports.parse = function(str, msg) {
     if(cmd == "CATEGORIES") {
       https.get("https://opentdb.com/api_category.php", (res) => {
         var data = "";
-        res.on('data', (chunk) => { data += chunk; });
-        res.on('end', () => {
+        res.on("data", (chunk) => { data += chunk; });
+        res.on("end", () => {
           var json = "";
           try {
             json = JSON.parse(data.toString());
@@ -316,7 +316,7 @@ exports.parse = function(str, msg) {
             categories = categories + "\n" + json.trivia_categories[i].name;
 
           var str = "A list has been sent to you via DM.";
-          if(msg.channel.type == 'dm')
+          if(msg.channel.type == "dm")
             str = "";
           triviaSend(msg.author, undefined, categories)
             .catch(function(err) {
@@ -402,7 +402,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
   // ## Permission Checks ##
   var useReactions = 0;
 
-  if(channel.type !== 'dm' && author !== undefined) {
+  if(channel.type !== "dm" && author !== undefined) {
     // Check if we have proper permissions for the channel.
     var permissions = channel.permissionsFor(channel.guild.me);
 
@@ -418,39 +418,39 @@ function doTriviaGame(id, channel, author, scheduled, category) {
       return;
     }
 
-    if(!channel.permissionsFor(channel.guild.me).has('SEND_MESSAGES')) {
+    if(!channel.permissionsFor(channel.guild.me).has("SEND_MESSAGES")) {
       triviaSend(author, undefined, "Unable to start a Trivia game in this channel. (Bot does not have permission to send messages)");
       return;
     }
 
-    if(!channel.permissionsFor(channel.guild.me).has('EMBED_LINKS')) {
+    if(!channel.permissionsFor(channel.guild.me).has("EMBED_LINKS")) {
       triviaSend(channel, author, "Unable to start a trivia game because this channel does not have the 'Embed Links' permission.");
       return;
     }
 
-    if(config['use-reactions'] && channel.permissionsFor(channel.guild.me).has('ADD_REACTIONS') && channel.permissionsFor(channel.guild.me).has('READ_MESSAGE_HISTORY'))
+    if(config["use-reactions"] && channel.permissionsFor(channel.guild.me).has("ADD_REACTIONS") && channel.permissionsFor(channel.guild.me).has("READ_MESSAGE_HISTORY"))
       useReactions = 1;
   }
   else {
-    if(config['use-reactions'])
+    if(config["use-reactions"])
       useReactions = 1;
   }
 
   // ## Game ##
   // Define the variables for the new game.
   game[id] = {
-    'inProgress': 1,
-    'inRound': 1,
+    "inProgress": 1,
+    "inRound": 1,
 
-    'useReactions': useReactions,
-    'category': game[id]!==undefined?game[id].category:category,
+    "useReactions": useReactions,
+    "category": game[id]!==undefined?game[id].category:category,
 
-    'participants': [],
-    'correct_users': [],
-    'correct_names': [],
-    'correct_times': [], // Not implemented
+    "participants": [],
+    "correct_users": [],
+    "correct_names": [],
+    "correct_times": [], // Not implemented
 
-    'prev_participants': game[id]!==undefined?game[id].participants:null
+    "prev_participants": game[id]!==undefined?game[id].participants:null
   };
 
   getTriviaQuestion(0, game[id].category)
@@ -506,13 +506,13 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 
         game[id].message = msg;
 
-        msg.react('🇦')
+        msg.react("🇦")
         .catch(err => {
           console.log("Failed to add reaction A: " + err);
           error = 1;
         })
         .then(() => {
-          msg.react('🇧')
+          msg.react("🇧")
           .catch(err => {
             console.log("Failed to add reaction B: " + err);
             error = 1;
@@ -521,13 +521,13 @@ function doTriviaGame(id, channel, author, scheduled, category) {
             // Only add C and D if it isn't a true/false question.
             // Reactions will stop here if the game has since been cancelled.
             if(game[id] == undefined || !game[id].isTrueFalse) {
-              msg.react('🇨')
+              msg.react("🇨")
               .catch(err => {
                 console.log("Failed to add reaction C: " + err);
                 error = 1;
               })
               .then(() => {
-                msg.react('🇩')
+                msg.react("🇩")
                 .catch(err => {
                   console.log("Failed to add reaction D: " + err);
                   error = 1;
@@ -634,7 +634,7 @@ function triviaRevealAnswer(id, channel, answer) {
 function triviaResumeGame(json, id) {
   game[id] = json;
 
-  var channel = client.channels.find('id', id);
+  var channel = client.channels.find("id", id);
 
   if(!game[id].inProgress)
     return;
@@ -687,7 +687,7 @@ function exportGame() {
 }
 
 // # Console Commands #
-process.stdin.on('data', function (text) {
+process.stdin.on("data", function (text) {
   if(text.toString() == "export\r\n") {
     exportGame();
   }
