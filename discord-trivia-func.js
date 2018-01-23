@@ -11,8 +11,8 @@ const letters = ["A", "B", "C", "D"];
 
 const openTDBResponses = ["Success", "No results", "Invalid parameter", "Token not found", "Token empty"];
 
-game = {};
-questions = [];
+global.game = {};
+global.questions = [];
 
 // Initialize missing config options to their defaults
 if(config["round-timeout"] === undefined)
@@ -30,10 +30,10 @@ function initCategories() {
       res.on("data", (chunk) => { data += chunk; });
       res.on("end", () => {
         try {
-          categories = JSON.parse(data).trivia_categories;
-          resolve(categories);
+          global.categories = JSON.parse(data).trivia_categories;
+          resolve(global.categories);
         } catch(error) {
-          JSONData = data;
+          global.JSONData = data;
           reject(error);
         }
       });
@@ -53,7 +53,7 @@ initCategories()
 // If initial is set to true, a question will not be returned. (For initializing the cache)
 function getTriviaQuestion(initial, category) {
   return new Promise((resolve, reject) => {
-    var length = questions.length;
+    var length = global.questions.length;
 
     // To keep the question response quick, the bot always stays one question ahead.
     // This way, we're never waiting for OpenTDB to respond.
@@ -75,7 +75,7 @@ function getTriviaQuestion(initial, category) {
           try {
             json = JSON.parse(data.toString());
           } catch(error) {
-            JSONData = data;
+            global.JSONData = data;
             reject(error);
             return;
           }
@@ -90,20 +90,20 @@ function getTriviaQuestion(initial, category) {
           }
           //console.log(json);
 
-          questions = json.results;
+          global.questions = json.results;
 
           // Now we'll return a question from the cache.
           ////////// **Copied below**
           if(!initial) {
             // Just in case, check the cached question count first.
-            if(questions.length < 1)
+            if(global.questions.length < 1)
               reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
             else {
 
-              resolve(questions[0]);
+              resolve(global.questions[0]);
 
-              delete questions[0];
-              questions = questions.filter(val => Object.keys(val).length !== 0);
+              delete global.questions[0];
+              global.questions = global.questions.filter(val => Object.keys(val).length !== 0);
 
             }
           }
@@ -119,13 +119,13 @@ function getTriviaQuestion(initial, category) {
       ////////// **Copied above**
       if(!initial) {
         // Just in case, check the cached question count first.
-        if(questions.length < 1)
+        if(global.questions.length < 1)
           reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
         else {
-          resolve(questions[0]);
+          resolve(global.questions[0]);
 
-          delete questions[0];
-          questions = questions.filter(val => Object.keys(val).length !== 0);
+          delete global.questions[0];
+          global.questions = global.questions.filter(val => Object.keys(val).length !== 0);
 
         }
       }
@@ -152,7 +152,7 @@ function triviaSend(channel, author, msg) {
           color: 14164000,
           description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
         }})
-        .catch((err) => {
+        .catch(() => {
           console.warn("Failed to send message to user " + author.id + ". (DM failed)");
         });
       }
@@ -167,14 +167,14 @@ function triviaSend(channel, author, msg) {
 
 // Function to end trivia games
 function triviaEndGame(id) {
-  if(game[id] === undefined) {
+  if(global.game[id] === undefined) {
     console.warn("Attempting to clear empty game, ignoring.");
     return;
   }
-  if(game[id].timeout !== undefined)
-    clearTimeout(game[id].timeout);
+  if(global.game[id].timeout !== undefined)
+    clearTimeout(global.game[id].timeout);
 
-  delete game[id];
+  delete global.game[id];
 }
 
 // # trivia.parse #
@@ -196,36 +196,36 @@ exports.parse = function(str, msg) {
   // ## Answers ##
   // Check for letters if not using reactions
   ////////// **Note that this is copied below for reaction mode.**
-  if(game[id] !== undefined && !game[id].useReactions) {
+  if(global.game[id] !== undefined && !global.game[id].useReactions) {
     // inProgress is always true when a game is active, even between rounds.
 
     // Make sure they haven't already submitted an answer
-    if(game[id].inProgress && game[id].participants.includes(msg.author.id) == false) {
-      if(str == letters[game[id].correct_id]) {
-        game[id].correct_users.push(msg.author.id);
-        game[id].correct_names.push(msg.author.username);
+    if(global.game[id].inProgress && global.game[id].participants.includes(msg.author.id) == false) {
+      if(str == letters[global.game[id].correct_id]) {
+        global.game[id].correct_users.push(msg.author.id);
+        global.game[id].correct_names.push(msg.author.username);
       }
 
-      if((str == "A" || str == "B" || game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
-        game[id].participants.push(msg.author.id);
+      if((str == "A" || str == "B" || global.game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
+        global.game[id].participants.push(msg.author.id);
       }
   }
 
   // ## Help Command ##
-  if(str == prefix + "HELP" || str.includes("<@" + client.user.id + ">")) {
+  if(str == prefix + "HELP" || str.includes("<@" + global.client.user.id + ">")) {
     https.get("https://opentdb.com/api_count_global.php", (res) => {
       var data = "";
       res.on("data", (chunk) => { data += chunk; });
       res.on("end", () => {
         var json = JSON.parse(data.toString());
-        client.shard.fetchClientValues("guilds.size")
+        global.client.shard.fetchClientValues("guilds.size")
         .then(results => {
           triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
         })
         .catch(err => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
       });
-    }).on("error", function(err) {
-      client.shard.fetchClientValues("guilds.size")
+    }).on("error", () => {
+      global.client.shard.fetchClientValues("guilds.size")
       .then(results => {
         triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\n" + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
       })
@@ -246,7 +246,7 @@ exports.parse = function(str, msg) {
 
       if(categoryInput.length >= 3 && categoryInput !== "PLAY") {
         new Promise((resolve, reject) => {
-          if(typeof categories === "undefined") {
+          if(typeof global.categories === "undefined") {
             // Categories are missing, so we'll try to re-initialize them.
             initCategories()
             .then(() => {
@@ -264,7 +264,7 @@ exports.parse = function(str, msg) {
           }
         })
         .then(() => {
-          category = categories.find((el) => {
+            var category = global.categories.find((el) => {
             return el.name.toUpperCase().includes(categoryInput);
           });
 
@@ -306,30 +306,30 @@ exports.parse = function(str, msg) {
               description: "Failed to query category list.\n" + error
             }});
             console.log("Failed to retrieve category list for 'trivia categories'.\n" + error);
-            JSONData = data;
+            global.JSONData = data;
             return;
           }
 
-          var categories = "**Categories:** ";
+          global.categories = "**Categories:** ";
           var i = 0;
           for(i in json.trivia_categories)
-            categories = categories + "\n" + json.trivia_categories[i].name;
+            global.categories = global.categories + "\n" + json.trivia_categories[i].name;
 
           var str = "A list has been sent to you via DM.";
           if(msg.channel.type == "dm")
             str = "";
-          triviaSend(msg.author, undefined, categories)
+          triviaSend(msg.author, undefined, global.categories)
             .catch(function(err) {
               str = "Unable to send you the list because you cannot receive DMs.";
               if(err != "DiscordAPIError: Cannot send messages to this user")
                 console.log(err);
             })
-            .then(function() {
+            .then(() => {
               i++;
               triviaSend(msg.channel, undefined, "There are " + i + " categories. " + str);
             });
         });
-      }).on('error', function(error) {
+      }).on("error", function(error) {
         triviaSend(msg.channel, msg.author, {embed: {
           color: 14164000,
           description: "Failed to query category list.\n" + error
@@ -340,20 +340,20 @@ exports.parse = function(str, msg) {
     // **Admin Commands** //
     if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
       if(cmd == "ADMIN STOP" || cmd == "ADMIN CANCEL") {
-        if(game[id] !== undefined && game[id].inProgress) {
-          let timeout = game[id].timeout;
+        if(global.game[id] !== undefined && global.game[id].inProgress) {
+          let timeout = global.game[id].timeout;
 
           if(timeout !== undefined) {
             var onTimeout = timeout._onTimeout;
             clearTimeout(timeout);
 
             // If a round is in progress, display the answers before cancelling the game.
-            if(game[id].inRound && timeout !== undefined)
+            if(global.game[id].inRound && timeout !== undefined)
               onTimeout();
             }
 
           // If there's still a game, clear it.
-          if(game[id] !== undefined)
+          if(global.game[id] !== undefined)
             triviaEndGame(id);
 
 
@@ -377,25 +377,25 @@ exports.parse = function(str, msg) {
 //              already have a game initialized to start)
 function doTriviaGame(id, channel, author, scheduled, category) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
-  if(game[id] !== undefined) {
-    if(!scheduled && game[id].timeout !== undefined && game[id].timeout._called == true) {
+  if(global.game[id] !== undefined) {
+    if(!scheduled && global.game[id].timeout !== undefined && global.game[id].timeout._called == true) {
       // The timeout should never be stuck on 'called' during a round.
       // Dump the game in the console, clear it, and continue.
       console.error("ERROR: Unscheduled game '" + id + "' timeout appears to be stuck in the 'called' state. Cancelling game...");
       triviaEndGame(id);
     }
-    else if(game[id].timeout !== undefined && game[id].timeout._idleTimeout == -1) {
+    else if(global.game[id].timeout !== undefined && global.game[id].timeout._idleTimeout == -1) {
       // This check may not be working, have yet to see it catch any games.
       // The timeout reads -1. (Can occur if clearTimeout is called without deleting.)
       // Dump the game in the console, clear it, and continue.
       console.error("ERROR: Game '" + id + "' timeout reads -1. Game will be cancelled.");
       triviaEndGame(id);
     }
-    else if(game[id].answer == undefined) {
+    else if(global.game[id].answer == undefined) {
       console.error("ERROR: Game '" + id + "' is missing information. Game will be cancelled.");
       triviaEndGame(id);
     }
-    else if(!scheduled && game[id].inProgress == 1)
+    else if(!scheduled && global.game[id].inProgress == 1)
       return; // If there's already a game in progress, don't start another unless scheduled by the script.
   }
 
@@ -406,7 +406,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     // Check if we have proper permissions for the channel.
     var permissions = channel.permissionsFor(channel.guild.me);
 
-    var authorid = (author==undefined?"Unknown":author.id);
+    //var authorid = (author==undefined?"Unknown":author.id);
 
     // Permissions sometimes return null for some reason, so this is a workaround.
     if(permissions == null) {
@@ -438,25 +438,25 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 
   // ## Game ##
   // Define the variables for the new game.
-  game[id] = {
+  global.game[id] = {
     "inProgress": 1,
     "inRound": 1,
 
     "useReactions": useReactions,
-    "category": game[id]!==undefined?game[id].category:category,
+    "category": global.game[id]!==undefined?global.game[id].category:category,
 
     "participants": [],
     "correct_users": [],
     "correct_names": [],
     "correct_times": [], // Not implemented
 
-    "prev_participants": game[id]!==undefined?game[id].participants:null
+    "prev_participants": global.game[id]!==undefined?global.game[id].participants:null
   };
 
-  getTriviaQuestion(0, game[id].category)
+  getTriviaQuestion(0, global.game[id].category)
   .then((question) => {
-    // Make sure the game wasn't cancelled while querying OpenTDB.
-    if(!game[id])
+    // Make sure the global.game wasn't cancelled while querying OpenTDB.
+    if(!global.game[id])
       return;
 
     var answers = [];
@@ -464,7 +464,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     answers = answers.concat(question.incorrect_answers);
 
     if(question.incorrect_answers.length == 1)
-      game[id].isTrueFalse = 1;
+      global.game[id].isTrueFalse = 1;
 
     var color = 3447003;
     switch(question.difficulty) {
@@ -478,7 +478,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
         color = 14164000;
         break;
     }
-    game[id].color = color;
+    global.game[id].color = color;
 
     // Sort the answers in reverse alphabetical order.
     answers.sort();
@@ -487,7 +487,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     var answerString = "";
     for(var i = 0; i <= answers.length-1; i++) {
       if(answers[i] == question.correct_answer)
-        game[id].correct_id = i;
+        global.game[id].correct_id = i;
 
       answerString = answerString + "**" + letters[i] + ":** " + entities.decode(answers[i]) + "\n";
     }
@@ -495,7 +495,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     var categoryString = entities.decode(question.category);
 
     triviaSend(channel, author, {embed: {
-      color: game[id].color,
+      color: global.game[id].color,
       description: "*" + categoryString + "*\n**" + entities.decode(question.question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer!":"")
     }})
     .then(msg => {
@@ -504,7 +504,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
       if(useReactions) {
         var error = 0; // This will be set to 1 if something goes wrong.
 
-        game[id].message = msg;
+        global.game[id].message = msg;
 
         msg.react("🇦")
         .catch(err => {
@@ -520,7 +520,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
           .then(() => {
             // Only add C and D if it isn't a true/false question.
             // Reactions will stop here if the game has since been cancelled.
-            if(game[id] == undefined || !game[id].isTrueFalse) {
+            if(global.game[id] == undefined || !global.game[id].isTrueFalse) {
               msg.react("🇨")
               .catch(err => {
                 console.log("Failed to add reaction C: " + err);
@@ -553,12 +553,12 @@ function doTriviaGame(id, channel, author, scheduled, category) {
       }
     });
 
-    game[id].difficulty = question.difficulty;
-    game[id].answer = question.correct_answer;
-    game[id].dateStr = Date();
+    global.game[id].difficulty = question.difficulty;
+    global.game[id].answer = question.correct_answer;
+    global.game[id].dateStr = Date();
 
     // Reveal the answer after the time is up
-    game[id].timeout = setTimeout(() => {
+    global.game[id].timeout = setTimeout(() => {
        triviaRevealAnswer(id, channel, question.correct_answer);
     }, config["round-length"]);
   })
@@ -577,73 +577,73 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 // # triviaRevealAnswer #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
 function triviaRevealAnswer(id, channel, answer) {
-  if(game[id] == undefined || !game[id].inProgress)
+  if(global.game[id] == undefined || !global.game[id].inProgress)
     return;
 
   // Quick fix for timeouts not clearing correctly.
-  if(answer !== game[id].answer) {
-    console.warn("WARNING: Mismatched answers in timeout for game " + id + " (" + answer + "||" + game[id].answer + ")");
+  if(answer !== global.game[id].answer) {
+    console.warn("WARNING: Mismatched answers in timeout for global.game " + id + " (" + answer + "||" + global.game[id].answer + ")");
     return;
   }
 
-  game[id].inRound = 0;
+  global.game[id].inRound = 0;
 
   var correct_users_str = "**Correct answers:**\n";
 
-  if(game[id].correct_names.length == 0)
+  if(global.game[id].correct_names.length == 0)
     correct_users_str = correct_users_str + "Nobody!";
   else {
-    if(game[id].participants.length == 1)
+    if(global.game[id].participants.length == 1)
       correct_users_str = "Correct!"; // Only one player overall, simply say "Correct!"
-    else if(game[id].correct_names.length > 10) {
+    else if(global.game[id].correct_names.length > 10) {
         // More than 10 correct players, player names are separated by comma to save space.
         var comma = ", ";
-        for(var i = 0; i <= game[id].correct_names.length-1; i++) {
-          if(i == game[id].correct_names.length-1)
+        for(var i = 0; i <= global.game[id].correct_names.length-1; i++) {
+          if(i == global.game[id].correct_names.length-1)
             comma = "";
 
-          correct_users_str = correct_users_str + game[id].correct_names[i] + comma;
+          correct_users_str = correct_users_str + global.game[id].correct_names[i] + comma;
         }
       }
     else {
       // Less than 10 correct players, all names are on their own line.
-      for(var i2 = 0; i2 <= game[id].correct_names.length-1; i2++) {
-        correct_users_str = correct_users_str + game[id].correct_names[i2] + "\n";
+      for(var i2 = 0; i2 <= global.game[id].correct_names.length-1; i2++) {
+        correct_users_str = correct_users_str + global.game[id].correct_names[i2] + "\n";
       }
     }
   }
 
   triviaSend(channel, undefined, {embed: {
-    color: game[id].color,
-    description: "**" + letters[game[id].correct_id] + ":** " + entities.decode(game[id].answer) + "\n\n" + correct_users_str
+    color: global.game[id].color,
+    description: "**" + letters[global.game[id].correct_id] + ":** " + entities.decode(global.game[id].answer) + "\n\n" + correct_users_str
   }});
-  var participants = game[id].participants;
+  var participants = global.game[id].participants;
 
   if(participants.length != 0)
-    game[id].timeout = setTimeout(() => {
+    global.game[id].timeout = setTimeout(() => {
       doTriviaGame(id, channel, undefined, 1);
     }, config["round-timeout"]);
   else {
-    game[id].timeout = undefined;
+    global.game[id].timeout = undefined;
     triviaEndGame(id);
   }
 }
 
 // triviaResumeGame
 // Restores a game that does not have an active timeout.
-function triviaResumeGame(json, id) {
-  game[id] = json;
-
-  var channel = client.channels.find("id", id);
-
-  if(!game[id].inProgress)
-    return;
-
-  if(game[id].inRound)
-    triviaRevealAnswer(id);
-  else
-    doTriviaGame(id, channel, undefined, 0);
-}
+//function triviaResumeGame(json, id) {
+//  global.game[id] = json;
+//
+//  var channel = global.client.channels.find("id", id);
+//
+//  if(!global.game[id].inProgress)
+//    return;
+//
+//  if(global.game[id].inRound)
+//    triviaRevealAnswer(id);
+//  else
+//    doTriviaGame(id, channel, undefined, 0);
+//}
 
 // Detect reaction answers
 exports.reactionAdd = function(reaction, user) {
@@ -651,7 +651,7 @@ exports.reactionAdd = function(reaction, user) {
   var str = reaction.emoji.name;
 
   // If a game is in progress, the reaction is on the right message, the game uses reactions, and the reactor isn't the TriviaBot client...
-  if(game[id] !== undefined && game[id].message !== undefined && reaction.message.id == game[id].message.id && game[id].useReactions && user !== client.user) {
+  if(global.game[id] !== undefined && global.game[id].message !== undefined && reaction.message.id == global.game[id].message.id && global.game[id].useReactions && user !== global.client.user) {
     if(str == "🇦")
       str = "A";
     else if(str == "🇧")
@@ -664,11 +664,11 @@ exports.reactionAdd = function(reaction, user) {
       return; // The reaction isn't a letter, ignore it.
 
     ////////// **Note that the following is copied and modified from above.**
-    if(game[id].inProgress && game[id].participants.includes(user.id) == false) {
-      if(str == letters[game[id].correct_id]) {
+    if(global.game[id].inProgress && global.game[id].participants.includes(user.id) == false) {
+      if(str == letters[global.game[id].correct_id]) {
         // Only counts if this is the first time they type an answer
-        game[id].correct_users.push(user.id);
-        game[id].correct_names.push(user.username);
+        global.game[id].correct_users.push(user.id);
+        global.game[id].correct_names.push(user.username);
       }
     }
   }
@@ -677,8 +677,8 @@ exports.reactionAdd = function(reaction, user) {
 // # Game Exporter #
 // Export the current game data to a file.
 function exportGame() {
-  // util.inspect(game) is used instead of JSON.stringify to prevent circular structure errors.
-  fs.writeFile("./game.json.bak", util.inspect(game), "utf8", (err) => {
+  // util.inspect(global.game) is used instead of JSON.stringify to prevent circular structure errors.
+  fs.writeFile("./game.json.bak", util.inspect(global.game), "utf8", (err) => {
     if(err)
       console.error("Failed to write to game.json.bak with the following err:\n" + err + "\nMake sure your config file is not read-only or missing.");
     else
@@ -695,10 +695,10 @@ process.stdin.on("data", function (text) {
 
 // # Fallback Mode Functionality #
 if(config["fallback-mode"]) {
-  client.on("message", msg => {
-    if(msg.author == client.user)
-      console.log("Msg (Self) - Shard " + client.shard.id + " - Channel " + msg.channel.id);
+  global.client.on("message", msg => {
+    if(msg.author == global.client.user)
+      console.log("Msg (Self) - Shard " + global.client.shard.id + " - Channel " + msg.channel.id);
     else
-      console.log("Msg - Shard " + client.shard.id + " - Channel " + msg.channel.id);
+      console.log("Msg - Shard " + global.client.shard.id + " - Channel " + msg.channel.id);
   });
 }

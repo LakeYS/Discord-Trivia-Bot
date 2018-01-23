@@ -22,15 +22,15 @@ for(var i = 0; i <= process.argv.length; i++) {
   }
 }
 
-config = require(configFile);
+global.config = require(configFile);
 
 // # Version Check # //
 var skipVersionCheck = 0;
 
-if(!config["disable-version-check"]) {
-  // If, for whatever reason, semver-compare isn't installed, we'll skip the version check.
+if(!global.config["disable-version-check"]) {
+// If, for whatever reason, semver-compare isn't installed, we'll skip the version check.
   try {
-    semver = require("semver-compare");
+    var semver = require("semver-compare");
   } catch(err) {
     if(err.code == "MODULE_NOT_FOUND") {
       console.warn("********\nWARNING: semver-compare module not found. The version check will be skipped.\nMake sure to keep the bot up-to-date! Check here for newer versions:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
@@ -70,7 +70,7 @@ if(!config["disable-version-check"]) {
             console.warn("WARNING: Unable to parse version data.");
             }
             else {
-              release = json.tag_name.replace("v",""); // Mark the release
+              const release = json.tag_name.replace("v",""); // Mark the release
 
               // Compare this build's version to the latest release.
               var releaseRelative = semver(pjson.version, release);
@@ -104,11 +104,11 @@ process.stdin.resume();
 process.stdin.setEncoding("utf8");
 
 const Discord = require("discord.js");
-client = new Discord.Client();
+const client = new Discord.Client();
 
 // # Discord # //
 const { ShardingManager } = require("discord.js");
-var token = config.token;
+var token = global.config.token;
 const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: 2, token: token, shardArgs: [configFile] });
 
 manager.spawn();
@@ -120,10 +120,10 @@ process.on("rejectionHandled", (err) => {
   console.log(err);
   console.log("An error occurred. Reconnecting...");
   client.destroy();
-  setTimeout(() => { client.login(config.token); }, 2000);
+  setTimeout(() => { client.login(global.config.token); }, 2000);
 });
 
-process.on("exit", function() {
+process.on("exit", () => {
   client.destroy();
 });
 
@@ -132,10 +132,10 @@ process.stdin.on("data", function (text) {
   if(text.toString() == "stop\r\n" || text.toString() == "exit\r\n" || text.toString() == "stop\n" || text.toString() == "exit\n")
   {
     // TRIVIABOT override: Don't shut down if a game is in progress.
-    if(Object.keys(game).length == 0)
+    if(Object.keys(global.game).length == 0)
       process.exit();
     else
-      console.log("There are\x1b[1m " + Object.keys(game).length + " \x1b[0mgame(s) in progress, bot will not close.\nType 'forceexit' to override.");
+      console.log("There are\x1b[1m " + Object.keys(global.game).length + " \x1b[0mgame(s) in progress, bot will not close.\nType 'forceexit' to override.");
   }
   else if(text.toString() == "forceexit\r\n") // TRIVIABOT override: Check for 'forceexit'
     process.exit();
