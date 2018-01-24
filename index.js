@@ -32,7 +32,7 @@ if(!global.config["disable-version-check"]) {
   try {
     var semver = require("semver-compare");
   } catch(err) {
-    if(err.code == "MODULE_NOT_FOUND") {
+    if(err.code === "MODULE_NOT_FOUND") {
       console.warn("********\nWARNING: semver-compare module not found. The version check will be skipped.\nMake sure to keep the bot up-to-date! Check here for newer versions:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
       skipVersionCheck = 1;
     }
@@ -75,10 +75,10 @@ if(!global.config["disable-version-check"]) {
               // Compare this build's version to the latest release.
               var releaseRelative = semver(pjson.version, release);
 
-              if(releaseRelative == 1)
+              if(releaseRelative === 1)
                 console.log("********\nNOTICE: You are currently running\x1b[1m v" + pjson.version + "\x1b[0m. This build is considered unstable.\nCheck here for the latest stable versions of this script:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
 
-              if(releaseRelative == -1)
+              if(releaseRelative === -1)
                 console.log("********\nNOTICE: You are currently running\x1b[1m v" + pjson.version + "\x1b[0m. A newer version is available.\nCheck here for the latest version of this script:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
             }
           }
@@ -129,15 +129,15 @@ process.on("exit", () => {
 
 // # Console Functions # //
 process.stdin.on("data", function (text) {
-  if(text.toString() == "stop\r\n" || text.toString() == "exit\r\n" || text.toString() == "stop\n" || text.toString() == "exit\n")
+  if(text.toString() === "stop\r\n" || text.toString() === "exit\r\n" || text.toString() === "stop\n" || text.toString() === "exit\n")
   {
     // TRIVIABOT override: Don't shut down if a game is in progress.
-    if(Object.keys(global.game).length == 0)
+    if(Object.keys(global.game).length === 0)
       process.exit();
     else
       console.log("There are\x1b[1m " + Object.keys(global.game).length + " \x1b[0mgame(s) in progress, bot will not close.\nType 'forceexit' to override.");
   }
-  else if(text.toString() == "forceexit\r\n") // TRIVIABOT override: Check for 'forceexit'
+  else if(text.toString() === "forceexit\r\n") // TRIVIABOT override: Check for 'forceexit'
     process.exit();
   else {
     console.log("Eval on index:");

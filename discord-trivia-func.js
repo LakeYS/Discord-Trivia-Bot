@@ -57,7 +57,7 @@ function getTriviaQuestion(initial, category) {
 
     // To keep the question response quick, the bot always stays one question ahead.
     // This way, we're never waiting for OpenTDB to respond.
-    if(length == undefined || length < 2 || category !== undefined) {
+    if(length === undefined || length < 2 || category !== undefined) {
       var data = "";
       var args = "";
 
@@ -177,196 +177,6 @@ function triviaEndGame(id) {
   delete global.game[id];
 }
 
-// # trivia.parse #
-exports.parse = function(str, msg) {
-  // No games in fallback mode
-  if(config["fallback-mode"]) {
-    return;
-  }
-
-  // Str is always uppercase
-  var id = msg.channel.id;
-
-  // Other bots can't use commands
-  if(msg.author.bot == 1 && config["allow-bots"] !== true)
-    return;
-
-  var prefix = config.prefix.toUpperCase();
-
-  // ## Answers ##
-  // Check for letters if not using reactions
-  ////////// **Note that this is copied below for reaction mode.**
-  if(global.game[id] !== undefined && !global.game[id].useReactions) {
-    // inProgress is always true when a game is active, even between rounds.
-
-    // Make sure they haven't already submitted an answer
-    if(global.game[id].inProgress && global.game[id].participants.includes(msg.author.id) == false) {
-      if(str == letters[global.game[id].correct_id]) {
-        global.game[id].correct_users.push(msg.author.id);
-        global.game[id].correct_names.push(msg.author.username);
-      }
-
-      if((str == "A" || str == "B" || global.game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
-        global.game[id].participants.push(msg.author.id);
-      }
-  }
-
-  // ## Help Command ##
-  if(str == prefix + "HELP" || str.includes("<@" + global.client.user.id + ">")) {
-    https.get("https://opentdb.com/api_count_global.php", (res) => {
-      var data = "";
-      res.on("data", (chunk) => { data += chunk; });
-      res.on("end", () => {
-        var json = JSON.parse(data.toString());
-        global.client.shard.fetchClientValues("guilds.size")
-        .then(results => {
-          triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
-        })
-        .catch(err => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
-      });
-    }).on("error", () => {
-      global.client.shard.fetchClientValues("guilds.size")
-      .then(results => {
-        triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\n" + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
-      })
-      .catch(err => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
-    });
-  }
-
-  // ## Normal Commands ##
-  // If the string starts with the specified prefix (converted to uppercase)
-  if(str.startsWith(prefix)) {
-    var cmd = str.replace(prefix, "");
-
-    if(cmd == "STOP" || cmd == "CANCEL")
-      triviaSend(msg.channel, msg.author, "Trivia games will stop automatically if nobody participates after two rounds.\nServer managers can type 'trivia admin cancel' to force-cancel a round.");
-
-    if(cmd.startsWith("PLAY")) {
-      var categoryInput = cmd.replace("PLAY ","");
-
-      if(categoryInput.length >= 3 && categoryInput !== "PLAY") {
-        new Promise((resolve, reject) => {
-          if(typeof global.categories === "undefined") {
-            // Categories are missing, so we'll try to re-initialize them.
-            initCategories()
-            .then(() => {
-              // Success, we'll continue as normal.
-              resolve();
-            })
-            .catch((err) => {
-              // Should this fail, the error will be passed to the check below.
-              reject(err);
-            });
-          }
-          else {
-            // Categories are already defined and ready to use, so we'll continue.
-            resolve();
-          }
-        })
-        .then(() => {
-            var category = global.categories.find((el) => {
-            return el.name.toUpperCase().includes(categoryInput);
-          });
-
-          if(category == undefined) {
-            triviaSend(msg.channel, msg.author, {embed: {
-              color: 14164000,
-              description: "Unable to find the category you specified.\nType `trivia play` to play in a random category, or type `trivia categories` to see a list of categories."
-            }});
-            return;
-          }
-          else {
-            doTriviaGame(msg.channel.id, msg.channel, msg.author, 0, category.id);
-          }
-        })
-        .catch((err) => {
-          triviaSend(msg.channel, msg.author, {embed: {
-            color: 14164000,
-            description: "Failed to retrieve the category list:\n" + err
-          }});
-          console.log("Failed to retrieve category list:\n" + err);
-          return;
-        });
-      }
-      else // No category specified, start a normal game. (OpenTDB will pick a random category for us)
-        doTriviaGame(msg.channel.id, msg.channel, msg.author, 0);
-    }
-
-    if(cmd == "CATEGORIES") {
-      https.get("https://opentdb.com/api_category.php", (res) => {
-        var data = "";
-        res.on("data", (chunk) => { data += chunk; });
-        res.on("end", () => {
-          var json = "";
-          try {
-            json = JSON.parse(data.toString());
-          } catch(error) {
-            triviaSend(msg.channel, msg.author, {embed: {
-              color: 14164000,
-              description: "Failed to query category list.\n" + error
-            }});
-            console.log("Failed to retrieve category list for 'trivia categories'.\n" + error);
-            global.JSONData = data;
-            return;
-          }
-
-          global.categories = "**Categories:** ";
-          var i = 0;
-          for(i in json.trivia_categories)
-            global.categories = global.categories + "\n" + json.trivia_categories[i].name;
-
-          var str = "A list has been sent to you via DM.";
-          if(msg.channel.type == "dm")
-            str = "";
-          triviaSend(msg.author, undefined, global.categories)
-            .catch(function(err) {
-              str = "Unable to send you the list because you cannot receive DMs.";
-              if(err != "DiscordAPIError: Cannot send messages to this user")
-                console.log(err);
-            })
-            .then(() => {
-              i++;
-              triviaSend(msg.channel, undefined, "There are " + i + " categories. " + str);
-            });
-        });
-      }).on("error", function(error) {
-        triviaSend(msg.channel, msg.author, {embed: {
-          color: 14164000,
-          description: "Failed to query category list.\n" + error
-        }});
-      });
-    }
-
-    // **Admin Commands** //
-    if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
-      if(cmd == "ADMIN STOP" || cmd == "ADMIN CANCEL") {
-        if(global.game[id] !== undefined && global.game[id].inProgress) {
-          let timeout = global.game[id].timeout;
-
-          if(timeout !== undefined) {
-            var onTimeout = timeout._onTimeout;
-            clearTimeout(timeout);
-
-            // If a round is in progress, display the answers before cancelling the game.
-            if(global.game[id].inRound && timeout !== undefined)
-              onTimeout();
-            }
-
-          // If there's still a game, clear it.
-          if(global.game[id] !== undefined)
-            triviaEndGame(id);
-
-
-          triviaSend(msg.channel, undefined, {embed: {
-            color: 14164000,
-            description: "Game stopped by admin."
-          }});
-        }
-      }
-    }
-  }
-};
-
 // # doTriviaGame #
 // - id: The unique identifier for the channel that the game is in.
 // - channel: The channel object that correlates with the game.
@@ -391,7 +201,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
       console.error("ERROR: Game '" + id + "' timeout reads -1. Game will be cancelled.");
       triviaEndGame(id);
     }
-    else if(global.game[id].answer == undefined) {
+    else if(global.game[id].answer === undefined) {
       console.error("ERROR: Game '" + id + "' is missing information. Game will be cancelled.");
       triviaEndGame(id);
     }
@@ -573,6 +383,196 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     triviaEndGame(id);
   });
 }
+
+// # trivia.parse #
+exports.parse = function(str, msg) {
+  // No games in fallback mode
+  if(config["fallback-mode"]) {
+    return;
+  }
+
+  // Str is always uppercase
+  var id = msg.channel.id;
+
+  // Other bots can't use commands
+  if(msg.author.bot === 1 && config["allow-bots"] !== true)
+    return;
+
+  var prefix = config.prefix.toUpperCase();
+
+  // ## Answers ##
+  // Check for letters if not using reactions
+  ////////// **Note that this is copied below for reaction mode.**
+  if(global.game[id] !== undefined && !global.game[id].useReactions) {
+    // inProgress is always true when a game is active, even between rounds.
+
+    // Make sure they haven't already submitted an answer
+    if(global.game[id].inProgress && global.game[id].participants.includes(msg.author.id) == false) {
+      if(str === letters[global.game[id].correct_id]) {
+        global.game[id].correct_users.push(msg.author.id);
+        global.game[id].correct_names.push(msg.author.username);
+      }
+
+      if((str === "A" || str === "B" || global.game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
+        global.game[id].participants.push(msg.author.id);
+      }
+  }
+
+  // ## Help Command ##
+  if(str === prefix + "HELP" || str.includes("<@" + global.client.user.id + ">")) {
+    https.get("https://opentdb.com/api_count_global.php", (res) => {
+      var data = "";
+      res.on("data", (chunk) => { data += chunk; });
+      res.on("end", () => {
+        var json = JSON.parse(data.toString());
+        global.client.shard.fetchClientValues("guilds.size")
+        .then(results => {
+          triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+        })
+        .catch(err => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
+      });
+    }).on("error", () => {
+      global.client.shard.fetchClientValues("guilds.size")
+      .then(results => {
+        triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\n" + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+      })
+      .catch(err => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
+    });
+  }
+
+  // ## Normal Commands ##
+  // If the string starts with the specified prefix (converted to uppercase)
+  if(str.startsWith(prefix)) {
+    var cmd = str.replace(prefix, "");
+
+    if(cmd === "STOP" || cmd === "CANCEL")
+      triviaSend(msg.channel, msg.author, "Trivia games will stop automatically if nobody participates after two rounds.\nServer managers can type 'trivia admin cancel' to force-cancel a round.");
+
+    if(cmd.startsWith("PLAY")) {
+      var categoryInput = cmd.replace("PLAY ","");
+
+      if(categoryInput.length >= 3 && categoryInput !== "PLAY") {
+        new Promise((resolve, reject) => {
+          if(typeof global.categories === "undefined") {
+            // Categories are missing, so we'll try to re-initialize them.
+            initCategories()
+            .then(() => {
+              // Success, we'll continue as normal.
+              resolve();
+            })
+            .catch((err) => {
+              // Should this fail, the error will be passed to the check below.
+              reject(err);
+            });
+          }
+          else {
+            // Categories are already defined and ready to use, so we'll continue.
+            resolve();
+          }
+        })
+        .then(() => {
+            var category = global.categories.find((el) => {
+            return el.name.toUpperCase().includes(categoryInput);
+          });
+
+          if(category === undefined) {
+            triviaSend(msg.channel, msg.author, {embed: {
+              color: 14164000,
+              description: "Unable to find the category you specified.\nType `trivia play` to play in a random category, or type `trivia categories` to see a list of categories."
+            }});
+            return;
+          }
+          else {
+            doTriviaGame(msg.channel.id, msg.channel, msg.author, 0, category.id);
+          }
+        })
+        .catch((err) => {
+          triviaSend(msg.channel, msg.author, {embed: {
+            color: 14164000,
+            description: "Failed to retrieve the category list:\n" + err
+          }});
+          console.log("Failed to retrieve category list:\n" + err);
+          return;
+        });
+      }
+      else // No category specified, start a normal game. (OpenTDB will pick a random category for us)
+        doTriviaGame(msg.channel.id, msg.channel, msg.author, 0);
+    }
+
+    if(cmd === "CATEGORIES") {
+      https.get("https://opentdb.com/api_category.php", (res) => {
+        var data = "";
+        res.on("data", (chunk) => { data += chunk; });
+        res.on("end", () => {
+          var json = "";
+          try {
+            json = JSON.parse(data.toString());
+          } catch(error) {
+            triviaSend(msg.channel, msg.author, {embed: {
+              color: 14164000,
+              description: "Failed to query category list.\n" + error
+            }});
+            console.log("Failed to retrieve category list for 'trivia categories'.\n" + error);
+            global.JSONData = data;
+            return;
+          }
+
+          global.categories = "**Categories:** ";
+          var i = 0;
+          for(i in json.trivia_categories)
+            global.categories = global.categories + "\n" + json.trivia_categories[i].name;
+
+          var str = "A list has been sent to you via DM.";
+          if(msg.channel.type == "dm")
+            str = "";
+          triviaSend(msg.author, undefined, global.categories)
+            .catch(function(err) {
+              str = "Unable to send you the list because you cannot receive DMs.";
+              if(err != "DiscordAPIError: Cannot send messages to this user")
+                console.log(err);
+            })
+            .then(() => {
+              i++;
+              triviaSend(msg.channel, undefined, "There are " + i + " categories. " + str);
+            });
+        });
+      }).on("error", function(error) {
+        triviaSend(msg.channel, msg.author, {embed: {
+          color: 14164000,
+          description: "Failed to query category list.\n" + error
+        }});
+      });
+    }
+
+    // **Admin Commands** //
+    if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
+      if(cmd == "ADMIN STOP" || cmd == "ADMIN CANCEL") {
+        if(global.game[id] !== undefined && global.game[id].inProgress) {
+          let timeout = global.game[id].timeout;
+
+          if(timeout !== undefined) {
+            var onTimeout = timeout._onTimeout;
+            clearTimeout(timeout);
+
+            // If a round is in progress, display the answers before cancelling the game.
+            if(global.game[id].inRound && timeout !== undefined)
+              onTimeout();
+            }
+
+          // If there's still a game, clear it.
+          if(global.game[id] !== undefined)
+            triviaEndGame(id);
+
+
+          triviaSend(msg.channel, undefined, {embed: {
+            color: 14164000,
+            description: "Game stopped by admin."
+          }});
+        }
+      }
+    }
+  }
+};
 
 // # triviaRevealAnswer #
 // Ends the round, reveals the answer, and schedules a new round if necessary.

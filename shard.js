@@ -8,13 +8,13 @@ const snekfetch = require("snekfetch");
 
 global.config = require(process.argv[2]);
 
-if(global.config.prefix == undefined)
+if(global.config.prefix === undefined)
   global.config.prefix = "trivia ";
 
 global.client.login(global.client.token);
 
 global.client.on("ready", () => {
-  console.log("Shard " + global.client.shard.id + " connected to\x1b[1m " + global.client.guilds.size + " \x1b[0mserver" + (global.client.guilds.size==1?"":"s") + ".");
+  console.log("Shard " + global.client.shard.id + " connected to\x1b[1m " + global.client.guilds.size + " \x1b[0mserver" + (global.client.guilds.size===1?"":"s") + ".");
 
   if(global.client.user.avatar == null) {
     console.log("Set profile image to profile.png");
@@ -23,15 +23,11 @@ global.client.on("ready", () => {
 
   global.client.user.setPresence({ game: { name: "Trivia! Type '" + global.config.prefix + "help' to get started.", type: 0 } });
 
-  // TODO: Fix guild count check
   global.postBotStats();
-
-  //if(global.client.guilds.size == 0)
-  //  console.log("********\nWARNING: The bot is currently not in a Discord server. You can invite it to a guild using this invite link:\nhttps://discordapp.com/oauth2/authorize?client_id=" + global.client.user.id + "&scope=bot\n********");
 });
 
 global.client.on("disconnect", function(event) {
-  if(event.code != 1000) {
+  if(event.code !== 1000) {
     console.log("Discord global.client disconnected with reason: " + event.reason + " (" + event.code + "). Attempting to reconnect in 6s...");
     setTimeout(() => { global.client.login(global.config.token); }, 6000);
   }
@@ -47,7 +43,7 @@ global.client.on("error", function(err) {
 global.client.on("message", msg => {
   var str = msg.toString().toUpperCase();
 
-  if(msg.channel.type == "text" || msg.channel.type == "dm") {
+  if(msg.channel.type === "text" || msg.channel.type === "dm") {
     trivia.parse(str, msg);
   }
 });
