@@ -24,6 +24,9 @@ for(var i = 0; i <= process.argv.length; i++) {
 
 global.config = require(configFile);
 
+if(global.config["shard-count"] === undefined)
+  global.config["shard-count"] = "auto";
+
 // # Version Check # //
 var skipVersionCheck = 0;
 
@@ -109,11 +112,11 @@ const client = new Discord.Client();
 // # Discord # //
 const { ShardingManager } = require("discord.js");
 var token = global.config.token;
-const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: 2, token: token, shardArgs: [configFile] });
+const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: global.config["shard-count"], token: token, shardArgs: [configFile] });
 
 manager.spawn();
 manager.on("launch", shard => {
-  console.log(`Successfully launched shard ${shard.id}`);
+  console.log(`Successfully launched shard ${shard.id} of ${manager.totalShards-1}`);
 });
 
 process.on("rejectionHandled", (err) => {
