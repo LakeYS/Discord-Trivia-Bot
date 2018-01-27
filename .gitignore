@@ -1,4 +1,4 @@
-# NodeJS
+# Node.js
 node_modules
 update.sh
 game.json.bak
@@ -16,7 +16,6 @@ update*.sh
 TriviaBot/*
 triviabot.tar.gz
 TriviaBot.zip
-package-lock.json
 
 # Windows image file caches
 Thumbs.db
