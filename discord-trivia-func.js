@@ -491,7 +491,12 @@ exports.parse = function(str, msg) {
       var data = "";
       res.on("data", (chunk) => { data += chunk; });
       res.on("end", () => {
-        var json = JSON.parse(data.toString());
+        try {
+          var json = JSON.parse(data.toString());
+        } catch(err) {
+          console.error("Failed to parse JSON for 'trivia help'");
+          global.JSONData = data;
+        }
         global.client.shard.fetchClientValues("guilds.size")
         .then(results => {
           triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
