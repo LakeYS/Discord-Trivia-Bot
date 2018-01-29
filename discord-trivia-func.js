@@ -99,6 +99,35 @@ function getTriviaToken(tokenChannel) {
   });
 }
 
+// resetTriviaToken
+function resetTriviaToken(token) {
+  return new Promise((resolve, reject) => {
+    https.get("https://opentdb.com/api_token.php?command=reset&token=" + token, (res) => {
+      var data = "";
+      res.on("data", (chunk) => { data += chunk; });
+      res.on("end", () => {
+        try {
+          var json = JSON.parse(data.toString());
+        } catch(error) {
+          global.JSONData = data;
+          reject(new Error("Failed to reset token - " + error.message));
+          return;
+        }
+
+        if(json.response_code !== 0) {
+          reject(new Error("Failed to reset token - received response code " + json.response_code + "(" + openTDBResponses[json.response_code] + ")"));
+          return;
+        }
+
+        resolve(json);
+      });
+    })
+    .on("error", (error) => {
+      reject(new Error("Failed to reset token - " + error.message));
+    });
+  });
+}
+
 
 // getTriviaQuestion
 // Returns a promise, fetches a random question from the database.
@@ -147,34 +176,53 @@ function getTriviaQuestion(initial, category, tokenChannel) {
               return;
             }
 
-            if(json.response_code !== 0) {
+            if(json.response_code == 4) {
+              // Token empty, reset it and start over.
+              resetTriviaToken(token)
+              .catch((err) => {
+                console.log("Failed to reset token, force-ending game - " + err.message);
+                reject(new Error("Failed to reset token - " + err.message));
+              })
+              .then(() => {
+                triviaSend(tokenChannel, undefined, "You've played all of the questions in this category! Questions will start to repeat.");
+
+                getTriviaQuestion(initial, category, tokenChannel)
+                .then((question) => {
+                  resolve(question);
+                })
+                .catch((err) => {
+                  reject(err);
+                });
+              });
+            }
+            else if(json.response_code !== 0) {
               console.log("Received error from OpenTDB.");
               console.log(json);
 
               // Author is passed through; triviaSend will handle it if author is undefined.
               reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + openTDBResponses[json.response_code] + ")"));
+            }
+            else {
+              global.questions = json.results;
+
+              // Now we'll return a question from the cache.
+              ////////// **Copied below**
+              if(!initial) {
+                // Just in case, check the cached question count first.
+                if(global.questions.length < 1)
+                  reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
+                else {
+
+                  resolve(global.questions[0]);
+
+                  delete global.questions[0];
+                  global.questions = global.questions.filter(val => Object.keys(val).length !== 0);
+
+                }
+              }
+              //////////
               return;
             }
-
-            global.questions = json.results;
-
-            // Now we'll return a question from the cache.
-            ////////// **Copied below**
-            if(!initial) {
-              // Just in case, check the cached question count first.
-              if(global.questions.length < 1)
-                reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
-              else {
-
-                resolve(global.questions[0]);
-
-                delete global.questions[0];
-                global.questions = global.questions.filter(val => Object.keys(val).length !== 0);
-
-              }
-            }
-            //////////
-            return;
           });
         })
         .on("error", (error) => {
@@ -209,7 +257,6 @@ getTriviaQuestion(1)
 
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
-// Beware: This is not used for every message. For corner cases, 'channel.send' is used.
 function triviaSend(channel, author, msg) {
   return channel.send(msg)
   .catch((err) => {
@@ -227,8 +274,9 @@ function triviaSend(channel, author, msg) {
           console.warn("Failed to send message to user " + author.id + ". (already in DM)");
         }
       }
-      else
+      else {
         console.warn("Failed to send message to channel. (no user)");
+      }
     });
 }
 
@@ -589,15 +637,15 @@ exports.parse = function(str, msg) {
             return;
           }
 
-          global.categories = "**Categories:** ";
+          var categoryListStr = "**Categories:** ";
           var i = 0;
           for(i in json.trivia_categories)
-            global.categories = global.categories + "\n" + json.trivia_categories[i].name;
+            categoryListStr = categoryListStr + "\n" + json.trivia_categories[i].name;
 
           var str = "A list has been sent to you via DM.";
           if(msg.channel.type == "dm")
             str = "";
-          triviaSend(msg.author, undefined, global.categories)
+          triviaSend(msg.author, undefined, categoryListStr)
             .catch(function(err) {
               str = "Unable to send you the list because you cannot receive DMs.";
               if(err != "DiscordAPIError: Cannot send messages to this user")
