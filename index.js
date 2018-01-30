@@ -114,7 +114,19 @@ const { ShardingManager } = require("discord.js");
 var token = global.config.token;
 const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: global.config["shard-count"], token: token, shardArgs: [configFile] });
 
-manager.spawn();
+manager.spawn()
+.catch((err) => {
+  var warning = "";
+
+  if(err == "Error: 401 Unauthorized") {
+    warning += "\nPlease double-check your token and try again.";
+  }
+
+  console.error("Discord client login failed - " + err + warning);
+
+  process.exit();
+});
+
 manager.on("launch", shard => {
   console.log(`Successfully launched shard ${shard.id} of ${manager.totalShards-1}`);
 });
