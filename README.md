@@ -18,11 +18,11 @@ For support, questions, and comments, you can join the Discord server or contact
 - Responsive game system that automatically adapts to the player count.
 - Single-player trivia games via DM.
 - Easy to install and configure for server owners that wish to host the bot themselves.
+- Play in random categories or choose a category to play in.
 
 # Planned Features
 (Subject to change)
 - Dynamic scoring and statistics for each player (weekly and overall stats, etc.)
-- Token usage to prevent duplicate questions.
 - Custom questions and categories, configurable by server administrators.
 - Vote to play in any specific category, question type, or difficulty level. (Also configurable by administractors)
 - Reaction-based trivia. (Users click reaction buttons rather then typing their answers)
