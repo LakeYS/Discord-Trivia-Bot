@@ -179,10 +179,6 @@ function getTriviaQuestion(initial, category, tokenChannel) {
             if(json.response_code == 4) {
               // Token empty, reset it and start over.
               resetTriviaToken(token)
-              .catch((err) => {
-                console.log("Failed to reset token, force-ending game - " + err.message);
-                reject(new Error("Failed to reset token - " + err.message));
-              })
               .then(() => {
                 triviaSend(tokenChannel, undefined, "You've played all of the questions in this category! Questions will start to repeat.");
 
@@ -193,6 +189,11 @@ function getTriviaQuestion(initial, category, tokenChannel) {
                 .catch((err) => {
                   reject(err);
                 });
+              })
+              .catch((err) => {
+                console.log("Failed to reset token - " + err.message);
+                reject(new Error("Failed to reset token - " + err.message));
+                return;
               });
             }
             else if(json.response_code !== 0) {
