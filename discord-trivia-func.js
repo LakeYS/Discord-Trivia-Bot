@@ -577,7 +577,7 @@ exports.parse = function(str, msg) {
           }
         })
         .then(() => {
-            var category = global.categories.find((el) => {
+          var category = global.categories.find((el) => {
             return el.name.toUpperCase().includes(categoryInput);
           });
 
@@ -608,23 +608,36 @@ exports.parse = function(str, msg) {
     if(cmd === "CATEGORIES") {
       parseURL("https://opentdb.com/api_category.php")
       .then((json) => {
-        var categoryListStr = "**Categories:** ";
-        var i = 0;
-        for(i in json.trivia_categories)
-          categoryListStr = categoryListStr + "\n" + json.trivia_categories[i].name;
+        parseURL("https://opentdb.com/api_count_global.php")
+        .then((json2) => {
+          var categoryListStr = "**Categories:** ";
+          var i = 0;
+          for(i in json.trivia_categories) {
+            categoryListStr = categoryListStr + "\n" + json.trivia_categories[i].name + " - " + json2.categories[json.trivia_categories[i].id].total_num_of_verified_questions + " questions";
+          }
 
-        var str = "A list has been sent to you via DM.";
-        if(msg.channel.type == "dm")
-          str = "";
-        triviaSend(msg.author, undefined, categoryListStr)
-          .catch(function(err) {
-            str = "Unable to send you the list because you cannot receive DMs.";
-            if(err != "DiscordAPIError: Cannot send messages to this user")
-              console.log(err);
+          var str = "A list has been sent to you via DM.";
+          if(msg.channel.type == "dm")
+            str = "";
+          triviaSend(msg.author, undefined, categoryListStr)
+            .catch(function(err) {
+              str = "Unable to send you the list because you cannot receive DMs.";
+              if(err != "DiscordAPIError: Cannot send messages to this user")
+                console.log(err);
+            })
+            .then(() => {
+              i++;
+              triviaSend(msg.channel, undefined, "There are " + i + " categories. " + str);
+            });
           })
-          .then(() => {
-            i++;
-            triviaSend(msg.channel, undefined, "There are " + i + " categories. " + str);
+          .catch((err) => {
+            // List was queried successfully, but the question was not received.
+            triviaSend(msg.channel, msg.author, {embed: {
+              color: 14164000,
+              description: "Failed to query category counts.\n" + err
+            }});
+            console.log("Failed to retrieve category counts for 'trivia categories'.\n" + err);
+            return;
           });
       })
       .catch((err) => {
