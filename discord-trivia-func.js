@@ -22,28 +22,43 @@ if(config["round-timeout"] === undefined)
 if(config["round-length"] === undefined)
   config["round-length"] = 15000;
 
-function initCategories() {
-  // Initialize the categories
-  // TODO: Error handling
+// parseURL
+// Returns a promise. Queries the specified URL and parses the data as JSON.
+function parseURL(url) {
   return new Promise((resolve, reject) => {
-    https.get("https://opentdb.com/api_category.php", (res) => {
+    https.get(url, (res) => {
       var data = "";
       res.on("data", (chunk) => { data += chunk; });
       res.on("end", () => {
         try {
-          global.categories = JSON.parse(data).trivia_categories;
-          resolve(global.categories);
+          var json =  JSON.parse(data);
+          resolve(json);
         } catch(error) {
           global.JSONData = data;
           reject(error);
         }
       });
-    })
-    .on("error", (error) => {
+    }).on("error", (error) => {
       reject(error);
     });
   });
 }
+
+function initCategories() {
+  // Initialize the categories
+  return new Promise((resolve, reject) => {
+    parseURL("https://opentdb.com/api_category.php")
+    .then((data) => {
+      global.categories = data.trivia_categories;
+      resolve(global.categories);
+    })
+    .catch((err) => {
+      reject(err);
+      return;
+    });
+  });
+}
+
 initCategories()
 .catch((err) => {
   console.log("Failed to retrieve category list:\n" + err);
@@ -75,26 +90,22 @@ function getTriviaToken(tokenChannel) {
     }
 
     // No token exists, so we'll generate one.
-    https.get("https://opentdb.com/api_token.php?command=request", (res) => {
-      var data = "";
-      res.on("data", (chunk) => { data += chunk; });
-      res.on("end", () => {
-        try {
-          var tokenContainer = JSON.parse(data);
-          if(tokenContainer.response_code !== 0) {
-            reject(new Error("Received response code " + tokenContainer.response_code + ": " + openTDBResponses[tokenContainer.response_code]));
-          }
-          else {
-            global.tokens[tokenChannel.id] = { token: tokenContainer.token, time: new Date() };
-            resolve(tokenContainer.token);
-          }
-        } catch(error) {
-          reject(error);
+    parseURL("https://opentdb.com/api_token.php?command=request")
+    .then((tokenContainer) => {
+      try {
+        if(tokenContainer.response_code !== 0) {
+          reject(new Error("Received response code " + tokenContainer.response_code + ": " + openTDBResponses[tokenContainer.response_code]));
         }
-      });
+        else {
+          global.tokens[tokenChannel.id] = { token: tokenContainer.token, time: new Date() };
+          resolve(tokenContainer.token);
+        }
+      } catch(error) {
+        reject(error);
+      }
     })
-    .on("error", (error) => {
-      reject(error);
+    .catch((err) => {
+      reject(err);
     });
   });
 }
@@ -102,28 +113,18 @@ function getTriviaToken(tokenChannel) {
 // resetTriviaToken
 function resetTriviaToken(token) {
   return new Promise((resolve, reject) => {
-    https.get("https://opentdb.com/api_token.php?command=reset&token=" + token, (res) => {
-      var data = "";
-      res.on("data", (chunk) => { data += chunk; });
-      res.on("end", () => {
-        try {
-          var json = JSON.parse(data.toString());
-        } catch(error) {
-          global.JSONData = data;
-          reject(new Error("Failed to reset token - " + error.message));
-          return;
-        }
+    parseURL("https://opentdb.com/api_token.php?command=reset&token=" + token)
+    .then((json) => {
+      if(json.response_code !== 0) {
+        reject(new Error("Failed to reset token - received response code " + json.response_code + "(" + openTDBResponses[json.response_code] + ")"));
+        return;
+      }
 
-        if(json.response_code !== 0) {
-          reject(new Error("Failed to reset token - received response code " + json.response_code + "(" + openTDBResponses[json.response_code] + ")"));
-          return;
-        }
-
-        resolve(json);
-      });
+      resolve(json);
     })
-    .on("error", (error) => {
-      reject(new Error("Failed to reset token - " + error.message));
+    .catch((err) => {
+      reject(err);
+      return;
     });
   });
 }
@@ -141,12 +142,11 @@ function getTriviaQuestion(initial, category, tokenChannel) {
     // This way, we're never waiting for OpenTDB to respond.
     if(length === undefined || length < 2 || category !== undefined) {
       // We need a new question, either due to an empty cache or because we need a specific category.
-      var data = "";
       var args = "";
 
       // TODO: Check the cache for a question in the category
       if(category !== undefined)
-        args += "?amount=1&category=" + category;
+        args += "?amount=50&category=" + category;
       else {
         args += "?amount=32";
       }
@@ -164,70 +164,61 @@ function getTriviaQuestion(initial, category, tokenChannel) {
           args += "&token=" + token;
         }
 
-        https.get("https://opentdb.com/api.php" + args, (res) => {
-          res.on("data", (chunk) => { data += chunk; });
-          res.on("end", () => {
-            var json = "";
-            try {
-              json = JSON.parse(data.toString());
-            } catch(error) {
-              global.JSONData = data;
-              reject(error);
-              return;
-            }
+        parseURL("https://opentdb.com/api.php" + args)
+        .then((json) => {
+          if(json.response_code == 4) {
+            // Token empty, reset it and start over.
+            resetTriviaToken(token)
+            .then(() => {
+              triviaSend(tokenChannel, undefined, "You've played all of the questions in this category! Questions will start to repeat.");
 
-            if(json.response_code == 4) {
-              // Token empty, reset it and start over.
-              resetTriviaToken(token)
-              .then(() => {
-                triviaSend(tokenChannel, undefined, "You've played all of the questions in this category! Questions will start to repeat.");
-
-                getTriviaQuestion(initial, category, tokenChannel)
-                .then((question) => {
-                  resolve(question);
-                })
-                .catch((err) => {
-                  reject(err);
-                });
+              getTriviaQuestion(initial, category, tokenChannel)
+              .then((question) => {
+                resolve(question);
               })
               .catch((err) => {
-                console.log("Failed to reset token - " + err.message);
-                reject(new Error("Failed to reset token - " + err.message));
-                return;
+                reject(err);
               });
-            }
-            else if(json.response_code !== 0) {
-              console.log("Received error from OpenTDB.");
-              console.log(json);
-
-              // Author is passed through; triviaSend will handle it if author is undefined.
-              reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + openTDBResponses[json.response_code] + ")"));
-            }
-            else {
-              global.questions = json.results;
-
-              // Now we'll return a question from the cache.
-              ////////// **Copied below**
-              if(!initial) {
-                // Just in case, check the cached question count first.
-                if(global.questions.length < 1)
-                  reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
-                else {
-
-                  resolve(global.questions[0]);
-
-                  delete global.questions[0];
-                  global.questions = global.questions.filter(val => Object.keys(val).length !== 0);
-
-                }
-              }
-              //////////
+            })
+            .catch((err) => {
+              console.log("Failed to reset token - " + err.message);
+              reject(new Error("Failed to reset token - " + err.message));
               return;
+            });
+          }
+          else if(json.response_code !== 0) {
+            console.log("Received error from OpenTDB.");
+            console.log(json);
+
+            // Author is passed through; triviaSend will handle it if author is undefined.
+            reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + openTDBResponses[json.response_code] + ")"));
+          }
+          else {
+            if(category == undefined) {
+              global.questions = json.results;
             }
-          });
+
+            // Now we'll return a question from the cache.
+            ////////// **Copied below**
+            if(!initial) {
+              // Just in case, check the cached question count first.
+              if(global.questions.length < 1)
+                reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
+              else {
+
+                resolve(global.questions[0]);
+
+                delete global.questions[0];
+                global.questions = global.questions.filter(val => Object.keys(val).length !== 0);
+              }
+            }
+            //////////
+            return;
+          }
         })
-        .on("error", (error) => {
-          reject(error);
+        .catch((err) => {
+          // parseURL failed
+          reject(err);
         });
       });
     }
@@ -310,7 +301,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
       console.error("ERROR: Unscheduled game '" + id + "' timeout appears to be stuck in the 'called' state. Cancelling game...");
       triviaEndGame(id);
     }
-    else if(global.game[id].timeout !== undefined && global.game[id].timeout._idleTimeout == -1) {
+    else if(global.game[id].timeout !== undefined && global.game[id].timeout._idleTimeout === -1) {
       // This check may not be working, have yet to see it catch any games.
       // The timeout reads -1. (Can occur if clearTimeout is called without deleting.)
       // Dump the game in the console, clear it, and continue.
@@ -321,7 +312,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
       console.error("ERROR: Game '" + id + "' is missing information. Game will be cancelled.");
       triviaEndGame(id);
     }
-    else if(!scheduled && global.game[id].inProgress == 1)
+    else if(!scheduled && global.game[id].inProgress === 1)
       return; // If there's already a game in progress, don't start another unless scheduled by the script.
   }
 
@@ -536,28 +527,22 @@ exports.parse = function(str, msg) {
 
   // ## Help Command ##
   if(str === prefix + "HELP" || str.includes("<@" + global.client.user.id + ">")) {
-    https.get("https://opentdb.com/api_count_global.php", (res) => {
-      var data = "";
-      res.on("data", (chunk) => { data += chunk; });
-      res.on("end", () => {
-        try {
-          var json = JSON.parse(data.toString());
-        } catch(err) {
-          console.error("Failed to parse JSON for 'trivia help'");
-          global.JSONData = data;
-        }
-        global.client.shard.fetchClientValues("guilds.size")
-        .then(results => {
-          triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
-        })
-        .catch(err => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
-      });
-    }).on("error", () => {
+    parseURL("https://opentdb.com/api_count_global.php")
+    .then((json) => {
+      console.error("Failed to parse JSON for 'trivia help'");
       global.client.shard.fetchClientValues("guilds.size")
-      .then(results => {
-        triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\n" + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+      .then((results) => {
+        triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
       })
-      .catch(err => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
+        .catch(err => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
+      })
+      .catch(() => {
+        // Failed to get the global question count, leave it out of the message.
+        global.client.shard.fetchClientValues("guilds.size")
+        .then((results) => {
+          triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\n" + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+        })
+      .catch((err2) => console.error("An error occurred while attempting to fetch the guild count:\n" + err2));
     });
   }
 
@@ -621,47 +606,34 @@ exports.parse = function(str, msg) {
     }
 
     if(cmd === "CATEGORIES") {
-      https.get("https://opentdb.com/api_category.php", (res) => {
-        var data = "";
-        res.on("data", (chunk) => { data += chunk; });
-        res.on("end", () => {
-          var json = "";
-          try {
-            json = JSON.parse(data.toString());
-          } catch(error) {
-            triviaSend(msg.channel, msg.author, {embed: {
-              color: 14164000,
-              description: "Failed to query category list.\n" + error
-            }});
-            console.log("Failed to retrieve category list for 'trivia categories'.\n" + error);
-            global.JSONData = data;
-            return;
-          }
+      parseURL("https://opentdb.com/api_category.php")
+      .then((json) => {
+        var categoryListStr = "**Categories:** ";
+        var i = 0;
+        for(i in json.trivia_categories)
+          categoryListStr = categoryListStr + "\n" + json.trivia_categories[i].name;
 
-          var categoryListStr = "**Categories:** ";
-          var i = 0;
-          for(i in json.trivia_categories)
-            categoryListStr = categoryListStr + "\n" + json.trivia_categories[i].name;
-
-          var str = "A list has been sent to you via DM.";
-          if(msg.channel.type == "dm")
-            str = "";
-          triviaSend(msg.author, undefined, categoryListStr)
-            .catch(function(err) {
-              str = "Unable to send you the list because you cannot receive DMs.";
-              if(err != "DiscordAPIError: Cannot send messages to this user")
-                console.log(err);
-            })
-            .then(() => {
-              i++;
-              triviaSend(msg.channel, undefined, "There are " + i + " categories. " + str);
-            });
-        });
-      }).on("error", function(error) {
+        var str = "A list has been sent to you via DM.";
+        if(msg.channel.type == "dm")
+          str = "";
+        triviaSend(msg.author, undefined, categoryListStr)
+          .catch(function(err) {
+            str = "Unable to send you the list because you cannot receive DMs.";
+            if(err != "DiscordAPIError: Cannot send messages to this user")
+              console.log(err);
+          })
+          .then(() => {
+            i++;
+            triviaSend(msg.channel, undefined, "There are " + i + " categories. " + str);
+          });
+      })
+      .catch((err) => {
         triviaSend(msg.channel, msg.author, {embed: {
           color: 14164000,
-          description: "Failed to query category list.\n" + error
+          description: "Failed to query category list.\n" + err
         }});
+        console.log("Failed to retrieve category list for 'trivia categories'.\n" + err);
+        return;
       });
     }
 
