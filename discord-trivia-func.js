@@ -146,7 +146,7 @@ function getTriviaQuestion(initial, category, tokenChannel) {
 
       // TODO: Check the cache for a question in the category
       if(category !== undefined)
-        args += "?amount=50&category=" + category;
+        args += "?amount=1&category=" + category;
       else {
         args += "?amount=32";
       }
@@ -166,6 +166,7 @@ function getTriviaQuestion(initial, category, tokenChannel) {
 
         parseURL("https://opentdb.com/api.php" + args)
         .then((json) => {
+          console.log(json);
           if(json.response_code == 4) {
             // Token empty, reset it and start over.
             resetTriviaToken(token)
@@ -205,7 +206,6 @@ function getTriviaQuestion(initial, category, tokenChannel) {
               if(global.questions.length < 1)
                 reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
               else {
-
                 resolve(global.questions[0]);
 
                 delete global.questions[0];
@@ -529,7 +529,6 @@ exports.parse = function(str, msg) {
   if(str === prefix + "HELP" || str.includes("<@" + global.client.user.id + ">")) {
     parseURL("https://opentdb.com/api_count_global.php")
     .then((json) => {
-      console.error("Failed to parse JSON for 'trivia help'");
       global.client.shard.fetchClientValues("guilds.size")
       .then((results) => {
         triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
@@ -538,6 +537,7 @@ exports.parse = function(str, msg) {
       })
       .catch(() => {
         // Failed to get the global question count, leave it out of the message.
+        console.error("Failed to parse JSON for 'trivia help'");
         global.client.shard.fetchClientValues("guilds.size")
         .then((results) => {
           triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\n" + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
