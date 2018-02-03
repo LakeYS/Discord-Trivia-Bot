@@ -1,7 +1,7 @@
 # Node.js
 node_modules
 update.sh
-game.json.bak
+game*.json.bak
 config_private*.json
 config_dev*.json
 config_beta*.json

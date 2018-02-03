@@ -3,7 +3,7 @@
 const https = require("https");
 const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
-const util = require("util");
+const JSON = require("circular-json");
 
 const config = require(process.argv[2]);
 
@@ -194,7 +194,7 @@ function getTriviaQuestion(initial, category, tokenChannel) {
             reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + openTDBResponses[json.response_code] + ")"));
           }
           else {
-            if(category == undefined) {
+            if(category === undefined) {
               global.questions = json.results;
             }
 
@@ -472,7 +472,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 
     global.game[id].difficulty = question.difficulty;
     global.game[id].answer = question.correct_answer;
-    global.game[id].dateStr = Date();
+    global.game[id].date = new Date();
 
     // Reveal the answer after the time is up
     global.game[id].timeout = setTimeout(() => {
@@ -783,12 +783,11 @@ exports.reactionAdd = function(reaction, user) {
 // # Game Exporter #
 // Export the current game data to a file.
 function exportGame() {
-  // util.inspect(global.game) is used instead of JSON.stringify to prevent circular structure errors.
-  fs.writeFile("./game.json.bak", util.inspect(global.game), "utf8", (err) => {
+  fs.writeFile("./game."  + global.client.shard.id + ".json.bak", JSON.stringify(global.game), "utf8", (err) => {
     if(err)
       console.error("Failed to write to game.json.bak with the following err:\n" + err + "\nMake sure your config file is not read-only or missing.");
     else
-      console.log("Game exported to game.json.bak");
+      console.log("Game exported to game." + global.client.shard.id + ".json.bak");
   });
 }
 
