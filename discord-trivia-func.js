@@ -134,7 +134,7 @@ function resetTriviaToken(token) {
 // Returns a promise, fetches a random question from the database.
 // If initial is set to true, a question will not be returned. (For initializing the cache)
 // If tokenChannel is specified (must be a discord.js TextChannel object), a token will be generated and used.
-function getTriviaQuestion(initial, category, tokenChannel) {
+function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
   return new Promise((resolve, reject) => {
     var length = global.questions.length;
 
@@ -166,20 +166,29 @@ function getTriviaQuestion(initial, category, tokenChannel) {
 
         parseURL("https://opentdb.com/api.php" + args)
         .then((json) => {
-          console.log(json);
           if(json.response_code == 4) {
             // Token empty, reset it and start over.
             resetTriviaToken(token)
             .then(() => {
-              triviaSend(tokenChannel, undefined, "You've played all of the questions in this category! Questions will start to repeat.");
+              // tokenRetry prevents spam in case something goes wrong.
+              if(tokenRetry !== 1) {
+                triviaSend(tokenChannel, undefined, "You've played all of the questions in this category! Questions will start to repeat.");
 
-              getTriviaQuestion(initial, category, tokenChannel)
-              .then((question) => {
-                resolve(question);
-              })
-              .catch((err) => {
-                reject(err);
-              });
+                // Start over now that we have a token.
+                getTriviaQuestion(initial, category, tokenChannel, 1)
+                .then((question) => {
+                  resolve(question);
+                  return;
+                })
+                .catch((err) => {
+                  reject(err);
+                  return;
+                });
+              }
+              else {
+                // This shouldn't ever happen.
+                reject(new Error("Token reset loop."));
+              }
             })
             .catch((err) => {
               console.log("Failed to reset token - " + err.message);
