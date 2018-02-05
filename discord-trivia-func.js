@@ -142,6 +142,7 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
     // This way, we're never waiting for OpenTDB to respond.
     if(length === undefined || length < 2 || category !== undefined) {
       // We need a new question, either due to an empty cache or because we need a specific category.
+      var data = "";
       var args = "";
 
       // TODO: Check the cache for a question in the category
@@ -164,70 +165,79 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
           args += "&token=" + token;
         }
 
-        parseURL("https://opentdb.com/api.php" + args)
-        .then((json) => {
-          if(json.response_code == 4) {
-            // Token empty, reset it and start over.
-            resetTriviaToken(token)
-            .then(() => {
-              // tokenRetry prevents spam in case something goes wrong.
-              if(tokenRetry !== 1) {
-                triviaSend(tokenChannel, undefined, "You've played all of the questions in this category! Questions will start to repeat.");
+        https.get("https://opentdb.com/api.php" + args, (res) => {
+          res.on("data", (chunk) => { data += chunk; });
+          res.on("end", () => {
+            var json = "";
+            try {
+              json = JSON.parse(data.toString());
+            } catch(error) {
+              global.JSONData = data;
+              reject(error);
+              return;
+            }
 
-                // Start over now that we have a token.
-                getTriviaQuestion(initial, category, tokenChannel, 1)
-                .then((question) => {
-                  resolve(question);
-                  return;
+            if(json.response_code == 4) {
+              // Token empty, reset it and start over.
+              if(tokenRetry !== 1) {
+                resetTriviaToken(token)
+                .then(() => {
+                  triviaSend(tokenChannel, undefined, "You've played all of the questions in this category! Questions will start to repeat.");
+
+                  // Start over now that we have a token.
+                  getTriviaQuestion(initial, category, tokenChannel, 1)
+                  .then((question) => {
+                    resolve(question);
+                    return;
+                  })
+                  .catch((err) => {
+                    reject(err);
+                    return;
+                  });
                 })
                 .catch((err) => {
-                  reject(err);
+                  console.log("Failed to reset token - " + err.message);
+                  reject(new Error("Failed to reset token - " + err.message));
                   return;
                 });
               }
               else {
-                // This shouldn't ever happen.
-                reject(new Error("Token reset loop."));
+              // This shouldn't ever happen.
+              reject(new Error("Token reset loop."));
               }
-            })
-            .catch((err) => {
-              console.log("Failed to reset token - " + err.message);
-              reject(new Error("Failed to reset token - " + err.message));
-              return;
-            });
-          }
-          else if(json.response_code !== 0) {
-            console.log("Received error from OpenTDB.");
-            console.log(json);
+            }
+            else if(json.response_code !== 0) {
+              console.log("Received error from OpenTDB.");
+              console.log(json);
 
-            // Author is passed through; triviaSend will handle it if author is undefined.
-            reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + openTDBResponses[json.response_code] + ")"));
-          }
-          else {
-            if(category === undefined) {
+              // Author is passed through; triviaSend will handle it if author is undefined.
+              reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + openTDBResponses[json.response_code] + ")"));
+            }
+            else {
               global.questions = json.results;
-            }
 
-            // Now we'll return a question from the cache.
-            ////////// **Copied below**
-            if(!initial) {
-              // Just in case, check the cached question count first.
-              if(global.questions.length < 1)
-                reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
-              else {
-                resolve(global.questions[0]);
+              // Now we'll return a question from the cache.
+              ////////// **Copied below**
+              if(!initial) {
+                // Just in case, check the cached question count first.
+                if(global.questions.length < 1)
+                  reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
+                else {
 
-                delete global.questions[0];
-                global.questions = global.questions.filter(val => Object.keys(val).length !== 0);
+                  resolve(global.questions[0]);
+
+                  delete global.questions[0];
+                  global.questions = global.questions.filter(val => Object.keys(val).length !== 0);
+
+                }
               }
+              //////////
+              return;
             }
-            //////////
-            return;
-          }
+          });
         })
-        .catch((err) => {
-          // parseURL failed
-          reject(err);
+        .on("error", (error) => {
+          reject(error);
         });
       });
     }
