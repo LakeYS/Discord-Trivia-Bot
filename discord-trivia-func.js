@@ -44,6 +44,31 @@ function parseURL(url) {
   });
 }
 
+// Generic message sending function.
+// This is to avoid repeating the same error catchers throughout the script.
+function triviaSend(channel, author, msg) {
+  return channel.send(msg)
+  .catch((err) => {
+    if(author !== undefined) {
+      if(channel.type !== "dm") {
+        author.send({embed: {
+          color: 14164000,
+          description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
+        }})
+        .catch(() => {
+          console.warn("Failed to send message to user " + author.id + ". (DM failed)");
+        });
+      }
+      else {
+        console.warn("Failed to send message to user " + author.id + ". (already in DM)");
+      }
+    }
+    else {
+      console.warn("Failed to send message to channel. (no user)");
+    }
+  });
+}
+
 function initCategories() {
   // Initialize the categories
   return new Promise((resolve, reject) => {
@@ -254,31 +279,6 @@ getTriviaQuestion(1)
 .catch(err => {
   console.log("An error occurred while attempting to initialize the question cache:\n" + err);
 });
-
-// Generic message sending function.
-// This is to avoid repeating the same error catchers throughout the script.
-function triviaSend(channel, author, msg) {
-  return channel.send(msg)
-  .catch((err) => {
-    if(author !== undefined) {
-      if(channel.type !== "dm") {
-        author.send({embed: {
-          color: 14164000,
-          description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
-        }})
-        .catch(() => {
-          console.warn("Failed to send message to user " + author.id + ". (DM failed)");
-        });
-      }
-      else {
-          console.warn("Failed to send message to user " + author.id + ". (already in DM)");
-        }
-      }
-      else {
-        console.warn("Failed to send message to channel. (no user)");
-      }
-    });
-}
 
 // Function to end trivia games
 function triviaEndGame(id) {
