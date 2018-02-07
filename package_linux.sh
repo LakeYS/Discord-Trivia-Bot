@@ -1,3 +1,4 @@
+#!/bin/sh
 mkdir TriviaBot
 cp config.json TriviaBot
 cp package.json TriviaBot
