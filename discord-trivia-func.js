@@ -16,11 +16,13 @@ global.questions = [];
 global.tokens = {};
 
 // Initialize missing config options to their defaults
-if(config["round-timeout"] === undefined)
+if(typeof config["round-timeout"] === "undefined") {
   config["round-timeout"] = 5500;
+}
 
-if(config["round-length"] === undefined)
+if(typeof config["round-length"] === "undefined") {
   config["round-length"] = 15000;
+}
 
 // parseURL
 // Returns a promise. Queries the specified URL and parses the data as JSON.
@@ -49,7 +51,7 @@ function parseURL(url) {
 function triviaSend(channel, author, msg) {
   return channel.send(msg)
   .catch((err) => {
-    if(author !== undefined) {
+    if(typeof author !== "undefined") {
       if(channel.type !== "dm") {
         author.send({embed: {
           color: 14164000,
@@ -95,12 +97,12 @@ initCategories()
 // If tokenChannel is undefined, the promise will automatically resolve with 'undefined'.
 function getTriviaToken(tokenChannel) {
   return new Promise((resolve, reject) => {
-    if(tokenChannel === undefined) {
+    if(typeof tokenChannel === "undefined") {
       // No token requested, return without one.
       resolve(undefined);
       return;
     }
-    else if(global.tokens[tokenChannel.id] !== undefined) {
+    else if(typeof global.tokens[tokenChannel.id] !== "undefined") {
       // Check if 6 hours have passed since the token was created.
       // If >6 hours have passed, we'll need to generate a new one.
       if(new Date().getTime() > global.tokens[tokenChannel.id].time.getTime()+2.16e+7) {
@@ -165,12 +167,12 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
 
     // To keep the question response quick, the bot always stays one question ahead.
     // This way, we're never waiting for OpenTDB to respond.
-    if(length === undefined || length < 2 || category !== undefined) {
+    if(typeof length === "undefined" || length < 2 || typeof category !== "undefined") {
       // We need a new question, either due to an empty cache or because we need a specific category.
       var args = "";
 
       // TODO: Check the cache for a question in the category
-      if(category !== undefined)
+      if(typeof category !== "undefined")
         args += "?amount=1&category=" + category;
       else {
         args += "?amount=32";
@@ -184,7 +186,7 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
         triviaSend(tokenChannel, undefined, "Failed to generate a session token for this channel. You may see repeating questions in this category.\n(" + error.message + ")");
       })
       .then((token) => {
-        if(token !== undefined && category !== undefined) {
+        if(typeof token !== "undefined" && typeof  category !== "undefined") {
           // Set the token and continue.
           args += "&token=" + token;
         }
@@ -282,11 +284,11 @@ getTriviaQuestion(1)
 
 // Function to end trivia games
 function triviaEndGame(id) {
-  if(global.game[id] === undefined) {
+  if(typeof global.game[id] === "undefined") {
     console.warn("Attempting to clear empty game, ignoring.");
     return;
   }
-  if(global.game[id].timeout !== undefined)
+  if(typeof global.game[id].timeout !== "undefined")
     clearTimeout(global.game[id].timeout);
 
   delete global.game[id];
@@ -302,21 +304,21 @@ function triviaEndGame(id) {
 //              already have a game initialized to start)
 function doTriviaGame(id, channel, author, scheduled, category) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
-  if(global.game[id] !== undefined) {
-    if(!scheduled && global.game[id].timeout !== undefined && global.game[id].timeout._called == true) {
+  if(typeof global.game[id] !== "undefined") {
+    if(!scheduled && typeof  global.game[id].timeout !== "undefined" && global.game[id].timeout._called == true) {
       // The timeout should never be stuck on 'called' during a round.
       // Dump the game in the console, clear it, and continue.
       console.error("ERROR: Unscheduled game '" + id + "' timeout appears to be stuck in the 'called' state. Cancelling game...");
       triviaEndGame(id);
     }
-    else if(global.game[id].timeout !== undefined && global.game[id].timeout._idleTimeout === -1) {
+    else if(typeof global.game[id].timeout !== "undefined" && global.game[id].timeout._idleTimeout === -1) {
       // This check may not be working, have yet to see it catch any games.
       // The timeout reads -1. (Can occur if clearTimeout is called without deleting.)
       // Dump the game in the console, clear it, and continue.
       console.error("ERROR: Game '" + id + "' timeout reads -1. Game will be cancelled.");
       triviaEndGame(id);
     }
-    else if(global.game[id].answer === undefined) {
+    else if(typeof global.game[id].answer === "undefined") {
       console.error("ERROR: Game '" + id + "' is missing information. Game will be cancelled.");
       triviaEndGame(id);
     }
@@ -327,7 +329,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
   // ## Permission Checks ##
   var useReactions = 0;
 
-  if(channel.type !== "dm" && author !== undefined) {
+  if(channel.type !== "dm" && typeof author !== "undefined") {
     // Check if we have proper permissions for the channel.
     var permissions = channel.permissionsFor(channel.guild.me);
 
@@ -335,7 +337,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 
     // Permissions sometimes return null for some reason, so this is a workaround.
     if(permissions == null) {
-      if(author !== undefined)
+      if(typeof author !== "undefined")
         triviaSend(author, undefined, "Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)");
       else
         console.warn("Failed to send message. (null permissions, no author)");
@@ -368,14 +370,14 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     "inRound": 1,
 
     "useReactions": useReactions,
-    "category": global.game[id]!==undefined?global.game[id].category:category,
+    "category": typeof global.game[id]!=="undefined"?global.game[id].category:category,
 
     "participants": [],
     "correct_users": [],
     "correct_names": [],
     "correct_times": [], // Not implemented
 
-    "prev_participants": global.game[id]!==undefined?global.game[id].participants:null
+    "prev_participants": typeof global.game[id]!=="undefined"?global.game[id].participants:null
   };
 
   getTriviaQuestion(0, global.game[id].category, channel)
@@ -445,7 +447,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
           .then(() => {
             // Only add C and D if it isn't a true/false question.
             // Reactions will stop here if the game has since been cancelled.
-            if(global.game[id] == undefined || !global.game[id].isTrueFalse) {
+            if(typeof global.game[id] == "undefined" || !global.game[id].isTrueFalse) {
               msg.react("🇨")
               .catch(err => {
                 console.log("Failed to add reaction C: " + err);
@@ -518,7 +520,7 @@ exports.parse = function(str, msg) {
   // ## Answers ##
   // Check for letters if not using reactions
   ////////// **Note that this is copied below for reaction mode.**
-  if(global.game[id] !== undefined && !global.game[id].useReactions) {
+  if(typeof global.game[id] !== "undefined" && !global.game[id].useReactions) {
     // inProgress is always true when a game is active, even between rounds.
 
     // Make sure they haven't already submitted an answer
@@ -589,7 +591,7 @@ exports.parse = function(str, msg) {
             return el.name.toUpperCase().includes(categoryInput);
           });
 
-          if(category === undefined) {
+          if(typeof category === "undefined") {
             triviaSend(msg.channel, msg.author, {embed: {
               color: 14164000,
               description: "Unable to find the category you specified.\nType `trivia play` to play in a random category, or type `trivia categories` to see a list of categories."
@@ -661,20 +663,20 @@ exports.parse = function(str, msg) {
     // **Admin Commands** //
     if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
       if(cmd == "ADMIN STOP" || cmd == "ADMIN CANCEL") {
-        if(global.game[id] !== undefined && global.game[id].inProgress) {
+        if(typeof global.game[id] !== "undefined" && global.game[id].inProgress) {
           let timeout = global.game[id].timeout;
 
-          if(timeout !== undefined) {
+          if(typeof timeout !== "undefined") {
             var onTimeout = timeout._onTimeout;
             clearTimeout(timeout);
 
             // If a round is in progress, display the answers before cancelling the game.
-            if(global.game[id].inRound && timeout !== undefined)
+            if(global.game[id].inRound && typeof timeout !== "undefined")
               onTimeout();
             }
 
           // If there's still a game, clear it.
-          if(global.game[id] !== undefined)
+          if(typeof global.game[id] !== "undefined")
             triviaEndGame(id);
 
 
@@ -691,7 +693,7 @@ exports.parse = function(str, msg) {
 // # triviaRevealAnswer #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
 function triviaRevealAnswer(id, channel, answer) {
-  if(global.game[id] == undefined || !global.game[id].inProgress)
+  if(typeof global.game[id] == "undefined" || !global.game[id].inProgress)
     return;
 
   // Quick fix for timeouts not clearing correctly.
@@ -765,7 +767,7 @@ exports.reactionAdd = function(reaction, user) {
   var str = reaction.emoji.name;
 
   // If a game is in progress, the reaction is on the right message, the game uses reactions, and the reactor isn't the TriviaBot client...
-  if(global.game[id] !== undefined && global.game[id].message !== undefined && reaction.message.id == global.game[id].message.id && global.game[id].useReactions && user !== global.client.user) {
+  if(typeof global.game[id] !== "undefined" && typeof global.game[id].message !== "undefined" && reaction.message.id == global.game[id].message.id && global.game[id].useReactions && user !== global.client.user) {
     if(str == "🇦")
       str = "A";
     else if(str == "🇧")
