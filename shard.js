@@ -8,8 +8,9 @@ const snekfetch = require("snekfetch");
 
 global.config = require(process.argv[2]);
 
-if(global.config.prefix === undefined)
+if(global.config.prefix === undefined) {
   global.config.prefix = "trivia ";
+}
 
 global.client.login(global.client.token);
 
@@ -40,7 +41,7 @@ global.client.on("error", function(err) {
   setTimeout(() => { global.client.login(global.config.token); }, 6000);
 });
 
-global.client.on("message", msg => {
+global.client.on("message", (msg) => {
   var str = msg.toString().toUpperCase();
 
   if(msg.channel.type === "text" || msg.channel.type === "dm") {
@@ -55,11 +56,12 @@ global.client.on("messageReactionAdd", (reaction, user) => {
 // # Console Functions # //
 process.stdin.on("data", function (text) {
   var id = process.pid;
-  if(global.client.shard !== null)
+  if(global.client.shard !== null) {
     id = id + ":" + global.client.shard.id;
+  }
 
   global.client.shard.broadcastEval(text.toString())
-  .then(res => {
+  .then((res) => {
     console.log("#" + id + ": " + res);
   })
   .catch(err => {
@@ -78,7 +80,7 @@ global.postBotStats = () => {
         shard_id: global.client.shard.id,
         shard_count: global.client.shard.count,
         server_count: global.client.guilds.size
-      }).catch(err => {
+      }).catch((err) => {
         console.log("Error occurred while posting to bots.discord.pw on shard " + global.client.shard.id + ":\n" + err);
         console.log("Error occurred while posting to bots.discord.pw on shard " + global.client.shard.id + ":\n" + err);
       });
@@ -93,7 +95,7 @@ global.postBotStats = () => {
         shard_id: global.client.shard.id,
         shard_count: global.client.shard.count,
         server_count: global.client.guilds.size
-      }).catch(err => {
+      }).catch((err) => {
         console.log("Error occurred while posting to discordbots.org on shard " + global.client.shard.id + ":\n" + err);
       });
   }

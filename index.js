@@ -4,10 +4,12 @@
 const pjson = require("./package.json");
 
 // Note that the spacing of the artwork will mess up with double-digit version numbers (such as '1.10.0')
-if(process.stdout.columns > 61)
+if(process.stdout.columns > 61) {
   console.log("                 ########\n            ##################\n         ###      #######     ###\n       ###    ###############   ###\n     ###    ####################  ###\n    ###     #########    ########  ###\n   ###     ########      ########   ###\n  ###       #####       ########     ###\n ###                  ##########      ### \x1b[7m TriviaBot Version " + pjson.version + "   \x1b[0m\n ###               ###########        ### \x1b[7m Copyright (c) 2018 Lake Y \x1b[0m\n ###              #########           ### \x1b[7m http://lakeys.net         \x1b[0m\n  ###             ########           ###\n   ###            ######            ###\n    ###            ####            ###\n      ###         ######         ###\n        ###      #######       ###\n          #####    ####    #####\n               ############\n                  ######");
-else
+}
+else {
   console.log("                 ########\n            ##################\n         ###      #######     ###\n       ###    ###############   ###\n     ###    ####################  ###\n    ###     #########    ########  ###\n   ###     ########      ########   ###\n  ###       #####       ########     ###\n ###                  ##########      ###\n ###               ###########        ###\n ###              #########           ###\n  ###             ########           ###\n   ###            ######            ###\n    ###            ####            ###\n      ###         ######         ###\n        ###      #######       ###\n          #####    ####    #####\n               ############\n                  ######\n\x1b[7m TriviaBot Version 1" + pjson.version + "   \x1b[0m\n\x1b[7m Copyright (c) 2018 Lake Y \x1b[0m\n\x1b[7m http://lakeys.net         \x1b[0m");
+}
 
 const os = require("os");
 console.log(os.platform() + " " + os.totalmem() + " " + os.cpus()[0].model + " x" + Object.keys(os.cpus()).length);
@@ -27,8 +29,9 @@ for(var i = 0; i <= process.argv.length; i++) {
 
 global.config = require(configFile);
 
-if(global.config["shard-count"] === undefined)
+if(global.config["shard-count"] === undefined) {
   global.config["shard-count"] = "auto";
+}
 
 // # Version Check # //
 var skipVersionCheck = 0;
@@ -81,11 +84,13 @@ if(!global.config["disable-version-check"]) {
               // Compare this build's version to the latest release.
               var releaseRelative = semver(pjson.version, release);
 
-              if(releaseRelative === 1)
+              if(releaseRelative === 1) {
                 console.log("********\nNOTICE: You are currently running\x1b[1m v" + pjson.version + "\x1b[0m. This build is considered unstable.\nCheck here for the latest stable versions of this script:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
+              }
 
-              if(releaseRelative === -1)
+              if(releaseRelative === -1) {
                 console.log("********\nNOTICE: You are currently running\x1b[1m v" + pjson.version + "\x1b[0m. A newer version is available.\nCheck here for the latest version of this script:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
+              }
             }
           }
         else {
@@ -121,7 +126,7 @@ manager.spawn()
 .catch((err) => {
   var warning = "";
 
-  if(err == "Error: 401 Unauthorized") {
+  if(err === "Error: 401 Unauthorized") {
     warning += "\nPlease double-check your token and try again.";
   }
 
@@ -130,7 +135,7 @@ manager.spawn()
   process.exit();
 });
 
-manager.on("launch", shard => {
+manager.on("launch", (shard) => {
   console.log(`Successfully launched shard ${shard.id} of ${manager.totalShards-1}`);
 });
 
@@ -146,17 +151,19 @@ process.on("exit", () => {
 });
 
 // # Console Functions # //
-process.stdin.on("data", function (text) {
+process.stdin.on("data", (text) => {
   if(text.toString() === "stop\r\n" || text.toString() === "exit\r\n" || text.toString() === "stop\n" || text.toString() === "exit\n")
   {
-    // TRIVIABOT override: Don't shut down if a game is in progress.
-    if(Object.keys(global.game).length === 0)
+    if(Object.keys(global.game).length === 0) {
       process.exit();
-    else
+    }
+    else {
       console.log("There are\x1b[1m " + Object.keys(global.game).length + " \x1b[0mgame(s) in progress, bot will not close.\nType 'forceexit' to override.");
+    }
   }
-  else if(text.toString() === "forceexit\r\n") // TRIVIABOT override: Check for 'forceexit'
+  else if(text.toString() === "forceexit\r\n") {
     process.exit();
+  }
   else {
     console.log("Eval on index:");
     try {
