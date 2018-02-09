@@ -5,7 +5,11 @@ const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
 
-const config = require(process.argv[2]);
+var config = JSON.parse(fs.readFileSync(process.argv[2]));
+
+if(config.prefix === undefined) {
+  config.prefix = "trivia ";
+}
 
 const letters = ["A", "B", "C", "D"];
 

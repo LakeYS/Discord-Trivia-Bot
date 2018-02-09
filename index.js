@@ -15,6 +15,7 @@ const os = require("os");
 console.log(os.platform() + " " + os.totalmem() + " " + os.cpus()[0].model + " x" + Object.keys(os.cpus()).length);
 
 const https = require("https");
+const fs = require("fs");
 
 process.title = "TriviaBot " + pjson.version;
 
@@ -27,16 +28,16 @@ for(var i = 0; i <= process.argv.length; i++) {
   }
 }
 
-global.config = require(configFile);
+var config = JSON.parse(fs.readFileSync(configFile));
 
-if(global.config["shard-count"] === undefined) {
-  global.config["shard-count"] = "auto";
+if(config["shard-count"] === undefined) {
+  config["shard-count"] = "auto";
 }
 
 // # Version Check # //
 var skipVersionCheck = 0;
 
-if(!global.config["disable-version-check"]) {
+if(!config["disable-version-check"]) {
 // If, for whatever reason, semver-compare isn't installed, we'll skip the version check.
   try {
     var semver = require("semver-compare");
@@ -119,8 +120,8 @@ const client = new Discord.Client();
 
 // # Discord # //
 const { ShardingManager } = require("discord.js");
-var token = global.config.token;
-const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: global.config["shard-count"], token: token, shardArgs: [configFile] });
+var token = config.token;
+const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: config["shard-count"], token: token, shardArgs: [configFile] });
 
 manager.spawn()
 .catch((err) => {
@@ -143,7 +144,7 @@ process.on("rejectionHandled", (err) => {
   console.log(err);
   console.log("An error occurred. Reconnecting...");
   client.destroy();
-  setTimeout(() => { client.login(global.config.token); }, 2000);
+  setTimeout(() => { client.login(config.token); }, 2000);
 });
 
 process.on("exit", () => {

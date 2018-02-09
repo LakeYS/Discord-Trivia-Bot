@@ -5,11 +5,12 @@ const Discord = require("discord.js");
 global.client = new Discord.Client();
 const trivia = require("./discord-trivia-func.js");
 const snekfetch = require("snekfetch");
+const fs = require("fs");
 
-global.config = require(process.argv[2]);
+var config = JSON.parse(fs.readFileSync(process.argv[2]));
 
-if(global.config.prefix === undefined) {
-  global.config.prefix = "trivia ";
+if(config.prefix === undefined) {
+  config.prefix = "trivia ";
 }
 
 global.client.login(global.client.token);
@@ -22,7 +23,7 @@ global.client.on("ready", () => {
     global.client.user.setAvatar("./profile.png");
   }
 
-  global.client.user.setPresence({ game: { name: "Trivia! Type '" + global.config.prefix + "help' to get started.", type: 0 } });
+  global.client.user.setPresence({ game: { name: "Trivia! Type '" + config.prefix + "help' to get started.", type: 0 } });
 
   global.postBotStats();
 });
@@ -30,7 +31,7 @@ global.client.on("ready", () => {
 global.client.on("disconnect", function(event) {
   if(event.code !== 1000) {
     console.log("Discord global.client disconnected with reason: " + event.reason + " (" + event.code + "). Attempting to reconnect in 6s...");
-    setTimeout(() => { global.client.login(global.config.token); }, 6000);
+    setTimeout(() => { global.client.login(config.token); }, 6000);
   }
 });
 
@@ -38,7 +39,7 @@ global.client.on("error", function(err) {
   console.log("Discord global.client error '" + err.code + "'. Attempting to reconnect in 6s...");
 
   global.client.destroy();
-  setTimeout(() => { global.client.login(global.config.token); }, 6000);
+  setTimeout(() => { global.client.login(config.token); }, 6000);
 });
 
 global.client.on("message", (msg) => {
@@ -72,10 +73,10 @@ process.stdin.on("data", function (text) {
 // # Post to Bot Listings # //
 global.postBotStats = () => {
   // ## bots.discord.pw ## //
-  if(global.config["bots.discord.pw-token"] && global.config["bots.discord.pw-token"] !== "optionaltokenhere")
+  if(config["bots.discord.pw-token"] && config["bots.discord.pw-token"] !== "optionaltokenhere")
   {
     snekfetch.post("https://bots.discord.pw/api/bots/" + global.client.user.id + "/stats")
-      .set("Authorization",global.config["bots.discord.pw-token"])
+      .set("Authorization", config["bots.discord.pw-token"])
       .send({
         shard_id: global.client.shard.id,
         shard_count: global.client.shard.count,
@@ -87,10 +88,10 @@ global.postBotStats = () => {
   }
 
   // ## discordbots.org ## //
-  if(global.config["discordbots.org-token"] && global.config["discordbots.org-token"] !== "optionaltokenhere")
+  if(config["discordbots.org-token"] && config["discordbots.org-token"] !== "optionaltokenhere")
   {
     snekfetch.post("https://discordbots.org/api/bots/" + global.client.user.id + "/stats")
-      .set("Authorization",global.config["discordbots.org-token"])
+      .set("Authorization", config["discordbots.org-token"])
       .send({
         shard_id: global.client.shard.id,
         shard_count: global.client.shard.count,
