@@ -9,7 +9,7 @@ const fs = require("fs");
 
 var config = JSON.parse(fs.readFileSync(process.argv[2]));
 
-if(config.prefix === undefined) {
+if(typeof config.prefix === "undefined") {
   config.prefix = "trivia ";
 }
 

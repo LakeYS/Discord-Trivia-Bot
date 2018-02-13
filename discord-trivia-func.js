@@ -7,8 +7,17 @@ const JSON = require("circular-json");
 
 var config = JSON.parse(fs.readFileSync(process.argv[2]));
 
-if(config.prefix === undefined) {
+// Initialize missing config options to their defaults
+if(typeof config.prefix === "undefined") {
   config.prefix = "trivia ";
+}
+
+if(typeof config["round-timeout"] === "undefined") {
+  config["round-timeout"] = 5500;
+}
+
+if(typeof config["round-length"] === "undefined") {
+  config["round-length"] = 15000;
 }
 
 const letters = ["A", "B", "C", "D"];
@@ -18,15 +27,6 @@ const openTDBResponses = ["Success", "No results", "Invalid parameter", "Token n
 global.game = {};
 global.questions = [];
 global.tokens = {};
-
-// Initialize missing config options to their defaults
-if(typeof config["round-timeout"] === "undefined") {
-  config["round-timeout"] = 5500;
-}
-
-if(typeof config["round-length"] === "undefined") {
-  config["round-length"] = 15000;
-}
 
 // parseURL
 // Returns a promise. Queries the specified URL and parses the data as JSON.
@@ -188,7 +188,7 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
       .catch((error) => {
         // Something went wrong. We'll display a warning but we won't cancel the game.
         console.log("Failed to generate token for channel " + tokenChannel.id + ": " + error.message);
-        triviaSend(tokenChannel, undefined, "Failed to generate a session token for this channel. You may see repeating questions in this category.\n(" + error.message + ")");
+        triviaSend(tokenChannel, void 0, "Failed to generate a session token for this channel. You may see repeating questions in this category.\n(" + error.message + ")");
       })
       .then((token) => {
         if(typeof token !== "undefined" && typeof  category !== "undefined") {
@@ -203,7 +203,7 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
             if(tokenRetry !== 1) {
               resetTriviaToken(token)
               .then(() => {
-                triviaSend(tokenChannel, undefined, "You've played all of the questions in this category! Questions will start to repeat.");
+                triviaSend(tokenChannel, void 0, "You've played all of the questions in this category! Questions will start to repeat.");
 
                 // Start over now that we have a token.
                 getTriviaQuestion(initial, category, tokenChannel, 1)
@@ -347,7 +347,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     // Permissions sometimes return null for some reason, so this is a workaround.
     if(permissions == null) {
       if(typeof author !== "undefined") {
-        triviaSend(author, undefined, "Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)");
+        triviaSend(author, void 0, "Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)");
       }
       else {
         console.warn("Failed to send message. (null permissions, no author)");
@@ -357,7 +357,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     }
 
     if(!channel.permissionsFor(channel.guild.me).has("SEND_MESSAGES")) {
-      triviaSend(author, undefined, "Unable to start a Trivia game in this channel. (Bot does not have permission to send messages)");
+      triviaSend(author, void 0, "Unable to start a Trivia game in this channel. (Bot does not have permission to send messages)");
       return;
     }
 
@@ -646,15 +646,15 @@ exports.parse = function(str, msg) {
           var str = "A list has been sent to you via DM.";
           if(msg.channel.type == "dm")
             str = "";
-          triviaSend(msg.author, undefined, categoryListStr)
-            .catch(function(err) {
+          triviaSend(msg.author, void 0, categoryListStr)
+            .catch((err) => {
               str = "Unable to send you the list because you cannot receive DMs.";
               if(err != "DiscordAPIError: Cannot send messages to this user")
                 console.log(err);
             })
             .then(() => {
               i++;
-              triviaSend(msg.channel, undefined, "There are " + i + " categories. " + str);
+              triviaSend(msg.channel, void 0, "There are " + i + " categories. " + str);
             });
           })
           .catch((err) => {
@@ -697,7 +697,7 @@ exports.parse = function(str, msg) {
             triviaEndGame(id);
 
 
-          triviaSend(msg.channel, undefined, {embed: {
+          triviaSend(msg.channel, void 0, {embed: {
             color: 14164000,
             description: "Game stopped by admin."
           }});
@@ -746,7 +746,7 @@ function triviaRevealAnswer(id, channel, answer) {
     }
   }
 
-  triviaSend(channel, undefined, {embed: {
+  triviaSend(channel, void 0, {embed: {
     color: global.game[id].color,
     description: "**" + letters[global.game[id].correct_id] + ":** " + entities.decode(global.game[id].answer) + "\n\n" + correct_users_str
   }});
@@ -754,10 +754,10 @@ function triviaRevealAnswer(id, channel, answer) {
 
   if(participants.length != 0)
     global.game[id].timeout = setTimeout(() => {
-      doTriviaGame(id, channel, undefined, 1);
+      doTriviaGame(id, channel, void 0, 1);
     }, config["round-timeout"]);
   else {
-    global.game[id].timeout = undefined;
+    global.game[id].timeout = void 0;
     triviaEndGame(id);
   }
 }
@@ -775,7 +775,7 @@ function triviaRevealAnswer(id, channel, answer) {
 //  if(global.game[id].inRound)
 //    triviaRevealAnswer(id);
 //  else
-//    doTriviaGame(id, channel, undefined, 0);
+//    doTriviaGame(id, channel, void 0, 0);
 //}
 
 // Detect reaction answers

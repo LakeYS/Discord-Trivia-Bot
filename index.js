@@ -23,14 +23,14 @@ process.title = "TriviaBot " + pjson.version;
 configFile = "./config.json";
 
 for(var i = 0; i <= process.argv.length; i++) {
-  if(process.argv[i] !== undefined && process.argv[i].startsWith("--configfile=")) {
+  if(typeof process.argv[i] !== "undefined" && process.argv[i].startsWith("--configfile=")) {
     var configFile = process.argv[i].replace("--configfile=", "");
   }
 }
 
 var config = JSON.parse(fs.readFileSync(configFile));
 
-if(config["shard-count"] === undefined) {
+if(typeof config["shard-count"] === "undefined") {
   config["shard-count"] = "auto";
 }
 
@@ -73,9 +73,9 @@ if(!config["disable-version-check"]) {
 
       // Note that if there is an error while parsing the JSON data, the bot will crash.
       res.on("end", () => {
-        if(input !== undefined) {
+        if(typeof input !== "undefined") {
           json = JSON.parse(input.toString());
-          if(json.tag_name === undefined) {
+          if(typeof json.tag_name === "undefined") {
             console.log(json);
             console.warn("WARNING: Unable to parse version data.");
             }
