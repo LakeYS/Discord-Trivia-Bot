@@ -53,25 +53,31 @@ function parseURL(url) {
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
 function triviaSend(channel, author, msg) {
-  return channel.send(msg)
-  .catch((err) => {
-    if(typeof author !== "undefined") {
-      if(channel.type !== "dm") {
-        author.send({embed: {
-          color: 14164000,
-          description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
-        }})
-        .catch(() => {
-          console.warn("Failed to send message to user " + author.id + ". (DM failed)");
-        });
+  return new Promise((resolve, reject) => {
+    channel.send(msg)
+    .catch((err) => {
+      if(typeof author !== "undefined") {
+        if(channel.type !== "dm") {
+          author.send({embed: {
+            color: 14164000,
+            description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
+          }})
+          .catch(() => {
+            console.warn("Failed to send message to user " + author.id + ". (DM failed)");
+          });
+        }
+        else {
+          console.warn("Failed to send message to user " + author.id + ". (already in DM)");
+        }
       }
       else {
-        console.warn("Failed to send message to user " + author.id + ". (already in DM)");
+        console.warn("Failed to send message to channel. (no user)");
       }
-    }
-    else {
-      console.warn("Failed to send message to channel. (no user)");
-    }
+      reject(err);
+    })
+    .then(() => {
+      resolve();
+    });
   });
 }
 
