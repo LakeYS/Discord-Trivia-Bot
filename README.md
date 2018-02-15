@@ -31,7 +31,7 @@ For support, questions, and comments, you can join the Discord server or contact
 If you'd like to install and host TriviaBot yourself, you can find out how to do so [here](http://lakeys.net/triviabot/install.html).
 
 # Commands
-- `trivia start` - The command to start a trivia game.
+- `trivia play` - The command to start a trivia game.
 - `trivia help` - Shows information about the bot.
 - `trivia categories` - Sends you a list of categories via DM.
 
