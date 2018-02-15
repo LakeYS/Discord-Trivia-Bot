@@ -715,12 +715,12 @@ exports.parse = function(str, msg) {
 
 // # triviaRevealAnswer #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
-function triviaRevealAnswer(id, channel, answer) {
+function triviaRevealAnswer(id, channel, answer, importOverride) {
   if(typeof global.game[id] == "undefined" || !global.game[id].inProgress)
     return;
 
   // Quick fix for timeouts not clearing correctly.
-  if(answer !== global.game[id].answer) {
+  if(answer !== global.game[id].answer && !importOverride) {
     console.warn("WARNING: Mismatched answers in timeout for global.game " + id + " (" + answer + "||" + global.game[id].answer + ")");
     return;
   }
@@ -758,6 +758,7 @@ function triviaRevealAnswer(id, channel, answer) {
   }});
   var participants = global.game[id].participants;
 
+  // NOTE: Participants check is repeated below in doTriviaGame
   if(participants.length != 0)
     global.game[id].timeout = setTimeout(() => {
       doTriviaGame(id, channel, void 0, 1);
@@ -770,19 +771,22 @@ function triviaRevealAnswer(id, channel, answer) {
 
 // triviaResumeGame
 // Restores a game that does not have an active timeout.
-//function triviaResumeGame(json, id) {
-//  global.game[id] = json;
-//
-//  var channel = global.client.channels.find("id", id);
-//
-//  if(!global.game[id].inProgress)
-//    return;
-//
-//  if(global.game[id].inRound)
-//    triviaRevealAnswer(id);
-//  else
-//    doTriviaGame(id, channel, void 0, 0);
-//}
+function triviaResumeGame(json, id) {
+  var channel = global.client.channels.find("id", id);
+
+  if(!json.inProgress)
+    return;
+
+  if(json.inRound) {
+    global.game[id] = json;
+    triviaRevealAnswer(id, channel, void 0, 1);
+  }
+  else {
+    if(json.participants.length != 0) {
+      doTriviaGame(id, channel, void 0, 0, json.category);
+    }
+  }
+}
 
 // Detect reaction answers
 exports.reactionAdd = function(reaction, user) {
@@ -816,7 +820,17 @@ exports.reactionAdd = function(reaction, user) {
 // # Game Exporter #
 // Export the current game data to a file.
 function exportGame() {
-  fs.writeFile("./game."  + global.client.shard.id + ".json.bak", JSON.stringify(global.game), "utf8", (err) => {
+  // Copy the data so we don't modify the actual game object.
+  var json = JSON.parse(JSON.stringify(global.game));
+
+  // Remove the timeout so the game can be exported.
+  Object.keys(json).forEach((key) => {
+    if(typeof json[key].timeout !== "undefined") {
+      delete json[key].timeout;
+    }
+  });
+
+  fs.writeFile("./game."  + global.client.shard.id + ".json.bak", JSON.stringify(json), "utf8", (err) => {
     if(err)
       console.error("Failed to write to game.json.bak with the following err:\n" + err + "\nMake sure your config file is not read-only or missing.");
     else
@@ -828,6 +842,16 @@ function exportGame() {
 process.stdin.on("data", function (text) {
   if(text.toString() == "export\r\n") {
     exportGame();
+  }
+
+  // TODO: Fix error when file does not exist or JSON is invalid
+  if(text.toString() == "import\r\n") {
+    console.log("Importing games from file...");
+    var json = JSON.parse(fs.readFileSync("./game." + global.client.shard.id + ".json.bak").toString());
+
+    Object.keys(json).forEach((key) => {
+      triviaResumeGame(json[key], key);
+    });
   }
 });
 
