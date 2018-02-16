@@ -856,7 +856,7 @@ process.stdin.on("data", function (text) {
 });
 
 // # Fallback Mode Functionality #
-if(config["fallback-mode"]) {
+if(config["fallback-mode"] && !config["fallback-silent"]) {
   global.client.on("message", msg => {
     if(msg.author == global.client.user)
       console.log("Msg (Self) - Shard " + global.client.shard.id + " - Channel " + msg.channel.id);
