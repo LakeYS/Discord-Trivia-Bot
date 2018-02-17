@@ -65,7 +65,7 @@ process.stdin.on("data", function (text) {
   .then((res) => {
     console.log("#" + id + ": " + res);
   })
-  .catch(err => {
+  .catch((err) => {
     console.log("#" + id + ": Eval err " + err);
   });
 });

@@ -46,8 +46,9 @@ if(!config["disable-version-check"]) {
       console.warn("********\nWARNING: semver-compare module not found. The version check will be skipped.\nMake sure to keep the bot up-to-date! Check here for newer versions:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
       skipVersionCheck = 1;
     }
-    else
+    else {
       throw(err);
+    }
   }
 
   if(!skipVersionCheck) {

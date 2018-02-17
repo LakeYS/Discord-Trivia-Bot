@@ -534,8 +534,9 @@ exports.parse = function(str, msg) {
   var id = msg.channel.id;
 
   // Other bots can't use commands
-  if(msg.author.bot === 1 && config["allow-bots"] !== true)
+  if(msg.author.bot === 1 && config["allow-bots"] !== true) {
     return;
+  }
 
   var prefix = config.prefix.toUpperCase();
 
@@ -807,7 +808,7 @@ exports.reactionAdd = function(reaction, user) {
       return; // The reaction isn't a letter, ignore it.
 
     ////////// **Note that the following is copied and modified from above.**
-    if(global.game[id].inProgress && global.game[id].participants.includes(user.id) == false) {
+    if(global.game[id].inProgress && global.game[id].participants.includes(user.id) === false) {
       if(str == letters[global.game[id].correct_id]) {
         // Only counts if this is the first time they type an answer
         global.game[id].correct_users.push(user.id);
@@ -847,7 +848,13 @@ process.stdin.on("data", function (text) {
   // TODO: Fix error when file does not exist or JSON is invalid
   if(text.toString() == "import\r\n") {
     console.log("Importing games from file...");
-    var json = JSON.parse(fs.readFileSync("./game." + global.client.shard.id + ".json.bak").toString());
+    try {
+      var json = JSON.parse(fs.readFileSync("./game." + global.client.shard.id + ".json.bak").toString());
+    } catch(error) {
+      console.log("Failed to parse JSON from ./game." + global.client.shard.id + ".json.bak");
+      console.log(error);
+      return;
+    }
 
     Object.keys(json).forEach((key) => {
       triviaResumeGame(json[key], key);
