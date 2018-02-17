@@ -523,6 +523,62 @@ function doTriviaGame(id, channel, author, scheduled, category) {
   });
 }
 
+// # triviaRevealAnswer #
+// Ends the round, reveals the answer, and schedules a new round if necessary.
+function triviaRevealAnswer(id, channel, answer, importOverride) {
+  if(typeof global.game[id] == "undefined" || !global.game[id].inProgress)
+    return;
+
+  // Quick fix for timeouts not clearing correctly.
+  if(answer !== global.game[id].answer && !importOverride) {
+    console.warn("WARNING: Mismatched answers in timeout for global.game " + id + " (" + answer + "||" + global.game[id].answer + ")");
+    return;
+  }
+
+  global.game[id].inRound = 0;
+
+  var correct_users_str = "**Correct answers:**\n";
+
+  if(global.game[id].correct_names.length == 0)
+    correct_users_str = correct_users_str + "Nobody!";
+  else {
+    if(global.game[id].participants.length == 1)
+      correct_users_str = "Correct!"; // Only one player overall, simply say "Correct!"
+    else if(global.game[id].correct_names.length > 10) {
+      // More than 10 correct players, player names are separated by comma to save space.
+      var comma = ", ";
+      for(var i = 0; i <= global.game[id].correct_names.length-1; i++) {
+        if(i == global.game[id].correct_names.length-1)
+          comma = "";
+
+        correct_users_str = correct_users_str + global.game[id].correct_names[i] + comma;
+      }
+    }
+    else {
+      // Less than 10 correct players, all names are on their own line.
+      for(var i2 = 0; i2 <= global.game[id].correct_names.length-1; i2++) {
+        correct_users_str = correct_users_str + global.game[id].correct_names[i2] + "\n";
+      }
+    }
+  }
+
+  triviaSend(channel, void 0, {embed: {
+    color: global.game[id].color,
+    description: "**" + letters[global.game[id].correct_id] + ":** " + entities.decode(global.game[id].answer) + "\n\n" + correct_users_str
+  }});
+  var participants = global.game[id].participants;
+
+  // NOTE: Participants check is repeated below in doTriviaGame
+  if(participants.length != 0)
+    global.game[id].timeout = setTimeout(() => {
+      doTriviaGame(id, channel, void 0, 1);
+    }, config["round-timeout"]);
+  else {
+    global.game[id].timeout = void 0;
+    triviaEndGame(id);
+  }
+}
+
 // # trivia.parse #
 exports.parse = function(str, msg) {
   // No games in fallback mode
@@ -713,62 +769,6 @@ exports.parse = function(str, msg) {
     }
   }
 };
-
-// # triviaRevealAnswer #
-// Ends the round, reveals the answer, and schedules a new round if necessary.
-function triviaRevealAnswer(id, channel, answer, importOverride) {
-  if(typeof global.game[id] == "undefined" || !global.game[id].inProgress)
-    return;
-
-  // Quick fix for timeouts not clearing correctly.
-  if(answer !== global.game[id].answer && !importOverride) {
-    console.warn("WARNING: Mismatched answers in timeout for global.game " + id + " (" + answer + "||" + global.game[id].answer + ")");
-    return;
-  }
-
-  global.game[id].inRound = 0;
-
-  var correct_users_str = "**Correct answers:**\n";
-
-  if(global.game[id].correct_names.length == 0)
-    correct_users_str = correct_users_str + "Nobody!";
-  else {
-    if(global.game[id].participants.length == 1)
-      correct_users_str = "Correct!"; // Only one player overall, simply say "Correct!"
-    else if(global.game[id].correct_names.length > 10) {
-        // More than 10 correct players, player names are separated by comma to save space.
-        var comma = ", ";
-        for(var i = 0; i <= global.game[id].correct_names.length-1; i++) {
-          if(i == global.game[id].correct_names.length-1)
-            comma = "";
-
-          correct_users_str = correct_users_str + global.game[id].correct_names[i] + comma;
-        }
-      }
-    else {
-      // Less than 10 correct players, all names are on their own line.
-      for(var i2 = 0; i2 <= global.game[id].correct_names.length-1; i2++) {
-        correct_users_str = correct_users_str + global.game[id].correct_names[i2] + "\n";
-      }
-    }
-  }
-
-  triviaSend(channel, void 0, {embed: {
-    color: global.game[id].color,
-    description: "**" + letters[global.game[id].correct_id] + ":** " + entities.decode(global.game[id].answer) + "\n\n" + correct_users_str
-  }});
-  var participants = global.game[id].participants;
-
-  // NOTE: Participants check is repeated below in doTriviaGame
-  if(participants.length != 0)
-    global.game[id].timeout = setTimeout(() => {
-      doTriviaGame(id, channel, void 0, 1);
-    }, config["round-timeout"]);
-  else {
-    global.game[id].timeout = void 0;
-    triviaEndGame(id);
-  }
-}
 
 // triviaResumeGame
 // Restores a game that does not have an active timeout.
