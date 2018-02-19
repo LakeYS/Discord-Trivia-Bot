@@ -21,11 +21,11 @@ const fs = require("fs");
 process.title = "TriviaBot " + pjson.version;
 
 // # Initialize Config # //
-configFile = "./config.json";
+var configFile = "./config.json";
 
 for(var i = 0; i <= process.argv.length; i++) {
   if(typeof process.argv[i] !== "undefined" && process.argv[i].startsWith("--configfile=")) {
-    var configFile = process.argv[i].replace("--configfile=", "");
+    configFile = process.argv[i].replace("--configfile=", "");
   }
 }
 

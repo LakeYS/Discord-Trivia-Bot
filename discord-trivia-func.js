@@ -75,8 +75,8 @@ function triviaSend(channel, author, msg) {
       }
       reject(err);
     })
-    .then(() => {
-      resolve();
+    .then((msg) => {
+      resolve(msg);
     });
   });
 }
@@ -255,7 +255,7 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
                 resolve(global.questions[0]);
 
                 delete global.questions[0];
-                global.questions = global.questions.filter(val => Object.keys(val).length !== 0);
+                global.questions = global.questions.filter((val) => Object.keys(val).length !== 0);
 
               }
             }
@@ -306,6 +306,62 @@ function triviaEndGame(id) {
   }
 
   delete global.game[id];
+}
+
+// # triviaRevealAnswer #
+// Ends the round, reveals the answer, and schedules a new round if necessary.
+function triviaRevealAnswer(id, channel, answer, importOverride) {
+  if(typeof global.game[id] == "undefined" || !global.game[id].inProgress)
+    return;
+
+  // Quick fix for timeouts not clearing correctly.
+  if(answer !== global.game[id].answer && !importOverride) {
+    console.warn("WARNING: Mismatched answers in timeout for global.game " + id + " (" + answer + "||" + global.game[id].answer + ")");
+    return;
+  }
+
+  global.game[id].inRound = 0;
+
+  var correct_users_str = "**Correct answers:**\n";
+
+  if(global.game[id].correct_names.length == 0)
+    correct_users_str = correct_users_str + "Nobody!";
+  else {
+    if(global.game[id].participants.length == 1)
+      correct_users_str = "Correct!"; // Only one player overall, simply say "Correct!"
+    else if(global.game[id].correct_names.length > 10) {
+      // More than 10 correct players, player names are separated by comma to save space.
+      var comma = ", ";
+      for(var i = 0; i <= global.game[id].correct_names.length-1; i++) {
+        if(i == global.game[id].correct_names.length-1)
+          comma = "";
+
+        correct_users_str = correct_users_str + global.game[id].correct_names[i] + comma;
+      }
+    }
+    else {
+      // Less than 10 correct players, all names are on their own line.
+      for(var i2 = 0; i2 <= global.game[id].correct_names.length-1; i2++) {
+        correct_users_str = correct_users_str + global.game[id].correct_names[i2] + "\n";
+      }
+    }
+  }
+
+  triviaSend(channel, void 0, {embed: {
+    color: global.game[id].color,
+    description: "**" + letters[global.game[id].correct_id] + ":** " + entities.decode(global.game[id].answer) + "\n\n" + correct_users_str
+  }});
+  var participants = global.game[id].participants;
+
+  // NOTE: Participants check is repeated below in doTriviaGame
+  if(participants.length != 0)
+    global.game[id].timeout = setTimeout(() => {
+      doTriviaGame(id, channel, void 0, 1);
+    }, config["round-timeout"]);
+  else {
+    global.game[id].timeout = void 0;
+    triviaEndGame(id);
+  }
 }
 
 // # doTriviaGame #
@@ -454,7 +510,6 @@ function doTriviaGame(id, channel, author, scheduled, category) {
         var error = 0; // This will be set to 1 if something goes wrong.
 
         global.game[id].message = msg;
-
         msg.react("🇦")
         .catch(err => {
           console.log("Failed to add reaction A: " + err);
@@ -523,62 +578,6 @@ function doTriviaGame(id, channel, author, scheduled, category) {
   });
 }
 
-// # triviaRevealAnswer #
-// Ends the round, reveals the answer, and schedules a new round if necessary.
-function triviaRevealAnswer(id, channel, answer, importOverride) {
-  if(typeof global.game[id] == "undefined" || !global.game[id].inProgress)
-    return;
-
-  // Quick fix for timeouts not clearing correctly.
-  if(answer !== global.game[id].answer && !importOverride) {
-    console.warn("WARNING: Mismatched answers in timeout for global.game " + id + " (" + answer + "||" + global.game[id].answer + ")");
-    return;
-  }
-
-  global.game[id].inRound = 0;
-
-  var correct_users_str = "**Correct answers:**\n";
-
-  if(global.game[id].correct_names.length == 0)
-    correct_users_str = correct_users_str + "Nobody!";
-  else {
-    if(global.game[id].participants.length == 1)
-      correct_users_str = "Correct!"; // Only one player overall, simply say "Correct!"
-    else if(global.game[id].correct_names.length > 10) {
-      // More than 10 correct players, player names are separated by comma to save space.
-      var comma = ", ";
-      for(var i = 0; i <= global.game[id].correct_names.length-1; i++) {
-        if(i == global.game[id].correct_names.length-1)
-          comma = "";
-
-        correct_users_str = correct_users_str + global.game[id].correct_names[i] + comma;
-      }
-    }
-    else {
-      // Less than 10 correct players, all names are on their own line.
-      for(var i2 = 0; i2 <= global.game[id].correct_names.length-1; i2++) {
-        correct_users_str = correct_users_str + global.game[id].correct_names[i2] + "\n";
-      }
-    }
-  }
-
-  triviaSend(channel, void 0, {embed: {
-    color: global.game[id].color,
-    description: "**" + letters[global.game[id].correct_id] + ":** " + entities.decode(global.game[id].answer) + "\n\n" + correct_users_str
-  }});
-  var participants = global.game[id].participants;
-
-  // NOTE: Participants check is repeated below in doTriviaGame
-  if(participants.length != 0)
-    global.game[id].timeout = setTimeout(() => {
-      doTriviaGame(id, channel, void 0, 1);
-    }, config["round-timeout"]);
-  else {
-    global.game[id].timeout = void 0;
-    triviaEndGame(id);
-  }
-}
-
 // # trivia.parse #
 exports.parse = function(str, msg) {
   // No games in fallback mode
@@ -609,7 +608,7 @@ exports.parse = function(str, msg) {
         global.game[id].correct_names.push(msg.author.username);
       }
 
-      if((str === "A" || str === "B" || global.game[id].isTrueFalse != 1 && (str == "C"|| str == "D")))
+      if((str === "A" || str === "B" || global.game[id].isTrueFalse !== 1 && (str == "C"|| str == "D")))
         global.game[id].participants.push(msg.author.id);
       }
   }
@@ -796,24 +795,32 @@ exports.reactionAdd = function(reaction, user) {
 
   // If a game is in progress, the reaction is on the right message, the game uses reactions, and the reactor isn't the TriviaBot client...
   if(typeof global.game[id] !== "undefined" && typeof global.game[id].message !== "undefined" && reaction.message.id === global.game[id].message.id && global.game[id].useReactions && user !== global.client.user) {
-    if(str == "🇦")
+    if(str == "🇦") {
       str = "A";
-    else if(str == "🇧")
+    }
+    else if(str == "🇧") {
       str = "B";
-    else if(str =="🇨")
+    }
+    else if(str == "🇨") {
       str = "C";
-    else if(str =="🇩")
+    }
+    else if(str == "🇩") {
       str = "D";
-    else
+    }
+    else {
       return; // The reaction isn't a letter, ignore it.
+    }
 
     ////////// **Note that the following is copied and modified from above.**
     if(global.game[id].inProgress && global.game[id].participants.includes(user.id) === false) {
-      if(str == letters[global.game[id].correct_id]) {
+      if(str === letters[global.game[id].correct_id]) {
         // Only counts if this is the first time they type an answer
         global.game[id].correct_users.push(user.id);
         global.game[id].correct_names.push(user.username);
       }
+
+      if((str === "A" || str === "B" || global.game[id].isTrueFalse !== 1 && (str == "C"|| str == "D")))
+        global.game[id].participants.push(user.id);
     }
   }
 };
