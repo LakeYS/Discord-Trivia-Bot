@@ -1,8 +1,8 @@
 <img src=http://lakeys.net/triviabot/profile_t.png width=150 height=150>
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2f6bcffc370943d4954606feb26e5873)](https://app.codacy.com/app/Lake/Discord-Trivia-Bot?utm_source=github.com&utm_medium=referral&utm_content=LakeYS/Discord-Trivia-Bot&utm_campaign=badger)
 [![Discord Bots](https://discordbots.org/api/widget/status/337654994461261825.png?noavatar=true)](https://discordbots.org/bot/337654994461261825)
 [![Discord Bots](https://discordbots.org/api/widget/servers/337654994461261825.png?noavatar=true)](https://discordbots.org/bot/337654994461261825)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2f6bcffc370943d4954606feb26e5873)](https://app.codacy.com/app/Lake/Discord-Trivia-Bot?utm_source=github.com&utm_medium=referral&utm_content=LakeYS/Discord-Trivia-Bot&utm_campaign=badger)
 
 # Trivia Bot
 TriviaBot brings multiplayer trivia games to your Discord server! With over 3,000 questions and 24 categories, TriviaBot offers endless trivia fun.
