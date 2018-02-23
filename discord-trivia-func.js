@@ -865,14 +865,13 @@ process.stdin.on("data", function (text) {
     exportGame();
   }
 
-  // TODO: Fix error when file does not exist or JSON is invalid
   if(text.toString() === "import\r\n") {
     console.log("Importing games from file...");
     try {
       var json = JSON.parse(fs.readFileSync("./game." + global.client.shard.id + ".json.bak").toString());
     } catch(error) {
       console.log("Failed to parse JSON from ./game." + global.client.shard.id + ".json.bak");
-      console.log(error);
+      console.log(error.message);
       return;
     }
 
