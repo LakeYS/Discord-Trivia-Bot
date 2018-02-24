@@ -1,17 +1,9 @@
-/*jshint esversion: 6 */
-/*jshint evil:true */
-
 const Discord = require("discord.js");
 global.client = new Discord.Client();
 const trivia = require("./discord-trivia-func.js");
 const snekfetch = require("snekfetch");
-const fs = require("fs");
 
-var config = JSON.parse(fs.readFileSync(process.argv[2]));
-
-if(typeof config.prefix === "undefined") {
-  config.prefix = "trivia ";
-}
+var config = require("./lib/config.js")(process.argv[2]);
 
 global.client.login(global.client.token);
 

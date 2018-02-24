@@ -1,24 +1,9 @@
-/*jshint esversion: 6 */
-
 const https = require("https");
 const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
 
-var config = JSON.parse(fs.readFileSync(process.argv[2]));
-
-// Initialize missing config options to their defaults
-if(typeof config.prefix === "undefined") {
-  config.prefix = "trivia ";
-}
-
-if(typeof config["round-timeout"] === "undefined") {
-  config["round-timeout"] = 5500;
-}
-
-if(typeof config["round-length"] === "undefined") {
-  config["round-length"] = 15000;
-}
+var config = require("./lib/config.js")(process.argv[2]);
 
 const letters = ["A", "B", "C", "D"];
 

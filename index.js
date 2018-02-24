@@ -1,6 +1,3 @@
-/*jshint esversion: 6 */
-/*jshint evil:true */
-
 const pjson = require("./package.json");
 
 // The spacing of the artwork will mess up with double-digit version numbers (such as '1.10.0')
@@ -16,24 +13,17 @@ const os = require("os");
 console.log(os.platform() + " " + os.totalmem() + " " + os.cpus()[0].model + " x" + Object.keys(os.cpus()).length);
 
 const https = require("https");
-const fs = require("fs");
 
 process.title = "TriviaBot " + pjson.version;
 
-// # Initialize Config # //
-var configFile = "./config.json";
-
+// # Initialize Config Args # //
 for(var i = 0; i <= process.argv.length; i++) {
   if(typeof process.argv[i] !== "undefined" && process.argv[i].startsWith("--configfile=")) {
-    configFile = process.argv[i].replace("--configfile=", "");
+    var configFile = process.argv[i].replace("--configfile=", "");
   }
 }
 
-var config = JSON.parse(fs.readFileSync(configFile));
-
-if(typeof config["shard-count"] === "undefined") {
-  config["shard-count"] = "auto";
-}
+var config = require("./lib/config.js")(configFile);
 
 // # Version Check # //
 var skipVersionCheck = 0;
