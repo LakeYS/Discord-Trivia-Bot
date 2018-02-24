@@ -123,7 +123,7 @@ const client = new Discord.Client();
 // # Discord # //
 const { ShardingManager } = require("discord.js");
 var token = config.token;
-const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: config["shard-count"], token: token, shardArgs: [configFile] });
+const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: config["shard-count"], token, shardArgs: [configFile] });
 
 manager.spawn()
 .catch((err) => {

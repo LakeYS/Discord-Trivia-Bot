@@ -450,7 +450,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     "inProgress": 1,
     "inRound": 1,
 
-    "useReactions": useReactions,
+    useReactions,
     "category": typeof global.game[id]!=="undefined"?global.game[id].category:category,
 
     "participants": [],
@@ -614,7 +614,7 @@ exports.parse = function(str, msg) {
         global.game[id].correct_names.push(msg.author.username);
       }
 
-      if((str === "A" || str === "B" || global.game[id].isTrueFalse !== 1 && (str == "C"|| str == "D"))) {
+      if((str === "A" || str === "B" || global.game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
         global.game[id].participants.push(msg.author.id);
       }
     }
@@ -832,8 +832,9 @@ exports.reactionAdd = function(reaction, user) {
         global.game[id].correct_names.push(user.username);
       }
 
-      if((str === "A" || str === "B" || global.game[id].isTrueFalse !== 1 && (str == "C"|| str == "D")))
+      if((str === "A" || str === "B" || global.game[id].isTrueFalse !== 1 && (str == "C"|| str == "D"))) {
         global.game[id].participants.push(user.id);
+      }
     }
   }
 };
@@ -852,10 +853,12 @@ function exportGame() {
   });
 
   fs.writeFile("./game."  + global.client.shard.id + ".json.bak", JSON.stringify(json), "utf8", (err) => {
-    if(err)
+    if(err) {
       console.error("Failed to write to game.json.bak with the following err:\n" + err + "\nMake sure your config file is not read-only or missing.");
-    else
+    }
+    else {
       console.log("Game exported to game." + global.client.shard.id + ".json.bak");
+    }
   });
 }
 
@@ -865,10 +868,11 @@ process.stdin.on("data", function (text) {
     exportGame();
   }
 
+  var json;
   if(text.toString() === "import\r\n") {
     console.log("Importing games from file...");
     try {
-      var json = JSON.parse(fs.readFileSync("./game." + global.client.shard.id + ".json.bak").toString());
+      json = JSON.parse(fs.readFileSync("./game." + global.client.shard.id + ".json.bak").toString());
     } catch(error) {
       console.log("Failed to parse JSON from ./game." + global.client.shard.id + ".json.bak");
       console.log(error.message);
