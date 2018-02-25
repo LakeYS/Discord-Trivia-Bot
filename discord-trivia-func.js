@@ -340,19 +340,23 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
   triviaSend(channel, void 0, {embed: {
     color: global.game[id].color,
     description: "**" + letters[global.game[id].correct_id] + ":** " + entities.decode(global.game[id].answer) + "\n\n" + correct_users_str
-  }});
-  var participants = global.game[id].participants;
+  }})
+  .then(() => {
+    if(typeof global.game[id] !== "undefined") {
+      var participants = global.game[id].participants;
 
-  // NOTE: Participants check is repeated below in doTriviaGame
-  if(participants.length !== 0) {
-    global.game[id].timeout = setTimeout(() => {
-      doTriviaGame(id, channel, void 0, 1);
-    }, config["round-timeout"]);
-  }
-  else {
-    global.game[id].timeout = void 0;
-    triviaEndGame(id);
-  }
+      // NOTE: Participants check is repeated below in doTriviaGame
+      if(participants.length !== 0) {
+        global.game[id].timeout = setTimeout(() => {
+          doTriviaGame(id, channel, void 0, 1);
+        }, config["round-timeout"]);
+      }
+      else {
+        global.game[id].timeout = void 0;
+        triviaEndGame(id);
+      }
+    }
+  });
 }
 
 // # doTriviaGame #
@@ -546,16 +550,18 @@ function doTriviaGame(id, channel, author, scheduled, category) {
           });
         });
       }
+
+      if(typeof global.game[id] !== "undefined") {
+        global.game[id].difficulty = question.difficulty;
+        global.game[id].answer = question.correct_answer;
+        global.game[id].date = new Date();
+
+        // Reveal the answer after the time is up
+        global.game[id].timeout = setTimeout(() => {
+           triviaRevealAnswer(id, channel, question.correct_answer);
+        }, config["round-length"]);
+      }
     });
-
-    global.game[id].difficulty = question.difficulty;
-    global.game[id].answer = question.correct_answer;
-    global.game[id].date = new Date();
-
-    // Reveal the answer after the time is up
-    global.game[id].timeout = setTimeout(() => {
-       triviaRevealAnswer(id, channel, question.correct_answer);
-    }, config["round-length"]);
   })
   .catch((err) => {
     triviaSend(channel, author, {embed: {
