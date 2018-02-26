@@ -499,12 +499,12 @@ function doTriviaGame(id, channel, author, scheduled, category) {
       description: "*" + categoryString + "*\n**" + entities.decode(question.question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer!":"")
     }})
     .then((msg) => {
+      global.game[id].message = msg;
+
       // Add reaction emojis if configured to do so.
       // Blahhh. Can this be simplified?
       if(useReactions) {
         var error = 0; // This will be set to 1 if something goes wrong.
-
-        global.game[id].message = msg;
         msg.react("🇦")
         .catch((err) => {
           console.log("Failed to add reaction A: " + err);
@@ -617,7 +617,9 @@ exports.parse = function(str, msg) {
     .then((json) => {
       global.client.shard.fetchClientValues("guilds.size")
       .then((results) => {
-        triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+        // NOTE: The following is repeated below
+        var guildCount = results.reduce((prev, val) => prev + val, 0);
+        triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${guildCount} guild${guildCount!==1?"s":""}.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
       })
         .catch((err) => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
       })
@@ -626,7 +628,9 @@ exports.parse = function(str, msg) {
         console.error("Failed to parse JSON for 'trivia help'");
         global.client.shard.fetchClientValues("guilds.size")
         .then((results) => {
-          triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\n" + `Currently in ${results.reduce((prev, val) => prev + val, 0)} guilds.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+          // NOTE: The following is repeated above
+          var guildCount = results.reduce((prev, val) => prev + val, 0);
+          triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\n" + `Currently in ${guildCount} guild${guildCount!==1?"s":""}.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
         })
       .catch((err2) => console.error("An error occurred while attempting to fetch the guild count:\n" + err2));
     });
