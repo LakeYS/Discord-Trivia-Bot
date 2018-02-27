@@ -1,3 +1,5 @@
+#!/bin/sh
+# Package the bot for distribution on Windows
 mkdir TriviaBot
 cp config.json TriviaBot
 cp package.json TriviaBot
