@@ -9,4 +9,5 @@ cp shard.js TriviaBot
 cp run.sh TriviaBot
 cp profile.png TriviaBot
 cp README.md TriviaBot
+cp lib TriviaBot/lib -r
 tar -zcvf triviabot.tar.gz TriviaBot
