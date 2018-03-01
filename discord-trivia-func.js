@@ -876,6 +876,7 @@ process.stdin.on("data", function (text) {
     }
 
     Object.keys(json).forEach((key) => {
+      json[key].date = new Date(json[key].date);
       triviaResumeGame(json[key], key);
     });
   }
