@@ -844,6 +844,7 @@ function exportGame() {
   Object.keys(json).forEach((key) => {
     if(typeof json[key].timeout !== "undefined") {
       delete json[key].timeout;
+      delete json[key].message;
     }
   });
 
