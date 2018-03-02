@@ -369,7 +369,8 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
 //              already have a game initialized to start)
 function doTriviaGame(id, channel, author, scheduled, category) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
-  if(typeof global.game[id] !== "undefined") {
+  // Checks are excepted for games that are being resumed from cache or file.
+  if(typeof global.game[id] !== "undefined" && !global.game[id].resuming) {
     if(!scheduled && typeof  global.game[id].timeout !== "undefined" && global.game[id].timeout._called === true) {
       // The timeout should never be stuck on 'called' during a round.
       // Dump the game in the console, clear it, and continue.
@@ -881,8 +882,15 @@ function importGame(input) {
   }
 
   Object.keys(json).forEach((key) => {
+    // Create a holder game object to complete what is left of the timeout.
+    global.game[key] = json[key];
+
     json[key].date = new Date(json[key].date);
-    triviaResumeGame(json[key], key);
+
+    // TODO: Use date value rather than fixed 1-second timer
+    global.game[key].timeout = setTimeout(() => {
+      triviaResumeGame(json[key], key);
+    }, 1000);
   });
 }
 
