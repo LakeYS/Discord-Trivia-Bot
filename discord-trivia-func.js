@@ -858,27 +858,42 @@ function exportGame() {
   });
 }
 
+// # Game Importer #
+// Import game data from JSON files.
+// input: file string or valid JSON object
+function importGame(input) {
+  console.log("Importing games from file...");
+  var json;
+  if(typeof input === "string") {
+    try {
+      json = JSON.parse(fs.readFileSync(input).toString());
+    } catch(error) {
+      console.log("Failed to parse JSON from ./game." + global.client.shard.id + ".json.bak");
+      console.log(error.message);
+      return;
+    }
+  }
+  else if(typeof input === "object") {
+    json = input;
+  }
+  else {
+    throw new Error("Attempting to import an invalid or undefined object as a game!");
+  }
+
+  Object.keys(json).forEach((key) => {
+    json[key].date = new Date(json[key].date);
+    triviaResumeGame(json[key], key);
+  });
+}
+
 // # Console Commands #
 process.stdin.on("data", function (text) {
   if(text.toString() === "export\r\n") {
     exportGame();
   }
 
-  var json;
   if(text.toString() === "import\r\n") {
-    console.log("Importing games from file...");
-    try {
-      json = JSON.parse(fs.readFileSync("./game." + global.client.shard.id + ".json.bak").toString());
-    } catch(error) {
-      console.log("Failed to parse JSON from ./game." + global.client.shard.id + ".json.bak");
-      console.log(error.message);
-      return;
-    }
-
-    Object.keys(json).forEach((key) => {
-      json[key].date = new Date(json[key].date);
-      triviaResumeGame(json[key], key);
-    });
+    importGame("./game." + global.client.shard.id + ".json.bak");
   }
 });
 

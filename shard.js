@@ -47,7 +47,7 @@ global.client.on("messageReactionAdd", (reaction, user) => {
 });
 
 // # Console Functions # //
-process.stdin.on("data", function (text) {
+process.stdin.on("data", (text) => {
   var id = process.pid;
   if(global.client.shard !== null) {
     id = id + ":" + global.client.shard.id;
