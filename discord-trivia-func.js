@@ -786,13 +786,33 @@ function triviaResumeGame(json, id) {
     return;
   }
 
+  json.resuming = 1;
+
+  var date;
+  var timeout;
   if(json.inRound) {
     global.game[id] = json;
-    triviaRevealAnswer(id, channel, void 0, 1);
+    global.game[id].resuming = 1;
+
+    // Calculate timeout based on game time
+    date = global.game[id].date;
+    date.setMilliseconds(date.getMilliseconds()+config["round-length"]);
+    timeout = date-new Date();
+
+    global.game[id].timeout = setTimeout(() => {
+      triviaRevealAnswer(id, channel, void 0, 1);
+    }, timeout);
   }
   else {
     if(json.participants.length !== 0) {
-      doTriviaGame(id, channel, void 0, 0, json.category);
+      date = global.game[id].date;
+      // Since date doesn't update between rounds, we'll have to add both the round's length and timeout
+      date.setMilliseconds(date.getMilliseconds()+config["round-timeout"]+config["round-length"]);
+      timeout = date-new Date();
+
+      global.game[id].timeout = setTimeout(() => {
+        doTriviaGame(id, channel, void 0, 0, json.category);
+      }, timeout);
     }
   }
 }
@@ -882,15 +902,13 @@ function importGame(input) {
   }
 
   Object.keys(json).forEach((key) => {
-    // Create a holder game object to complete what is left of the timeout.
-    global.game[key] = json[key];
+    if(typeof global.game[key] === "undefined") {
+      // Create a holder game object to complete what is left of the timeout.
+      global.game[key] = json[key];
 
-    json[key].date = new Date(json[key].date);
-
-    // TODO: Use date value rather than fixed 1-second timer
-    global.game[key].timeout = setTimeout(() => {
+      json[key].date = new Date(json[key].date);
       triviaResumeGame(json[key], key);
-    }, 1000);
+    }
   });
 }
 
