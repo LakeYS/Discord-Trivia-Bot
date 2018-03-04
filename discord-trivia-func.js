@@ -577,7 +577,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 }
 
 // # trivia.parse #
-exports.parse = function(str, msg) {
+exports.parse = (str, msg) => {
   // No games in fallback mode
   if(config["fallback-mode"]) {
     return;
@@ -848,7 +848,7 @@ exports.reactionAdd = function(reaction, user) {
         global.game[id].correct_names.push(user.username);
       }
 
-      if((str === "A" || str === "B" || global.game[id].isTrueFalse !== 1 && (str == "C"|| str == "D"))) {
+      if((str === "A" || str === "B" || global.game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
         global.game[id].participants.push(user.id);
       }
     }
@@ -926,9 +926,11 @@ process.stdin.on("data", function (text) {
 // # Fallback Mode Functionality #
 if(config["fallback-mode"] && !config["fallback-silent"]) {
   global.client.on("message", (msg) => {
-    if(msg.author === global.client.user)
+    if(msg.author === global.client.user) {
       console.log("Msg (Self) - Shard " + global.client.shard.id + " - Channel " + msg.channel.id);
-    else
+    }
+    else {
       console.log("Msg - Shard " + global.client.shard.id + " - Channel " + msg.channel.id);
+    }
   });
 }
