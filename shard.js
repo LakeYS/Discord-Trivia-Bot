@@ -20,18 +20,17 @@ global.client.on("ready", () => {
   global.postBotStats();
 });
 
-global.client.on("disconnect", function(event) {
+global.client.on("disconnect", (event) => {
   if(event.code !== 1000) {
-    console.log("Discord global.client disconnected with reason: " + event.reason + " (" + event.code + "). Attempting to reconnect in 6s...");
-    setTimeout(() => { global.client.login(config.token); }, 6000);
+    console.log("Discord global.client disconnected with reason: " + event.reason + " (" + event.code + ").");
+    process.exit();
   }
 });
 
-global.client.on("error", function(err) {
-  console.log("Discord global.client error '" + err.code + "'. Attempting to reconnect in 6s...");
+global.client.on("error", (err) => {
+  console.log("Discord client error: " + err.message);
 
-  global.client.destroy();
-  setTimeout(() => { global.client.login(config.token); }, 6000);
+  process.exit();
 });
 
 global.client.on("message", (msg) => {
