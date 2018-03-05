@@ -620,7 +620,10 @@ exports.parse = (str, msg) => {
       .then((results) => {
         // NOTE: The following is repeated below
         var guildCount = results.reduce((prev, val) => prev + val, 0);
-        triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\nThere are " + json.overall.total_num_of_verified_questions + " verified questions. " + `Currently in ${guildCount} guild${guildCount!==1?"s":""}.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+        triviaSend(msg.channel, msg.author, {embed: {
+          color: 27903,
+          description: `Let's play trivia! Type '${config.prefix}play' to start a game.\nThere are ${json.overall.total_num_of_verified_questions} verified questions. Currently in ${guildCount} guild${guildCount!==1?"s":""}.\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). Powered by the [Open Trivia Database](https://opentdb.com/).`
+        }});
       })
         .catch((err) => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
       })
@@ -631,7 +634,10 @@ exports.parse = (str, msg) => {
         .then((results) => {
           // NOTE: The following is repeated above
           var guildCount = results.reduce((prev, val) => prev + val, 0);
-          triviaSend(msg.channel, msg.author, "Let's play trivia! Type '" + config.prefix + "play' to start a game.\n" + `Currently in ${guildCount} guild${guildCount!==1?"s":""}.\n\n` + "Commands: `" + config.prefix + "play <category>`, `" + config.prefix + "help`, `" + config.prefix + "categories`\nBot by Lake Y (http://LakeYS.net). Powered by OpenTDB (https://opentdb.com/).");
+          triviaSend(msg.channel, msg.author, {embed: {
+            color: 27903,
+            description: `Let's play trivia! Type '${config.prefix}play' to start a game.\nCurrently in ${guildCount} guild${guildCount!==1?"s":""}.\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). Powered by the [Open Trivia Database](https://opentdb.com/).`
+          }});
         })
       .catch((err2) => console.error("An error occurred while attempting to fetch the guild count:\n" + err2));
     });
