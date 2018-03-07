@@ -69,7 +69,7 @@ function triviaSend(channel, author, msg) {
 function initCategories() {
   // Initialize the categories
   return new Promise((resolve, reject) => {
-    parseURL("https://opentdb.com/api_category.php")
+    parseURL(config.databaseURL + "/api_category.php")
     .then((data) => {
       global.categories = data.trivia_categories;
       resolve(global.categories);
@@ -112,7 +112,7 @@ function getTriviaToken(tokenChannel) {
     }
 
     // No token exists, so we'll generate one.
-    parseURL("https://opentdb.com/api_token.php?command=request")
+    parseURL(config.databaseURL + "/api_token.php?command=request")
     .then((tokenContainer) => {
       try {
         if(tokenContainer.response_code !== 0) {
@@ -135,7 +135,7 @@ function getTriviaToken(tokenChannel) {
 // resetTriviaToken
 function resetTriviaToken(token) {
   return new Promise((resolve, reject) => {
-    parseURL("https://opentdb.com/api_token.php?command=reset&token=" + token)
+    parseURL(config.databaseURL + "/api_token.php?command=reset&token=" + token)
     .then((json) => {
       if(json.response_code !== 0) {
         reject(new Error("Failed to reset token - received response code " + json.response_code + "(" + openTDBResponses[json.response_code] + ")"));
@@ -187,7 +187,7 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
           args += "&token=" + token;
         }
 
-        parseURL("https://opentdb.com/api.php" + args)
+        parseURL(config.databaseURL + "/api.php" + args)
         .then((json) => {
           if(json.response_code === 4) {
             // Token empty, reset it and start over.
@@ -614,7 +614,7 @@ exports.parse = (str, msg) => {
 
   // ## Help Command ##
   if(str === prefix + "HELP" || str.includes("<@" + global.client.user.id + ">")) {
-    parseURL("https://opentdb.com/api_count_global.php")
+    parseURL(config.databaseURL + "/api_count_global.php")
     .then((json) => {
       global.client.shard.fetchClientValues("guilds.size")
       .then((results) => {
@@ -622,7 +622,7 @@ exports.parse = (str, msg) => {
         var guildCount = results.reduce((prev, val) => prev + val, 0);
         triviaSend(msg.channel, msg.author, {embed: {
           color: 27903,
-          description: `Let's play trivia! Type '${config.prefix}play' to start a game.\nThere are ${json.overall.total_num_of_verified_questions} verified questions. Currently in ${guildCount} guild${guildCount!==1?"s":""}.\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). Powered by the [Open Trivia Database](https://opentdb.com/).`
+          description: `Let's play trivia! Type '${config.prefix}play' to start a game.\nThere are ${json.overall.total_num_of_verified_questions} verified questions. Currently in ${guildCount} guild${guildCount!==1?"s":""}.\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). ${config.databaseURL=="https://opentdb.com"?"Powered by the [Open Trivia Database](https://opentdb.com/).":""}`
         }});
       })
         .catch((err) => console.error("An error occurred while attempting to fetch the guild count:\n" + err));
@@ -636,7 +636,7 @@ exports.parse = (str, msg) => {
           var guildCount = results.reduce((prev, val) => prev + val, 0);
           triviaSend(msg.channel, msg.author, {embed: {
             color: 27903,
-            description: `Let's play trivia! Type '${config.prefix}play' to start a game.\nCurrently in ${guildCount} guild${guildCount!==1?"s":""}.\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). Powered by the [Open Trivia Database](https://opentdb.com/).`
+            description: `Let's play trivia! Type '${config.prefix}play' to start a game.\nCurrently in ${guildCount} guild${guildCount!==1?"s":""}.\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). ${config.databaseURL=="https://opentdb.com"?"Powered by the [Open Trivia Database](https://opentdb.com/).":""}`
           }});
         })
       .catch((err2) => console.error("An error occurred while attempting to fetch the guild count:\n" + err2));
@@ -705,9 +705,9 @@ exports.parse = (str, msg) => {
     }
 
     if(cmd === "CATEGORIES") {
-      parseURL("https://opentdb.com/api_category.php")
+      parseURL(config.databaseURL + "/api_category.php")
       .then((json) => {
-        parseURL("https://opentdb.com/api_count_global.php")
+        parseURL(config.databaseURL + "/api_count_global.php")
         .then((json2) => {
           var categoryListStr = "**Categories:** ";
           var i = 0;
