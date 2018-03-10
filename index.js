@@ -18,7 +18,7 @@ for(var i = 0; i <= process.argv.length; i++) {
   }
 }
 
-var config = require("./lib/config.js")(configFile);
+var config = require("./lib/config.js")(configFile, true);
 require("./lib/init.js")(pjson,config);
 
 // # Requirements/Init # //

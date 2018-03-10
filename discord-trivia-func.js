@@ -171,7 +171,7 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
         args += "?amount=1&category=" + category;
       }
       else {
-        args += "?amount=32";
+        args += "?amount=" + config["database-cache-size"];
       }
 
       // Get a token if one is requested.

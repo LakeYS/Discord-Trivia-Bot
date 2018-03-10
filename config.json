@@ -13,5 +13,6 @@
   "disable-version-check": false,
   "allow-bots": false,
   "fallback-mode": false,
-  "databaseURL": "https://opentdb.com"
+  "databaseURL": "https://opentdb.com",
+  "database-cache-size": 32
 }
