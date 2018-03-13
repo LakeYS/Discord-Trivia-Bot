@@ -25,9 +25,6 @@ require("./lib/init.js")(pjson,config);
 process.stdin.resume();
 process.stdin.setEncoding("utf8");
 
-const Discord = require("discord.js");
-const client = new Discord.Client();
-
 // # Discord # //
 const { ShardingManager } = require("discord.js");
 var token = config.token;
@@ -48,17 +45,6 @@ manager.spawn()
 
 manager.on("launch", (shard) => {
   console.log(`Successfully launched shard ${shard.id} of ${manager.totalShards-1}`);
-});
-
-process.on("rejectionHandled", (err) => {
-  console.log(err);
-  console.log("An error occurred. Reconnecting...");
-  client.destroy();
-  setTimeout(() => { client.login(config.token); }, 2000);
-});
-
-process.on("exit", () => {
-  client.destroy();
 });
 
 // # Console Functions # //
