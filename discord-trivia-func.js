@@ -116,7 +116,7 @@ function getTriviaToken(tokenChannel) {
     .then((tokenContainer) => {
       try {
         if(tokenContainer.response_code !== 0) {
-          reject(new Error("Received response code " + tokenContainer.response_code + ": " + openTDBResponses[tokenContainer.response_code]));
+          reject(new Error("Received response code " + tokenContainer.response_code + ": " + openTDBResponses[tokenContainer.response_code]) + " while attempting to request a new token.");
         }
         else {
           global.tokens[tokenChannel.id] = { token: tokenContainer.token, time: new Date() };
@@ -224,6 +224,10 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
 
             // Author is passed through; triviaSend will handle it if author is undefined.
             reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + openTDBResponses[json.response_code] + ")"));
+
+            // Delete the token so we'll generate a new one next time.
+            // This is to fix the game in case the cached token is invalid.
+            delete global.tokens[tokenChannel.id];
           }
           else {
             global.questions = json.results;
