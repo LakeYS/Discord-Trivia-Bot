@@ -805,19 +805,28 @@ function triviaResumeGame(json, id) {
   var channel = global.client.channels.find("id", id);
 
   if(!json.inProgress) {
+    delete global.game[id];
     return;
   }
 
   json.resuming = 1;
 
-  var date;
+  var date = global.game[id].date;
   var timeout;
+
+  // If more than 60 seconds have passed, cancel the game entirely.
+  if(new Date().getTime() > date.getTime()+60000) {
+    console.log(`Imported game in channel ${id} is more than one minute old, aborting...`);
+    delete global.game[id];
+    return;
+  }
+
   if(json.inRound) {
     global.game[id] = json;
     global.game[id].resuming = 1;
 
     // Calculate timeout based on game time
-    date = global.game[id].date;
+
     date.setMilliseconds(date.getMilliseconds()+config["round-length"]);
     timeout = date-new Date();
 
@@ -827,7 +836,6 @@ function triviaResumeGame(json, id) {
   }
   else {
     if(json.participants.length !== 0) {
-      date = global.game[id].date;
       // Since date doesn't update between rounds, we'll have to add both the round's length and timeout
       date.setMilliseconds(date.getMilliseconds()+config["round-timeout"]+config["round-length"]);
       timeout = date-new Date();
