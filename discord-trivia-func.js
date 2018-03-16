@@ -887,7 +887,7 @@ exports.reactionAdd = function(reaction, user) {
 
 // # Game Exporter #
 // Export the current game data to a file.
-exports.exportGame = () => {
+exports.exportGame = (file) => {
   // Copy the data so we don't modify the actual game object.
   var json = JSON.parse(JSON.stringify(global.game));
 
@@ -899,12 +899,13 @@ exports.exportGame = () => {
     }
   });
 
-  fs.writeFile("./game."  + global.client.shard.id + ".json.bak", JSON.stringify(json), "utf8", (err) => {
+  file = file || "./game."  + global.client.shard.id + ".json.bak";
+  fs.writeFile(file, JSON.stringify(json, null, "\t"), "utf8", (err) => {
     if(err) {
       console.error("Failed to write to game.json.bak with the following err:\n" + err + "\nMake sure your config file is not read-only or missing.");
     }
     else {
-      console.log("Game exported to game." + global.client.shard.id + ".json.bak");
+      console.log("Game exported to " + file);
     }
   });
 };

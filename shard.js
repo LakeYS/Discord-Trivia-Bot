@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 global.client = new Discord.Client();
-global.trivia = require("./discord-trivia-func.js");
+global.Trivia = require("./discord-trivia-func.js");
 const snekfetch = require("snekfetch");
 
 var config = require("./lib/config.js")(process.argv[2]);
@@ -37,12 +37,12 @@ global.client.on("message", (msg) => {
   var str = msg.toString().toUpperCase();
 
   if(msg.channel.type === "text" || msg.channel.type === "dm") {
-    global.trivia.parse(str, msg);
+    global.Trivia.parse(str, msg);
   }
 });
 
 global.client.on("messageReactionAdd", (reaction, user) => {
-  global.trivia.reactionAdd(reaction, user);
+  global.Trivia.reactionAdd(reaction, user);
 });
 
 // # Console Functions # //
@@ -54,14 +54,14 @@ process.stdin.on("data", (text) => {
 
   if(text.toString() === "exportall\r\n" || text.toString() === "exportall\n") {
     console.log("Exporting game for all processes...");
-    global.client.shard.broadcastEval("global.trivia.exportGame();")
+    global.client.shard.broadcastEval("global.Trivia.exportGame();")
     .catch((err) => {
       console.error(err);
     });
   }
   else if(text.toString() === "importall\r\n" || text.toString() === "importall\n") {
     console.log("Importing game for all processes...");
-    global.client.shard.broadcastEval("global.trivia.importGame(\"./game.\" + global.client.shard.id + \".json.bak\");")
+    global.client.shard.broadcastEval("global.Trivia.importGame(\"./game.\" + global.client.shard.id + \".json.bak\");")
     .catch((err) => {
       console.error(err);
     });
