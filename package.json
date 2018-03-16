@@ -19,10 +19,10 @@
   "homepage": "http://lakeys.net/triviabot",
   "dependencies": {
     "circular-json": "^0.5.1",
-    "discord.js": "^11.3.0",
+    "discord.js": "^11.3.2",
     "html-entities": "^1.2.1",
     "https": "^1.0.0",
     "semver-compare": "^1.0.0",
-    "snekfetch": "^3.6.2"
+    "snekfetch": "^3.6.4"
   }
 }
