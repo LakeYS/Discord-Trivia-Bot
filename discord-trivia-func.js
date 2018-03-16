@@ -887,7 +887,7 @@ exports.reactionAdd = function(reaction, user) {
 
 // # Game Exporter #
 // Export the current game data to a file.
-function exportGame() {
+exports.exportGame = () => {
   // Copy the data so we don't modify the actual game object.
   var json = JSON.parse(JSON.stringify(global.game));
 
@@ -907,13 +907,13 @@ function exportGame() {
       console.log("Game exported to game." + global.client.shard.id + ".json.bak");
     }
   });
-}
+};
 
 // # Game Importer #
 // Import game data from JSON files.
 // input: file string or valid JSON object
-function importGame(input) {
-  console.log("Importing games from file...");
+exports.importGame = (input) => {
+  console.log(`Importing games to shard ${global.client.shard.id} from file...`);
   var json;
   if(typeof input === "string") {
     try {
@@ -940,16 +940,16 @@ function importGame(input) {
       triviaResumeGame(json[key], key);
     }
   });
-}
+};
 
 // # Console Commands #
 process.stdin.on("data", function (text) {
   if(text.toString() === "export\r\n") {
-    exportGame();
+    exports.exportGame();
   }
 
   if(text.toString() === "import\r\n") {
-    importGame("./game." + global.client.shard.id + ".json.bak");
+    exports.importGame("./game." + global.client.shard.id + ".json.bak");
   }
 });
 
