@@ -407,29 +407,28 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     //var authorid = (author==undefined?"Unknown":author.id);
 
     // Permissions sometimes return null for some reason, so this is a workaround.
+    // If permissions == null, try to continue anyway. triviaSend will catch any problems.
+    // Beware: reaction mode will stop working if perms are null
     if(permissions == null) {
-      if(typeof author !== "undefined") {
-        triviaSend(author, void 0, "Unable to start a Trivia game in this channel. (Unable to determine permissions for this channel)");
+      console.warn("Null permissions for channel " + channel.id);
+    }
+    else {
+      if(!channel.permissionsFor(channel.guild.me).has("SEND_MESSAGES")) {
+        triviaSend(author, void 0, {embed: {
+          color: 14164000,
+          description: "Unable to start a Trivia game in this channel.\n (Missing \"Send Messages\" permission)"
+        }});
+        return;
       }
-      else {
-        console.warn("Failed to send message. (null permissions, no author)");
+
+      if(!channel.permissionsFor(channel.guild.me).has("EMBED_LINKS")) {
+        triviaSend(channel, void 0, "Unable to start a Trivia game in this channel.\n (Missing \"Embed Links\" permission)");
+        return;
       }
-
-      return;
-    }
-
-    if(!channel.permissionsFor(channel.guild.me).has("SEND_MESSAGES")) {
-      triviaSend(author, void 0, "Unable to start a Trivia game in this channel. (Bot does not have permission to send messages)");
-      return;
-    }
-
-    if(!channel.permissionsFor(channel.guild.me).has("EMBED_LINKS")) {
-      triviaSend(channel, author, "Unable to start a trivia game because this channel does not have the 'Embed Links' permission.");
-      return;
-    }
-
-    if(config["use-reactions"] && channel.permissionsFor(channel.guild.me).has("ADD_REACTIONS") && channel.permissionsFor(channel.guild.me).has("READ_MESSAGE_HISTORY")) {
-      useReactions = 1;
+      
+      if(config["use-reactions"] && channel.permissionsFor(channel.guild.me).has("ADD_REACTIONS") && channel.permissionsFor(channel.guild.me).has("READ_MESSAGE_HISTORY")) {
+        useReactions = 1;
+      }
     }
   }
   else {
