@@ -301,7 +301,7 @@ function triviaEndGame(id) {
 // # triviaRevealAnswer #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
 function triviaRevealAnswer(id, channel, answer, importOverride) {
-  if(typeof global.game[id] == "undefined" || !global.game[id].inProgress) {
+  if(typeof global.game[id] === "undefined" || !global.game[id].inProgress) {
     return;
   }
 
@@ -425,7 +425,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
         triviaSend(channel, void 0, "Unable to start a Trivia game in this channel.\n (Missing \"Embed Links\" permission)");
         return;
       }
-      
+
       if(config["use-reactions"] && channel.permissionsFor(channel.guild.me).has("ADD_REACTIONS") && channel.permissionsFor(channel.guild.me).has("READ_MESSAGE_HISTORY")) {
         useReactions = 1;
       }
@@ -669,6 +669,10 @@ exports.parse = (str, msg) => {
 
     if(cmd.startsWith("PLAY")) {
       var categoryInput = cmd.replace("PLAY ","");
+
+      if(typeof global.game[id] !== "undefined" && global.game[id].inProgress) {
+        return;
+      }
 
       if(categoryInput.length >= 3 && categoryInput !== "PLAY") {
         new Promise((resolve, reject) => {
