@@ -764,47 +764,40 @@ exports.parse = (str, msg) => {
   }
 };
 
-// ## Help Command ##
-function doTriviaHelp(msg) {
-  parseURL(config.databaseURL + "/api_count_global.php")
-  .then((json) => {
-    global.client.shard.fetchClientValues("guilds.size")
-    .then((results) => {
-      // NOTE: The following is repeated below
-      var guildCount = results.reduce((prev, val) => prev + val, 0);
-      triviaSend(msg.channel, msg.author, {embed: {
-        color: 27903,
-        description: `Let's play trivia! Type '${config.prefix}play' to start a game.\nThere are ${json.overall.total_num_of_verified_questions} verified questions. Currently in ${guildCount} guild${guildCount!==1?"s":""}.\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). ${config.databaseURL=="https://opentdb.com"?"Powered by the [Open Trivia Database](https://opentdb.com/).":""}`
-      }});
-    })
-    .catch((err) => {
-      console.error("An error occurred while attempting to fetch the guild count:\n" + err);
-      triviaSend(msg.channel, msg.author, {embed: {
-        color: 14164000,
-        description: "Failed to fetch information for 'trivia help'"
-      }});
-    });
-  })
-  .catch(() => {
-    // Failed to get the global question count, leave it out of the message.
-    console.error("Failed to parse JSON for 'trivia help'");
-    global.client.shard.fetchClientValues("guilds.size")
-    .then((results) => {
-      // NOTE: The following is repeated above
-      var guildCount = results.reduce((prev, val) => prev + val, 0);
-      triviaSend(msg.channel, msg.author, {embed: {
-        color: 27903,
-        description: `Let's play trivia! Type '${config.prefix}play' to start a game.\nCurrently in ${guildCount} guild${guildCount!==1?"s":""}.\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). ${config.databaseURL=="https://opentdb.com"?"Powered by the [Open Trivia Database](https://opentdb.com/).":""}`
-      }});
-    })
-    .catch((err2) => {
-      console.error("An error occurred while attempting to fetch the guild count:\n" + err2);
-      triviaSend(msg.channel, msg.author, {embed: {
-        color: 14164000,
-        description: "Failed to fetch information for 'trivia help'"
-      }});
-    });
-  });
+async function doTriviaHelp(msg) {
+  var res = "Let's play trivia! Type 'trivia play' to start a game.";
+
+  // Question count
+  var apiCountGlobal;
+  try {
+    var json = await parseURL(config["databaseURL"] + "/api_count_global.php");
+    apiCountGlobal = json.overall.total_num_of_verified_questions;
+  }
+  catch(err) {
+    console.log("Error while paring help cmd apiCountGlobal: " + err.message);
+    guildCount = "*(unknown)*";
+  }
+  res = res + `\nThere are ${apiCountGlobal} total questions.`;
+
+  // Guild count
+  var guildCount;
+  try {
+    var guildCountArray = await global.client.shard.fetchClientValues("guilds.size");
+    guildCount = guildCountArray.reduce((prev, val) => prev + val, 0);
+  }
+  catch(err) {
+    console.log("Error while paring help cmd guildCount: " + err.message);
+    guildCount = "*(unknown)*";
+  }
+  res = res + ` Currently in ${guildCount} guild${guildCount!==1?"s":""}.`;
+
+  // Commands and links
+  res = res + `\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). ${config.databaseURL=="https://opentdb.com"?"Powered by the [Open Trivia Database](https://opentdb.com/).":""}`;
+
+  return triviaSend(msg.channel, msg.author, {embed: {
+    color: 27903,
+    description: res
+  }});
 }
 
 // triviaResumeGame
