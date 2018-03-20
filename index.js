@@ -49,18 +49,11 @@ manager.on("launch", (shard) => {
 
 // # Console Functions # //
 process.stdin.on("data", (text) => {
-  if(text.toString() === "stop\r\n" || text.toString() === "exit\r\n" || text.toString() === "stop\n" || text.toString() === "exit\n")
-  {
-    process.exit();
-    //if(Object.keys(global.game).length === 0) {
-    //  process.exit();
-    //}
-    //else {
-    //  console.log("There are\x1b[1m " + Object.keys(global.game).length + " \x1b[0mgame(s) in progress, bot will not close.\nType 'forceexit' to override.");
-    //}
-  }
-  else if(text.toString() === "forceexit\r\n") {
-    process.exit();
+  if(text.toString() === "stop\r\n" || text.toString() === "exit\r\n" || text.toString() === "stop\n" || text.toString() === "exit\n") {
+    manager.broadcastEval("client.destroy();")
+    .then(() => {
+      process.exit();
+    });
   }
   else {
     console.log("Eval on index:");
