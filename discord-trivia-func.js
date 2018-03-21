@@ -6,6 +6,7 @@ const JSON = require("circular-json");
 var config = require("./lib/config.js")(process.argv[2]);
 
 const letters = ["A", "B", "C", "D"];
+const embedCol = config["beta-mode"]?8609529:27903;
 
 const openTDBResponses = ["Success", "No results", "Invalid parameter", "Token not found", "Token empty"];
 
@@ -795,7 +796,7 @@ async function doTriviaHelp(msg) {
   res = res + `\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). ${config.databaseURL=="https://opentdb.com"?"Powered by the [Open Trivia Database](https://opentdb.com/).":""}`;
 
   return triviaSend(msg.channel, msg.author, {embed: {
-    color: 27903,
+    color: embedCol,
     description: res
   }});
 }
