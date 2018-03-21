@@ -47,6 +47,12 @@ manager.on("launch", (shard) => {
   console.log(`Successfully launched shard ${shard.id} of ${manager.totalShards-1}`);
 });
 
+manager.on("message", (shard, input) => {
+  if(typeof input.evalStr !== "undefined") {
+    eval(input.evalStr);
+  }
+});
+
 // # Console Functions # //
 process.stdin.on("data", (text) => {
   if(text.toString() === "stop\r\n" || text.toString() === "exit\r\n" || text.toString() === "stop\n" || text.toString() === "exit\n") {
