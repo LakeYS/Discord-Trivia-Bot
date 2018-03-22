@@ -306,6 +306,9 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
     return;
   }
 
+  // Stat: Inc rounds played
+  global.client.shard.send({stats: { roundsPlayed: 1 }});
+
   // Quick fix for timeouts not clearing correctly.
   if(answer !== global.game[id].answer && !importOverride) {
     console.warn("WARNING: Mismatched answers in timeout for global.game " + id + " (" + answer + "||" + global.game[id].answer + ")");

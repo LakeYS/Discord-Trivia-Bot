@@ -24,12 +24,30 @@ require("./lib/init.js")(pjson,config);
 // # Requirements/Init # //
 process.stdin.resume();
 process.stdin.setEncoding("utf8");
+const fs = require("fs");
 
 // # Discord # //
 const { ShardingManager } = require("discord.js");
 var token = config.token;
 const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: config["shard-count"], token, shardArgs: [configFile] });
 
+// # Stats # //
+var stats;
+try {
+  stats = JSON.parse(fs.readFileSync(config["stat-file"]));
+} catch(error) {
+  if(typeof error.code !== "undefined" && error.code == "ENOENT") {
+    console.warn("No stats file found; one will be created.");
+  }
+  else {
+    // If an error occurs, don't overwrite the old stats.
+    config["stat-file"] = config["stat-file"] + ".1";
+    stats = {};
+    console.log("Failed to load stats file, stats will be saved to " + config["stat-file"] + ". Received error:\n" + error);
+  }
+}
+
+// # ShardingManager # //
 manager.spawn()
 .catch((err) => {
   var warning = "";
@@ -47,9 +65,31 @@ manager.on("launch", (shard) => {
   console.log(`Successfully launched shard ${shard.id} of ${manager.totalShards-1}`);
 });
 
+// ## Manager Messages ## //
 manager.on("message", (shard, input) => {
   if(typeof input.evalStr !== "undefined") {
+    // Eval
     eval(input.evalStr);
+  }
+  else if(typeof input.stats !== "undefined") {
+    // Update stats
+    // Example: client.shard.send({stats: { test: 123 }});
+    Object.keys(input.stats).forEach((stat) => {
+      if(typeof stats[stat] === "undefined") {
+        // This stat doesn't exist, initialize it.
+        stats[stat] = input.stats[stat];
+      }
+      else {
+        // Increase the stat
+        stats[stat] += input.stats[stat];
+      }
+
+      fs.writeFile(config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
+        if(err) {
+          console.error("Failed to save stats.json with the following err:\n" + err + "\nMake sure stats.json is not read-only or missing.");
+        }
+      });
+    });
   }
 });
 

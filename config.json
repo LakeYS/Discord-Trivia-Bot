@@ -14,5 +14,6 @@
   "allow-bots": false,
   "fallback-mode": false,
   "databaseURL": "https://opentdb.com",
-  "database-cache-size": 32
+  "database-cache-size": 32,
+  "stat-file": "./stats.json"
 }

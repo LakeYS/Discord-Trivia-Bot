@@ -5,6 +5,7 @@ game*.json.bak
 config_private*.json
 config_dev*.json
 config_beta*.json
+stats*.json*
 run_private*.bat
 run_private*.sh
 run_dev*.bat
