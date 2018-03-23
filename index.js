@@ -36,7 +36,7 @@ var stats;
 try {
   stats = JSON.parse(fs.readFileSync(config["stat-file"]));
 } catch(error) {
-  if(typeof error.code !== "undefined" && error.code == "ENOENT") {
+  if(typeof error.code !== "undefined" && error.code === "ENOENT") {
     console.warn("No stats file found; one will be created.");
   }
   else {
@@ -52,7 +52,7 @@ manager.spawn()
 .catch((err) => {
   var warning = "";
 
-  if(err === "Error: 401 Unauthorized") {
+  if(err.message.includes("401 Unauthorized")) {
     warning += "\nPlease double-check your token and try again.";
   }
 
