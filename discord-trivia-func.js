@@ -673,9 +673,9 @@ exports.parse = (str, msg) => {
           }
           else {
             doTriviaGame(msg.channel.id, msg.channel, msg.author, 0, category.id);
-            
-            // Stat: Games played
-            global.client.shard.send({stats: { gamesPlayed: 1 }});
+
+            // Stat: Games played, custom category games played
+            global.client.shard.send({stats: { gamesPlayed: 1, gamesPlayedCustom: 1 }});
           }
         })
         .catch((err) => {
@@ -691,7 +691,7 @@ exports.parse = (str, msg) => {
         doTriviaGame(msg.channel.id, msg.channel, msg.author, 0);
 
         // Stat: Games played
-        global.client.shard.send({stats: { gamesPlayed: 1 }});
+        global.client.shard.send({stats: { gamesPlayed: 1, gamesPlayedNormal: 1 }});
       }
     }
 
