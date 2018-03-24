@@ -75,7 +75,7 @@ manager.on("message", (shard, input) => {
     // Update stats
     // Example: client.shard.send({stats: { test: 123 }});
     Object.keys(input.stats).forEach((stat) => {
-      if(typeof stats[stat] === "undefined") {
+      if(typeof stats[stat] !== "number") {
         // This stat doesn't exist, initialize it.
         stats[stat] = input.stats[stat];
       }
