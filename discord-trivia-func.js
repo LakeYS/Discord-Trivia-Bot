@@ -820,6 +820,12 @@ function triviaResumeGame(json, id) {
     return;
   }
 
+  if(channel === null) {
+    console.warn("Unable to find channel '" + id + "'. Game will not resume.");
+    delete global.game[id];
+    return;
+  }
+
   json.resuming = 1;
 
   var date = global.game[id].date;
@@ -908,28 +914,42 @@ exports.exportGame = (file) => {
       delete json[key].timeout;
       delete json[key].message;
     }
+
+    // Never export a game if it has already been exported before.
+    // This helps ensure that a restart loop won't happen.
+    if(json[key].imported) {
+      delete json[key];
+    }
   });
 
   file = file || "./game."  + global.client.shard.id + ".json.bak";
-  fs.writeFile(file, JSON.stringify(json, null, "\t"), "utf8", (err) => {
-    if(err) {
-      console.error("Failed to write to game.json.bak with the following err:\n" + err + "\nMake sure your config file is not read-only or missing.");
-    }
-    else {
-      console.log("Game exported to " + file);
-    }
-  });
+  try {
+    fs.writeFileSync(file, JSON.stringify(json, null, "\t"), "utf8");
+    console.log("Game exported to " + file);
+  }
+  catch(err) {
+    console.error("Failed to write to game.json.bak with the following err:\n" + err + "\nMake sure your config file is not read-only or missing.");
+  }
 };
 
 // # Game Importer #
 // Import game data from JSON files.
 // input: file string or valid JSON object
-exports.importGame = (input) => {
+// unlink (bool): delete file after opening
+exports.importGame = (input, unlink) => {
   console.log(`Importing games to shard ${global.client.shard.id} from file...`);
   var json;
   if(typeof input === "string") {
     try {
-      json = JSON.parse(fs.readFileSync(input).toString());
+      var file = fs.readFileSync(input).toString();
+
+      // If specified to do so, delete the file before parsing it.
+      // This is to help prevent a restart loop if things go horribly wrong.
+      if(unlink) {
+        fs.unlinkSync(input);
+      }
+
+      json = JSON.parse(file);
     } catch(error) {
       console.log("Failed to parse JSON from ./game." + global.client.shard.id + ".json.bak");
       console.log(error.message);
@@ -948,6 +968,9 @@ exports.importGame = (input) => {
       // Create a holder game object to complete what is left of the timeout.
       global.game[key] = json[key];
 
+      // Mark it as imported so the exporter doesn't re-export it
+      global.game[key].imported = 1;
+
       json[key].date = new Date(json[key].date);
       triviaResumeGame(json[key], key);
     }
@@ -955,7 +978,7 @@ exports.importGame = (input) => {
 };
 
 // # Console Commands #
-process.stdin.on("data", function (text) {
+process.stdin.on("data", (text) => {
   if(text.toString() === "export\r\n") {
     exports.exportGame();
   }
@@ -976,3 +999,19 @@ if(config["fallback-mode"] && !config["fallback-silent"]) {
     }
   });
 }
+
+process.on("exit", (code) => {
+  if(code !== 0) {
+    console.log("Exit with non-zero code, exporting game data...");
+    exports.exportGame();
+  }
+});
+
+// ## Import on Launch ## //
+global.client.on("ready", () => {
+  var file = "./game." + global.client.shard.id + ".json.bak";
+  if(fs.existsSync(file)) {
+    // Import the file, then delete it.
+    exports.importGame(file, 1);
+  }
+});
