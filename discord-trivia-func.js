@@ -364,6 +364,10 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
         triviaEndGame(id);
       }
     }
+  })
+  .catch(() => {
+    global.game[id].timeout = void 0;
+    triviaEndGame(id);
   });
 }
 
