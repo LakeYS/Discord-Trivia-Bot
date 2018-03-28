@@ -38,34 +38,37 @@ function parseURL(url) {
 
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
-function triviaSend(channel, author, msg) {
-  return new Promise((resolve, reject) => {
-    channel.send(msg)
-    .catch((err) => {
-      if(typeof author !== "undefined") {
-        if(channel.type !== "dm") {
-          author.send({embed: {
-            color: 14164000,
-            description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
-          }})
-          .catch(() => {
-            console.warn("Failed to send message to user " + author.id + ". (DM failed)");
-          });
-        }
-        else {
-          console.warn("Failed to send message to user " + author.id + ". (already in DM)");
-        }
+var triviaSend = function(channel, author, msg, callback) {
+  channel.send(msg)
+  .catch((err) => {
+    if(typeof author !== "undefined") {
+      if(channel.type !== "dm") {
+        author.send({embed: {
+          color: 14164000,
+          description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
+        }})
+        .catch(() => {
+          console.warn("Failed to send message to user " + author.id + ". (DM failed)");
+        });
       }
       else {
-        console.warn("Failed to send message to channel. (no user)");
+        console.warn("Failed to send message to user " + author.id + ". (already in DM)");
       }
-      reject(err);
-    })
-    .then((msg) => {
-      resolve(msg);
-    });
+    }
+    else {
+      console.warn("Failed to send message to channel. (no user)");
+    }
+
+    if(typeof callback === "function") {
+      callback(void 0, err);
+    }
+  })
+  .then((msg) => {
+    if(typeof callback === "function") {
+      callback(msg);
+    }
   });
-}
+};
 
 function initCategories() {
   // Initialize the categories
@@ -348,13 +351,11 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
   triviaSend(channel, void 0, {embed: {
     color: global.game[id].color,
     description: "**" + letters[global.game[id].correct_id] + ":** " + entities.decode(global.game[id].answer) + "\n\n" + correct_users_str
-  }})
-  .then(() => {
+  }}, (msg, err) => {
     if(typeof global.game[id] !== "undefined") {
       var participants = global.game[id].participants;
-
       // NOTE: Participants check is repeated below in doTriviaGame
-      if(participants.length !== 0) {
+      if(!err && participants.length !== 0) {
         global.game[id].timeout = setTimeout(() => {
           doTriviaGame(id, channel, void 0, 1);
         }, config["round-timeout"]);
@@ -364,10 +365,6 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
         triviaEndGame(id);
       }
     }
-  })
-  .catch(() => {
-    global.game[id].timeout = void 0;
-    triviaEndGame(id);
   });
 }
 
@@ -509,8 +506,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     triviaSend(channel, author, {embed: {
       color: global.game[id].color,
       description: "*" + categoryString + "*\n**" + entities.decode(question.question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer!":"")
-    }})
-    .then((msg) => {
+    }}, (msg) => {
       global.game[id].message = msg;
 
       // Add reaction emojis if configured to do so.
@@ -715,27 +711,25 @@ exports.parse = (str, msg) => {
             str = "";
           }
 
-          triviaSend(msg.author, void 0, categoryListStr)
-            .catch((err) => {
+          triviaSend(msg.author, void 0, categoryListStr, (msg2, err) => {
+            if(err) {
               str = "Unable to send you the list because you cannot receive DMs.";
-              if(err !== "DiscordAPIError: Cannot send messages to this user") {
-                console.log(err);
-              }
-            })
-            .then(() => {
+            }
+            else {
               i++;
               triviaSend(msg.channel, void 0, "There are " + i + " categories. " + str);
-            });
-          })
-          .catch((err) => {
-            // List was queried successfully, but the question was not received.
-            triviaSend(msg.channel, msg.author, {embed: {
-              color: 14164000,
-              description: "Failed to query category counts.\n" + err
-            }});
-            console.log("Failed to retrieve category counts for 'trivia categories'.\n" + err);
-            return;
+            }
           });
+        })
+        .catch((err) => {
+          // List was queried successfully, but the question was not received.
+          triviaSend(msg.channel, msg.author, {embed: {
+            color: 14164000,
+            description: "Failed to query category counts.\n" + err
+          }});
+          console.log("Failed to retrieve category counts for 'trivia categories'.\n" + err);
+          return;
+        });
       })
       .catch((err) => {
         triviaSend(msg.channel, msg.author, {embed: {
