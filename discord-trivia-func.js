@@ -43,9 +43,14 @@ var triviaSend = function(channel, author, msg, callback) {
   .catch((err) => {
     if(typeof author !== "undefined") {
       if(channel.type !== "dm") {
+        var str = "";
+        if(err.message.includes("Missing Permissions")) {
+          str = "\n\nThis bot requires the \"Send Messages\" and \"Embed Links\" permissions in order to work.";
+        }
+
         author.send({embed: {
           color: 14164000,
-          description: "Unable to send messages in this channel:\n" + err.toString().replace("DiscordAPIError: ","")
+          description: "TriviaBot is unable to send messages in this channel:\n" + err.message.replace("DiscordAPIError: ","") + str
         }})
         .catch(() => {
           console.warn("Failed to send message to user " + author.id + ". (DM failed)");
@@ -406,37 +411,6 @@ function doTriviaGame(id, channel, author, scheduled, category) {
   var useReactions = 0;
 
   if(channel.type !== "dm" && typeof author !== "undefined") {
-    // Check if we have proper permissions for the channel.
-    var permissions = channel.permissionsFor(channel.guild.me);
-
-    //var authorid = (author==undefined?"Unknown":author.id);
-
-    // Permissions sometimes return null for some reason, so this is a workaround.
-    // If permissions == null, try to continue anyway. triviaSend will catch any problems.
-    // Beware: reaction mode will stop working if perms are null
-    if(permissions == null) {
-      console.warn("Null permissions for channel " + channel.id);
-    }
-    else {
-      if(!channel.permissionsFor(channel.guild.me).has("SEND_MESSAGES")) {
-        triviaSend(author, void 0, {embed: {
-          color: 14164000,
-          description: "Unable to start a Trivia game in this channel.\n (Missing \"Send Messages\" permission)"
-        }});
-        return;
-      }
-
-      if(!channel.permissionsFor(channel.guild.me).has("EMBED_LINKS")) {
-        triviaSend(channel, void 0, "Unable to start a Trivia game in this channel.\n (Missing \"Embed Links\" permission)");
-        return;
-      }
-
-      if(config["use-reactions"] && channel.permissionsFor(channel.guild.me).has("ADD_REACTIONS") && channel.permissionsFor(channel.guild.me).has("READ_MESSAGE_HISTORY")) {
-        useReactions = 1;
-      }
-    }
-  }
-  else {
     if(config["use-reactions"]) {
       useReactions = 1;
     }
@@ -506,68 +480,74 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     triviaSend(channel, author, {embed: {
       color: global.game[id].color,
       description: "*" + categoryString + "*\n**" + entities.decode(question.question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer!":"")
-    }}, (msg) => {
-      global.game[id].message = msg;
+    }}, (msg, err) => {
+      if(err) {
+        global.game[id].timeout = void 0;
+        triviaEndGame(id);
+      }
+      else if(typeof msg !== "undefined") {
+        global.game[id].message = msg;
 
-      // Add reaction emojis if configured to do so.
-      // Blahhh. Can this be simplified?
-      if(useReactions) {
-        var error = 0; // This will be set to 1 if something goes wrong.
-        msg.react("🇦")
-        .catch((err) => {
-          console.log("Failed to add reaction A: " + err);
-          error = 1;
-        })
-        .then(() => {
-          msg.react("🇧")
+        // Add reaction emojis if configured to do so.
+        // Blahhh. Can this be simplified?
+        if(useReactions) {
+          var error = 0; // This will be set to 1 if something goes wrong.
+          msg.react("🇦")
           .catch((err) => {
-            console.log("Failed to add reaction B: " + err);
+            console.log("Failed to add reaction A: " + err);
             error = 1;
           })
           .then(() => {
-            // Only add C and D if it isn't a true/false question.
-            // Reactions will stop here if the game has since been cancelled.
-            if(typeof global.game[id] == "undefined" || !global.game[id].isTrueFalse) {
-              msg.react("🇨")
-              .catch((err) => {
-                console.log("Failed to add reaction C: " + err);
-                error = 1;
-              })
-              .then(() => {
-                msg.react("🇩")
+            msg.react("🇧")
+            .catch((err) => {
+              console.log("Failed to add reaction B: " + err);
+              error = 1;
+            })
+            .then(() => {
+              // Only add C and D if it isn't a true/false question.
+              // Reactions will stop here if the game has since been cancelled.
+              if(typeof global.game[id] == "undefined" || !global.game[id].isTrueFalse) {
+                msg.react("🇨")
                 .catch((err) => {
-                  console.log("Failed to add reaction D: " + err);
+                  console.log("Failed to add reaction C: " + err);
                   error = 1;
+                })
+                .then(() => {
+                  msg.react("🇩")
+                  .catch((err) => {
+                    console.log("Failed to add reaction D: " + err);
+                    error = 1;
+                  });
                 });
-              });
-            }
-
-            process.nextTick(() => {
-              if(error) {
-                triviaSend(channel, author, {embed: {
-                  color: 14164000,
-                  description: "Error: Failed to add reaction. This may be due to the channel's configuration."
-                }});
-
-                msg.delete();
-                triviaEndGame(id);
-                return;
               }
+
+              process.nextTick(() => {
+                if(error) {
+                  triviaSend(channel, author, {embed: {
+                    color: 14164000,
+                    description: "Error: Failed to add reaction. This may be due to the channel's configuration.\n\nMake sure that the bot has the \"Use Reactions\" and \"Read Message History\" permissions or disable reaction mode to play."
+                  }});
+
+                  msg.delete();
+                  triviaEndGame(id);
+                  return;
+                }
+              });
+
             });
-
           });
-        });
-      }
+        }
 
-      if(typeof global.game[id] !== "undefined") {
-        global.game[id].difficulty = question.difficulty;
-        global.game[id].answer = question.correct_answer;
-        global.game[id].date = new Date();
+        if(typeof global.game[id] !== "undefined") {
+          global.game[id].difficulty = question.difficulty;
+          global.game[id].answer = question.correct_answer;
+          global.game[id].date = new Date();
 
-        // Reveal the answer after the time is up
-        global.game[id].timeout = setTimeout(() => {
-           triviaRevealAnswer(id, channel, question.correct_answer);
-        }, config["round-length"]);
+          // Reveal the answer after the time is up
+          global.game[id].timeout = setTimeout(() => {
+             triviaRevealAnswer(id, channel, question.correct_answer);
+          }, config["round-length"]);
+        }
       }
     });
   })
@@ -800,7 +780,7 @@ async function doTriviaHelp(msg) {
   res = res + ` Currently in ${guildCount} guild${guildCount!==1?"s":""}.`;
 
   // Commands and links
-  res = res + `\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). ${config.databaseURL=="https://opentdb.com"?"Powered by the [Open Trivia Database](https://opentdb.com/).":""}`;
+  res = res + `\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). ${config.databaseURL==="https://opentdb.com"?"Powered by the [Open Trivia Database](https://opentdb.com/).":""}`;
 
   return triviaSend(msg.channel, msg.author, {embed: {
     color: embedCol,
