@@ -782,8 +782,8 @@ async function doTriviaHelp(msg) {
     apiCountGlobal = json.overall.total_num_of_verified_questions;
   }
   catch(err) {
-    console.log("Error while paring help cmd apiCountGlobal: " + err.message);
-    guildCount = "*(unknown)*";
+    console.log("Error while parsing help cmd apiCountGlobal: " + err.message);
+    apiCountGlobal = "*(unknown)*";
   }
   res = res + `\nThere are ${apiCountGlobal} total questions.`;
 
@@ -794,7 +794,7 @@ async function doTriviaHelp(msg) {
     guildCount = guildCountArray.reduce((prev, val) => prev + val, 0);
   }
   catch(err) {
-    console.log("Error while paring help cmd guildCount: " + err.message);
+    console.log("Error while parsing help cmd guildCount: " + err.message);
     guildCount = "*(unknown)*";
   }
   res = res + ` Currently in ${guildCount} guild${guildCount!==1?"s":""}.`;
