@@ -448,17 +448,19 @@ function doTriviaGame(id, channel, author, scheduled, category) {
       global.game[id].isTrueFalse = 1;
     }
 
-    var color = 3447003;
-    switch(question.difficulty) {
-      case "easy":
-        color = 4249664;
-        break;
-      case "medium":
-        color = 12632064;
-        break;
-      case "hard":
-        color = 14164000;
-        break;
+    var color = embedCol;
+    if(config["hide-difficulty"] !== true) {
+      switch(question.difficulty) {
+        case "easy":
+          color = 4249664;
+          break;
+        case "medium":
+          color = 12632064;
+          break;
+        case "hard":
+          color = 14164000;
+          break;
+      }
     }
     global.game[id].color = color;
 
