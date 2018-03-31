@@ -7,7 +7,7 @@
   "use-reactions": false,
   "prefix": "trivia ",
   "hide-difficulty": false,
-  "round-length": 15000,
+  "round-length": 60000,
   "round-timeout": 5500,
 
   "shard-count": "auto",
