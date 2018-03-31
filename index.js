@@ -74,26 +74,28 @@ manager.on("message", (shard, input) => {
   else if(typeof input.stats !== "undefined") {
     // Update stats
     // Example: client.shard.send({stats: { test: 123 }});
-    Object.keys(input.stats).forEach((stat) => {
-      if(typeof stats == "undefined") {
-        stats = {};
-      }
-
-      if(typeof stats[stat] !== "number") {
-        // This stat doesn't exist, initialize it.
-        stats[stat] = input.stats[stat];
-      }
-      else {
-        // Increase the stat
-        stats[stat] += input.stats[stat];
-      }
-
-      fs.writeFile(config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
-        if(err) {
-          console.error("Failed to save stats.json with the following err:\n" + err + "\nMake sure stats.json is not read-only or missing.");
+    if(config["fallback-mode"] !== true) {
+      Object.keys(input.stats).forEach((stat) => {
+        if(typeof stats == "undefined") {
+          stats = {};
         }
+
+        if(typeof stats[stat] !== "number") {
+          // This stat doesn't exist, initialize it.
+          stats[stat] = input.stats[stat];
+        }
+        else {
+          // Increase the stat
+          stats[stat] += input.stats[stat];
+        }
+
+        fs.writeFile(config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
+          if(err) {
+            console.error("Failed to save stats.json with the following err:\n" + err + "\nMake sure stats.json is not read-only or missing.");
+          }
+        });
       });
-    });
+    }
   }
 });
 
