@@ -319,6 +319,15 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
   // Stat: Inc rounds played
   global.client.shard.send({stats: { roundsPlayed: 1 }});
 
+  if(global.game[id].category) {
+    // Stat: Games played, custom category games played
+    global.client.shard.send({stats: { gamesPlayed: 1, gamesPlayedCustom: 1 }});
+  }
+  else {
+    // Stat: Games played
+    global.client.shard.send({stats: { gamesPlayed: 1, gamesPlayedNormal: 1 }});
+  }
+
   // Quick fix for timeouts not clearing correctly.
   if(answer !== global.game[id].answer && !importOverride) {
     console.warn("WARNING: Mismatched answers in timeout for global.game " + id + " (" + answer + "||" + global.game[id].answer + ")");
@@ -657,9 +666,6 @@ exports.parse = (str, msg) => {
           }
           else {
             doTriviaGame(msg.channel.id, msg.channel, msg.author, 0, category.id);
-
-            // Stat: Games played, custom category games played
-            global.client.shard.send({stats: { gamesPlayed: 1, gamesPlayedCustom: 1 }});
           }
         })
         .catch((err) => {
@@ -673,9 +679,6 @@ exports.parse = (str, msg) => {
       }
       else { // No category specified, start a normal game. (OpenTDB will pick a random category for us)
         doTriviaGame(msg.channel.id, msg.channel, msg.author, 0);
-
-        // Stat: Games played
-        global.client.shard.send({stats: { gamesPlayed: 1, gamesPlayedNormal: 1 }});
       }
     }
 

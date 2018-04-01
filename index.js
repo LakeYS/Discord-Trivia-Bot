@@ -88,12 +88,12 @@ manager.on("message", (shard, input) => {
           // Increase the stat
           stats[stat] += input.stats[stat];
         }
+      });
 
-        fs.writeFile(config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
-          if(err) {
-            console.error("Failed to save stats.json with the following err:\n" + err + "\nMake sure stats.json is not read-only or missing.");
-          }
-        });
+      fs.writeFile(config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
+        if(err) {
+          console.error("Failed to save stats.json with the following err:\n" + err + "\nMake sure stats.json is not read-only or missing.");
+        }
       });
     }
   }
