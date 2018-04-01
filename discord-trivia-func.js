@@ -10,6 +10,8 @@ const embedCol = config["beta-mode"]?8609529:27903;
 
 const openTDBResponses = ["Success", "No results", "Invalid parameter", "Token not found", "Token empty"];
 
+const OpenTDB = require("./lib/opentdb.js")(config);
+
 global.game = {};
 global.questions = [];
 global.tokens = {};
@@ -678,49 +680,7 @@ exports.parse = (str, msg) => {
     }
 
     if(cmd === "CATEGORIES") {
-      parseURL(config.databaseURL + "/api_category.php")
-      .then((json) => {
-        parseURL(config.databaseURL + "/api_count_global.php")
-        .then((json2) => {
-          var categoryListStr = "**Categories:** ";
-          var i = 0;
-          for(i in json.trivia_categories) {
-            categoryListStr = categoryListStr + "\n" + json.trivia_categories[i].name + " - " + json2.categories[json.trivia_categories[i].id].total_num_of_verified_questions + " questions";
-          }
-
-          var str = "A list has been sent to you via DM.";
-          if(msg.channel.type === "dm") {
-            str = "";
-          }
-
-          triviaSend(msg.author, void 0, categoryListStr, (msg2, err) => {
-            if(err) {
-              str = "Unable to send you the list because you cannot receive DMs.";
-            }
-            else {
-              i++;
-              triviaSend(msg.channel, void 0, "There are " + i + " categories. " + str);
-            }
-          });
-        })
-        .catch((err) => {
-          // List was queried successfully, but the question was not received.
-          triviaSend(msg.channel, msg.author, {embed: {
-            color: 14164000,
-            description: "Failed to query category counts.\n" + err
-          }});
-          console.log("Failed to retrieve category counts for 'trivia categories'.\n" + err);
-          return;
-        });
-      })
-      .catch((err) => {
-        triviaSend(msg.channel, msg.author, {embed: {
-          color: 14164000,
-          description: "Failed to query category list.\n" + err
-        }});
-        console.log("Failed to retrieve category list for 'trivia categories'.\n" + err);
-        return;
-      });
+      doTriviaCategories(msg);
     }
 
     // **Admin Commands** //
@@ -760,7 +720,7 @@ async function doTriviaHelp(msg) {
   // Question count
   var apiCountGlobal;
   try {
-    var json = await parseURL(config["databaseURL"] + "/api_count_global.php");
+    var json = await OpenTDB.getGlobalCounts();
     apiCountGlobal = json.overall.total_num_of_verified_questions;
   }
   catch(err) {
@@ -788,6 +748,43 @@ async function doTriviaHelp(msg) {
     color: embedCol,
     description: res
   }});
+}
+
+async function doTriviaCategories(msg) {
+  try {
+    var json = await OpenTDB.getCategories();
+    var json2 = await OpenTDB.getGlobalCounts();
+  } catch(err) {
+    // List was queried successfully, but the question was not received.
+    triviaSend(msg.channel, msg.author, {embed: {
+      color: 14164000,
+      description: "Failed to query category counts.\n" + err
+    }});
+    console.log("Failed to retrieve category counts for 'trivia categories'.\n" + err);
+    return;
+  }
+
+  var categoryListStr = "**Categories:** ";
+  var i = 0;
+  //console.log(json2);
+  for(i in json) {
+    categoryListStr = categoryListStr + "\n" + json[i].name + " - " + json2.categories[json[i].id].total_num_of_verified_questions + " questions";
+  }
+
+  var str = "A list has been sent to you via DM.";
+  if(msg.channel.type === "dm") {
+    str = "";
+  }
+
+  triviaSend(msg.author, void 0, categoryListStr, (msg2, err) => {
+    if(err) {
+      str = "Unable to send you the list because you cannot receive DMs.";
+    }
+    else {
+      i++;
+      triviaSend(msg.channel, void 0, `There ${i===1?"is":"are"} ${i} categor${i===1?"y":"ies"}. ${str}`);
+    }
+  });
 }
 
 // triviaResumeGame
