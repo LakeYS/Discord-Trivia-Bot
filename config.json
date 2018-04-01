@@ -10,6 +10,7 @@
   "round-length": 15000,
   "round-timeout": 5500,
 
+  "allow-eval": false,
   "shard-count": "auto",
   "disable-version-check": false,
   "allow-bots": false,

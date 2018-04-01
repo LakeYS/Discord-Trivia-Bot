@@ -46,37 +46,38 @@ global.client.on("messageReactionAdd", (reaction, user) => {
 });
 
 // # Console Functions # //
-process.stdin.on("data", (text) => {
-  var id = process.pid;
-  if(global.client.shard !== null) {
-    id = id + ":" + global.client.shard.id;
-  }
+if(config["allow-eval"] === true) {
+  process.stdin.on("data", (text) => {
+    var id = process.pid;
+    if(global.client.shard !== null) {
+      id = id + ":" + global.client.shard.id;
+    }
 
-  if(text.toString() === "exportall\r\n" || text.toString() === "exportall\n") {
-    console.log("Exporting game for all processes...");
-    global.client.shard.broadcastEval("global.Trivia.exportGame();")
-    .catch((err) => {
-      console.error(err);
-    });
-  }
-  else if(text.toString() === "importall\r\n" || text.toString() === "importall\n") {
-    console.log("Importing game for all processes...");
-    global.client.shard.broadcastEval("global.Trivia.importGame(\"./game.\" + global.client.shard.id + \".json.bak\");")
-    .catch((err) => {
-      console.error(err);
-    });
-  }
-  else {
-    global.client.shard.broadcastEval(text.toString())
-    .then((res) => {
-      console.log("#" + id + ": " + res);
-    })
-    .catch((err) => {
-      console.log("#" + id + ": Eval err " + err);
-    });
-  }
-});
-
+    if(text.toString() === "exportall\r\n" || text.toString() === "exportall\n") {
+      console.log("Exporting game for all processes...");
+      global.client.shard.broadcastEval("global.Trivia.exportGame();")
+      .catch((err) => {
+        console.error(err);
+      });
+    }
+    else if(text.toString() === "importall\r\n" || text.toString() === "importall\n") {
+      console.log("Importing game for all processes...");
+      global.client.shard.broadcastEval("global.Trivia.importGame(\"./game.\" + global.client.shard.id + \".json.bak\");")
+      .catch((err) => {
+        console.error(err);
+      });
+    }
+    else {
+      global.client.shard.broadcastEval(text.toString())
+      .then((res) => {
+        console.log("#" + id + ": " + res);
+      })
+      .catch((err) => {
+        console.log("#" + id + ": Eval err " + err);
+      });
+    }
+  });
+}
 //global.client.shard.manager.on("message", (msg) => {
 //  console.log(`Message on ${global.client.shard.id}!: ${msg}`);
 //});
