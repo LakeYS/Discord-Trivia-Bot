@@ -316,18 +316,6 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
     return;
   }
 
-  // Stat: Inc rounds played
-  global.client.shard.send({stats: { roundsPlayed: 1 }});
-
-  if(global.game[id].category) {
-    // Stat: Games played, custom category games played
-    global.client.shard.send({stats: { gamesPlayed: 1, gamesPlayedCustom: 1 }});
-  }
-  else {
-    // Stat: Games played
-    global.client.shard.send({stats: { gamesPlayed: 1, gamesPlayedNormal: 1 }});
-  }
-
   // Quick fix for timeouts not clearing correctly.
   if(answer !== global.game[id].answer && !importOverride) {
     console.warn("WARNING: Mismatched answers in timeout for global.game " + id + " (" + answer + "||" + global.game[id].answer + ")");
@@ -499,6 +487,26 @@ function doTriviaGame(id, channel, author, scheduled, category) {
         triviaEndGame(id);
       }
       else if(typeof msg !== "undefined") {
+
+        if(global.game[id].category) {
+          // Stat: Rounds played - custom
+          global.client.shard.send({stats: { roundsPlayedCustom: 1 }});
+
+          if(!scheduled) {
+            // Stat: Games played - custom
+            global.client.shard.send({stats: { gamesPlayedCustom: 1 }});
+          }
+        }
+        else {
+          // Stat: Rounds played - normal
+          global.client.shard.send({stats: { roundsPlayedNormal: 1 }});
+
+          if(!scheduled) {
+            // Stat: Games played - normal
+            global.client.shard.send({stats: { gamesPlayedNormal: 1 }});
+          }
+        }
+
         global.game[id].message = msg;
 
         // Add reaction emojis if configured to do so.
