@@ -8,13 +8,11 @@ var config = require("./lib/config.js")(process.argv[2]);
 const letters = ["A", "B", "C", "D"];
 const embedCol = config["beta-mode"]?8609529:27903;
 
-const openTDBResponses = ["Success", "No results", "Invalid parameter", "Token not found", "Token empty"];
-
 const OpenTDB = require("./lib/opentdb.js")(config);
 
 global.game = {};
 global.questions = [];
-global.tokens = {};
+global.tokens = OpenTDB.tokens;
 
 // parseURL
 // Returns a promise. Queries the specified URL and parses the data as JSON.
@@ -97,72 +95,6 @@ initCategories()
   console.log("Failed to retrieve category list:\n" + err);
 });
 
-// getTriviaToken
-// Returns a promise, fetches a token for the specified discord.js TextChannel object.
-// If no token exists, one will be requested from OpenTDB.
-// If tokenChannel is undefined, the promise will automatically resolve with 'undefined'.
-function getTriviaToken(tokenChannel) {
-  return new Promise((resolve, reject) => {
-    if(typeof tokenChannel === "undefined") {
-      // No token requested, return without one.
-      resolve(void 0);
-      return;
-    }
-    else if(typeof global.tokens[tokenChannel.id] !== "undefined") {
-      // Check if 6 hours have passed since the token was created.
-      // If >6 hours have passed, we'll need to generate a new one.
-      if(new Date().getTime() > global.tokens[tokenChannel.id].time.getTime()+2.16e+7) {
-        // Token already exists but is expired, delete it and generate a new one.
-        delete global.tokens[tokenChannel.id];
-      }
-      else {
-        // Token already exists and is valid, return it and continue.
-        resolve(global.tokens[tokenChannel.id].token);
-        return;
-      }
-    }
-
-    // No token exists, so we'll generate one.
-    parseURL(config.databaseURL + "/api_token.php?command=request")
-    .then((tokenContainer) => {
-      try {
-        if(tokenContainer.response_code !== 0) {
-          reject(new Error("Received response code " + tokenContainer.response_code + ": " + openTDBResponses[tokenContainer.response_code]) + " while attempting to request a new token.");
-        }
-        else {
-          global.tokens[tokenChannel.id] = { token: tokenContainer.token, time: new Date() };
-          resolve(tokenContainer.token);
-        }
-      } catch(error) {
-        reject(error);
-      }
-    })
-    .catch((err) => {
-      reject(err);
-    });
-  });
-}
-
-// resetTriviaToken
-function resetTriviaToken(token) {
-  return new Promise((resolve, reject) => {
-    parseURL(config.databaseURL + "/api_token.php?command=reset&token=" + token)
-    .then((json) => {
-      if(json.response_code !== 0) {
-        reject(new Error("Failed to reset token - received response code " + json.response_code + "(" + openTDBResponses[json.response_code] + ")"));
-        return;
-      }
-
-      resolve(json);
-    })
-    .catch((err) => {
-      reject(err);
-      return;
-    });
-  });
-}
-
-
 // getTriviaQuestion
 // Returns a promise, fetches a random question from the database.
 // If initial is set to true, a question will not be returned. (For initializing the cache)
@@ -186,88 +118,91 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
       }
 
       // Get a token if one is requested.
-      getTriviaToken(tokenChannel)
-      .catch((error) => {
-        // Something went wrong. We'll display a warning but we won't cancel the game.
-        console.log("Failed to generate token for channel " + tokenChannel.id + ": " + error.message);
-        triviaSend(tokenChannel, void 0, "Failed to generate a session token for this channel. You may see repeating questions in this category.\n(" + error.message + ")");
-      })
-      .then((token) => {
-        if(typeof token !== "undefined" && typeof  category !== "undefined") {
-          // Set the token and continue.
-          args += "&token=" + token;
-        }
+      if(typeof tokenChannel !== "undefined") {
+        OpenTDB.getToken(tokenChannel.id)
+        .catch((error) => {
+          // Something went wrong. We'll display a warning but we won't cancel the game.
+          console.log(error);
+          console.log("Failed to generate token for channel " + tokenChannel.id + ": " + error.message);
+          triviaSend(tokenChannel, void 0, "Failed to generate a session token for this channel. You may see repeating questions in this category.\n(" + error.message + ")");
+        })
+        .then((token) => {
+          if(typeof token !== "undefined" && typeof  category !== "undefined") {
+            // Set the token and continue.
+            args += "&token=" + token;
+          }
 
-        parseURL(config.databaseURL + "/api.php" + args)
-        .then((json) => {
-          if(json.response_code === 4) {
-            // Token empty, reset it and start over.
-            if(tokenRetry !== 1) {
-              resetTriviaToken(token)
-              .then(() => {
-                triviaSend(tokenChannel, void 0, "You've played all of the questions in this category! Questions will start to repeat.");
+          parseURL(config.databaseURL + "/api.php" + args)
+          .then((json) => {
+            if(json.response_code === 4) {
+              // Token empty, reset it and start over.
+              if(tokenRetry !== 1) {
+                OpenTDB.resetToken(token)
+                .then(() => {
+                  triviaSend(tokenChannel, void 0, "You've played all of the questions in this category! Questions will start to repeat.");
 
-                // Start over now that we have a token.
-                getTriviaQuestion(initial, category, tokenChannel, 1)
-                .then((question) => {
-                  resolve(question);
-                  return;
+                  // Start over now that we have a token.
+                  getTriviaQuestion(initial, category, tokenChannel, 1)
+                  .then((question) => {
+                    resolve(question);
+                    return;
+                  })
+                  .catch((err) => {
+                    reject(err);
+                    return;
+                  });
                 })
                 .catch((err) => {
-                  reject(err);
+                  console.log("Failed to reset token - " + err.message);
+                  reject(new Error("Failed to reset token - " + err.message));
                   return;
                 });
-              })
-              .catch((err) => {
-                console.log("Failed to reset token - " + err.message);
-                reject(new Error("Failed to reset token - " + err.message));
-                return;
-              });
-            }
-            else {
-            // This shouldn't ever happen.
-            reject(new Error("Token reset loop."));
-            }
-          }
-          else if(json.response_code !== 0) {
-            console.log("Received error from OpenTDB.");
-            console.log(json);
-
-            // Author is passed through; triviaSend will handle it if author is undefined.
-            reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + openTDBResponses[json.response_code] + ")"));
-
-            // Delete the token so we'll generate a new one next time.
-            // This is to fix the game in case the cached token is invalid.
-            delete global.tokens[tokenChannel.id];
-          }
-          else {
-            global.questions = json.results;
-
-            // Now we'll return a question from the cache.
-            ////////// **Copied below**
-            if(!initial) {
-              // Just in case, check the cached question count first.
-              if(global.questions.length < 1) {
-                reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
               }
               else {
-
-                resolve(global.questions[0]);
-
-                delete global.questions[0];
-                global.questions = global.questions.filter((val) => Object.keys(val).length !== 0);
-
+              // This shouldn't ever happen.
+              reject(new Error("Token reset loop."));
               }
             }
-            //////////
+            else if(json.response_code !== 0) {
+              console.log("Received error from OpenTDB.");
+              console.log(json);
+
+              // Author is passed through; triviaSend will handle it if author is undefined.
+              reject(new Error("Failed to query the trivia database with error code " + json.response_code + " (" + OpenTDB.responses[json.response_code] + ")"));
+
+              // Delete the token so we'll generate a new one next time.
+              // This is to fix the game in case the cached token is invalid.
+              delete global.tokens[tokenChannel.id];
+            }
+            else {
+              global.questions = json.results;
+
+              // Now we'll return a question from the cache.
+              ////////// **Copied below**
+              if(!initial) {
+                // Just in case, check the cached question count first.
+                if(global.questions.length < 1) {
+                  reject(new Error("Received empty response while attempting to retrieve a Trivia question."));
+                }
+                else {
+
+                  resolve(global.questions[0]);
+
+                  delete global.questions[0];
+                  global.questions = global.questions.filter((val) => Object.keys(val).length !== 0);
+
+                }
+              }
+              //////////
+              return;
+            }
+          })
+          .catch((err) => {
+            reject(err);
             return;
-          }
-        })
-        .catch((err) => {
-          reject(err);
-          return;
+          });
         });
-      });
+      }
     }
     else {
       ////////// **Copied above**
