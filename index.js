@@ -12,9 +12,10 @@ else {
 process.title = "TriviaBot " + pjson.version;
 
 // # Initialize Config Args # //
+var configFile;
 for(var i = 0; i <= process.argv.length; i++) {
   if(typeof process.argv[i] !== "undefined" && process.argv[i].startsWith("--configfile=")) {
-    var configFile = process.argv[i].replace("--configfile=", "");
+    configFile = process.argv[i].replace("--configfile=", "");
   }
 }
 

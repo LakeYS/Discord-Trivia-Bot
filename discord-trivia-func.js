@@ -697,9 +697,11 @@ async function doTriviaHelp(msg) {
 }
 
 async function doTriviaCategories(msg) {
+  var json;
+  var json2;
   try {
-    var json = await OpenTDB.getCategories();
-    var json2 = await OpenTDB.getGlobalCounts();
+    json = await OpenTDB.getCategories();
+    json2 = await OpenTDB.getGlobalCounts();
   } catch(err) {
     // List was queried successfully, but the question was not received.
     triviaSend(msg.channel, msg.author, {embed: {
