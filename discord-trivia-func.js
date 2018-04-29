@@ -251,6 +251,13 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
     return;
   }
 
+  if(typeof global.game[id].message !== "undefined") {
+    global.game[id].message.delete()
+    .catch((err) => {
+      console.log("Failed to delete message - " + err.message);
+    });
+  }
+
   // Quick fix for timeouts not clearing correctly.
   if(answer !== global.game[id].answer && !importOverride) {
     console.warn("WARNING: Mismatched answers in timeout for global.game " + id + " (" + answer + "||" + global.game[id].answer + ")");
@@ -296,6 +303,12 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
       // NOTE: Participants check is repeated below in doTriviaGame
       if(!err && participants.length !== 0) {
         global.game[id].timeout = setTimeout(() => {
+          if(config["auto-delete-msgs"]) {
+            msg.delete()
+            .catch((err) => {
+              console.log("Failed to delete message - " + err.message);
+            });
+          }
           doTriviaGame(id, channel, void 0, 1);
         }, config["round-timeout"]);
       }
