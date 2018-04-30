@@ -38,7 +38,9 @@ function parseURL(url) {
 
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
-var triviaSend = function(channel, author, msg, callback) {
+//    channel: Channel ID -- author: Author ID -- msg: Message Object -- callback: Callback Function
+//    noDelete: If enabled, message will not auto-delete even if configured to
+var triviaSend = function(channel, author, msg, callback, noDelete) {
   channel.send(msg)
   .catch((err) => {
     if(typeof author !== "undefined") {
@@ -71,6 +73,12 @@ var triviaSend = function(channel, author, msg, callback) {
   .then((msg) => {
     if(typeof callback === "function") {
       callback(msg);
+    }
+
+    if(config["auto-delete-msgs"] && noDelete !== 1) {
+      setTimeout(() => {
+        msg.delete();
+      }, 15000);
     }
   });
 };
@@ -317,7 +325,7 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
         triviaEndGame(id);
       }
     }
-  });
+  }, 1);
 }
 
 // # doTriviaGame #
@@ -518,7 +526,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
           }, config["round-length"]);
         }
       }
-    });
+    }, 1);
   })
   .catch((err) => {
     triviaSend(channel, author, {embed: {
