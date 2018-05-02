@@ -304,7 +304,7 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
 
   triviaSend(channel, void 0, {embed: {
     color: global.game[id].color,
-    description: "**" + letters[global.game[id].correct_id] + ":** " + entities.decode(global.game[id].answer) + "\n\n" + correct_users_str
+    description: "**" + letters[global.game[id].correct_id] + ":** " + entities.decode(global.game[id].answer) + "\n\n" + correct_users_str + (global.game[id].participants.length === 0?"\n\n*Game ended.*":"")
   }}, (msg, err) => {
     if(typeof global.game[id] !== "undefined") {
       var participants = global.game[id].participants;
