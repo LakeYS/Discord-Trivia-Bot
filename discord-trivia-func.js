@@ -259,7 +259,7 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
     return;
   }
 
-  if(typeof global.game[id].message !== "undefined") {
+  if(typeof global.game[id].message !== "undefined" && config["auto-delete-msgs"]) {
     global.game[id].message.delete()
     .catch((err) => {
       console.log("Failed to delete message - " + err.message);
