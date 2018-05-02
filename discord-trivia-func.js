@@ -436,7 +436,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 
     triviaSend(channel, author, {embed: {
       color: global.game[id].color,
-      description: "*" + categoryString + "*\n**" + entities.decode(question.question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer!":"")
+      description: "*" + categoryString + "*\n**" + entities.decode(question.question) + "**\n" + answerString + (!scheduled&&!useReactions?`\nType a letter to answer! The answer will be revealed in ${config["round-length"]/1000} seconds.`:"")
     }}, (msg, err) => {
       if(err) {
         global.game[id].timeout = void 0;
