@@ -302,9 +302,17 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
     }
   }
 
+  var gameEndedMsg = "";
+  if(global.game[id].cancelled) {
+  gameEndedMsg = "\n\n*Game ended by admin.*";
+  }
+  else if(global.game[id].participants.length === 0) {
+    gameEndedMsg = "\n\n*Game ended.*";
+  }
+
   triviaSend(channel, void 0, {embed: {
     color: global.game[id].color,
-    description: "**" + letters[global.game[id].correct_id] + ":** " + entities.decode(global.game[id].answer) + "\n\n" + correct_users_str + (global.game[id].participants.length === 0?"\n\n*Game ended.*":"")
+    description: "**" + letters[global.game[id].correct_id] + ":** " + entities.decode(global.game[id].answer) + "\n\n" + correct_users_str + gameEndedMsg
   }}, (msg, err) => {
     if(typeof global.game[id] !== "undefined") {
       var participants = global.game[id].participants;
@@ -586,8 +594,32 @@ exports.parse = (str, msg) => {
   if(str.startsWith(prefix)) {
     var cmd = str.replace(prefix, "");
 
-    if(cmd === "STOP" || cmd === "CANCEL") {
-      triviaSend(msg.channel, msg.author, "Trivia games will stop automatically if nobody participates after two rounds.\nServer managers can type 'trivia admin cancel' to force-cancel a round.");
+    if(cmd === "STOP" || cmd === "CANCEL" || cmd === "ADMIN STOP" || cmd === "ADMIN CANCEL") {
+      if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
+        if(typeof global.game[id] !== "undefined" && global.game[id].inProgress) {
+          let timeout = global.game[id].timeout;
+
+          global.game[id].cancelled = 1;
+
+          if(typeof timeout !== "undefined") {
+            var onTimeout = timeout._onTimeout;
+            clearTimeout(timeout);
+
+            // If a round is in progress, display the answers before cancelling the game.
+            if(global.game[id].inRound && typeof timeout !== "undefined") {
+              onTimeout();
+            }
+          }
+
+          // If there's still a game, clear it.
+          if(typeof global.game[id] !== "undefined") {
+            triviaEndGame(id);
+          }
+        }
+      }
+      else {
+        triviaSend(msg.author, void 0, "Only users with the \"Manage Server\" permission can use this command.");
+      }
     }
 
     if(cmd.startsWith("PLAY")) {
@@ -649,35 +681,6 @@ exports.parse = (str, msg) => {
     if(cmd === "CATEGORIES") {
       doTriviaCategories(msg);
     }
-
-    // **Admin Commands** //
-    if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
-      if(cmd === "ADMIN STOP" || cmd === "ADMIN CANCEL") {
-        if(typeof global.game[id] !== "undefined" && global.game[id].inProgress) {
-          let timeout = global.game[id].timeout;
-
-          if(typeof timeout !== "undefined") {
-            var onTimeout = timeout._onTimeout;
-            clearTimeout(timeout);
-
-            // If a round is in progress, display the answers before cancelling the game.
-            if(global.game[id].inRound && typeof timeout !== "undefined") {
-              onTimeout();
-            }
-          }
-
-          // If there's still a game, clear it.
-          if(typeof global.game[id] !== "undefined") {
-            triviaEndGame(id);
-          }
-
-          triviaSend(msg.channel, void 0, {embed: {
-            color: 14164000,
-            description: "Game stopped by admin."
-          }});
-        }
-      }
-    }
   }
 };
 
@@ -709,7 +712,7 @@ async function doTriviaHelp(msg) {
   res = res + ` Currently in ${guildCount} guild${guildCount!==1?"s":""}.`;
 
   // Commands and links
-  res = res + `\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). ${config.databaseURL==="https://opentdb.com"?"Powered by the [Open Trivia Database](https://opentdb.com/).":""}`;
+  res = res + `\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`, \`${config.prefix}stop\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). ${config.databaseURL==="https://opentdb.com"?"Powered by the [Open Trivia Database](https://opentdb.com/).":""}`;
 
   return triviaSend(msg.channel, msg.author, {embed: {
     color: embedCol,
