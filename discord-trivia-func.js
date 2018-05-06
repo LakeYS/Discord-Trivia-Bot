@@ -83,6 +83,18 @@ var triviaSend = function(channel, author, msg, callback, noDelete) {
   });
 };
 
+function isFallbackMode(channel) {
+  if(config["fallback-mode"]) {
+    if(typeof config["fallback-exceptions"] !== "undefined" && config["fallback-exceptions"].indexOf(channel) !== -1) {
+      // Return if specified channel is an exception
+      return;
+    }
+    else {
+      return true;
+    }
+  }
+}
+
 function initCategories() {
   // Initialize the categories
   return new Promise((resolve, reject) => {
@@ -551,7 +563,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 // # trivia.parse #
 exports.parse = (str, msg) => {
   // No games in fallback mode
-  if(config["fallback-mode"]) {
+  if(isFallbackMode(msg.channel.id)) {
     return;
   }
 

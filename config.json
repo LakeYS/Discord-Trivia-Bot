@@ -14,8 +14,11 @@
   "shard-count": "auto",
   "disable-version-check": false,
   "allow-bots": false,
-  "fallback-mode": false,
   "databaseURL": "https://opentdb.com",
   "database-cache-size": 32,
-  "stat-file": "./stats.json"
+  "stat-file": "./stats.json",
+
+  "fallback-mode": false,
+  "fallback-silent": false,
+  "fallback-exceptions": []
 }
