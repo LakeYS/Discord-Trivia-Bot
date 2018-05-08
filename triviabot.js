@@ -668,7 +668,7 @@ exports.parse = (str, msg) => {
           if(typeof category === "undefined") {
             triviaSend(msg.channel, msg.author, {embed: {
               color: 14164000,
-              description: "Unable to find the category you specified.\nType `trivia play` to play in a random category, or type `trivia categories` to see a list of categories."
+              description: "Unable to find the category you specified.\nType `trivia play` to play in random categories, or type `trivia categories` to see a list of categories."
             }});
             return;
           }
