@@ -3,7 +3,7 @@
 mkdir TriviaBot
 cp config.json TriviaBot
 cp package.json TriviaBot
-cp discord-trivia-func.js TriviaBot
+cp triviabot.js TriviaBot
 cp index.js TriviaBot
 cp shard.js TriviaBot
 cp install.bat TriviaBot

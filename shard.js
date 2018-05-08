@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 global.client = new Discord.Client();
-global.Trivia = require("./discord-trivia-func.js");
+global.Trivia = require("./triviabot.js");
 const snekfetch = require("snekfetch");
 
 var config = require("./lib/config.js")(process.argv[2]);
