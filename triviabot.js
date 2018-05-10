@@ -397,6 +397,8 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     "inProgress": 1,
     "inRound": 1,
 
+    "guildId": channel.guild.id,
+
     useReactions,
     "category": typeof global.game[id]!=="undefined"?global.game[id].category:category,
 
@@ -782,7 +784,7 @@ function triviaResumeGame(json, id) {
   }
 
   if(channel === null) {
-    console.warn("Unable to find channel '" + id + "'. Game will not resume.");
+    console.warn(`Unable to find channel '${id}' on shard ${global.client.shard.id}. Game will not resume.`);
     delete global.game[id];
     return;
   }
@@ -889,7 +891,7 @@ exports.exportGame = (file) => {
     console.log("Game exported to " + file);
   }
   catch(err) {
-    console.error("Failed to write to game.json.bak with the following err:\n" + err + "\nMake sure your config file is not read-only or missing.");
+    console.error("Failed to write to game.json.bak with the following err:\n" + err);
   }
 };
 
