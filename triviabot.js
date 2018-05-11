@@ -632,7 +632,7 @@ exports.parse = (str, msg) => {
         }
       }
       else {
-        triviaSend(msg.author, void 0, "Only users with the \"Manage Server\" permission can use this command.");
+        triviaSend(msg.channel, void 0, "Only users with the \"Manage Server\" permission can use this command. Trivia games stop automatically if the game is inactive.");
       }
     }
 
