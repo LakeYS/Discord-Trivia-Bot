@@ -59,9 +59,10 @@ function refreshGameExports() {
   var i = 0;
   var gameExports = {};
 
+  var games;
   while(fs.existsSync("./game."  + i + ".json.bak")) {
     try {
-      var games = JSON.parse(fs.readFileSync("./game."  + i + ".json.bak"));
+      games = JSON.parse(fs.readFileSync("./game."  + i + ".json.bak"));
     } catch(error) {
       console.log(`refreshGameExports - Failed to import file for shard ${i}: ${error.message}`);
       i++;
@@ -78,8 +79,6 @@ function refreshGameExports() {
 
     var shardId;
     // We only need to sample one guild ID in the file to determine its corresponding shard.
-    // WARNING: Beware that manager.totalShards MUST be increased by 1 for the sharding
-    //       formula to return the correct shard.
     if(typeof Object.values(games)[0] !== "undefined") {
       // We'll use Discord's sharding formula to determine the corresponding shard.
       shardId = parseInt((Object.values(games)[0].guildId/2**22) % manager.totalShards);
