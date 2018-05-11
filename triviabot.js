@@ -95,22 +95,7 @@ function isFallbackMode(channel) {
   }
 }
 
-function initCategories() {
-  // Initialize the categories
-  return new Promise((resolve, reject) => {
-    parseURL(config.databaseURL + "/api_category.php")
-    .then((data) => {
-      global.categories = data.trivia_categories;
-      resolve(global.categories);
-    })
-    .catch((err) => {
-      reject(err);
-      return;
-    });
-  });
-}
-
-initCategories()
+OpenTDB.initCategories()
 .catch((err) => {
   console.log("Failed to retrieve category list:\n" + err);
 });
@@ -645,9 +630,9 @@ exports.parse = (str, msg) => {
 
       if(categoryInput.length >= 3 && categoryInput !== "PLAY") {
         new Promise((resolve, reject) => {
-          if(typeof global.categories === "undefined") {
+          if(typeof OpenTDB.categories === "undefined") {
             // Categories are missing, so we'll try to re-initialize them.
-            initCategories()
+            OpenTDB.initCategories()
             .then(() => {
               // Success, we'll continue as normal.
               resolve();
@@ -663,7 +648,7 @@ exports.parse = (str, msg) => {
           }
         })
         .then(() => {
-          var category = global.categories.find((el) => {
+          var category = OpenTDB.categories.find((el) => {
             return el.name.toUpperCase().includes(categoryInput);
           });
 
