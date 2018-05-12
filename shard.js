@@ -53,7 +53,10 @@ if(config["allow-eval"] === true) {
       id = id + ":" + global.client.shard.id;
     }
 
-    if(text.toString() === "exportall\r\n" || text.toString() === "exportall\n") {
+    if(text.toString() === "stop\r\n" || text.toString() === "exit\r\n" || text.toString() === "stop\n" || text.toString() === "exit\n") {
+      global.client.shard.send({evalStr: "doExit();"});
+    }
+    else if(text.toString() === "exportall\r\n" || text.toString() === "exportall\n") {
       console.log("Exporting game for all processes...");
       global.client.shard.broadcastEval("global.Trivia.exportGame();")
       .catch((err) => {

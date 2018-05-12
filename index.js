@@ -175,13 +175,16 @@ manager.on("message", (shard, input) => {
 });
 
 // # Console Functions # //
+function doExit() {
+  manager.broadcastEval("client.destroy();")
+  .then(() => {
+    process.exit();
+  });
+}
 if(config["allow-eval"] === true) {
   process.stdin.on("data", (text) => {
     if(text.toString() === "stop\r\n" || text.toString() === "exit\r\n" || text.toString() === "stop\n" || text.toString() === "exit\n") {
-      manager.broadcastEval("client.destroy();")
-      .then(() => {
-        process.exit();
-      });
+      doExit();
     }
     else {
       console.log("Eval on index:");
