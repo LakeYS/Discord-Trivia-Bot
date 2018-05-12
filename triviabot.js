@@ -25,7 +25,6 @@ function parseURL(url) {
           var json =  JSON.parse(data);
           resolve(json);
         } catch(error) {
-          global.JSONData = data;
           reject(error);
         }
       });
@@ -163,8 +162,8 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
                 });
               }
               else {
-              // This shouldn't ever happen.
-              reject(new Error("Token reset loop."));
+                // This shouldn't ever happen.
+                reject(new Error("Token reset loop."));
               }
             }
             else if(json.response_code !== 0) {
