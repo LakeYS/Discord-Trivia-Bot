@@ -12,7 +12,6 @@ const OpenTDB = require("./lib/opentdb.js")(config);
 
 global.game = {};
 global.questions = [];
-global.tokens = OpenTDB.tokens;
 
 // parseURL
 // Returns a promise. Queries the specified URL and parses the data as JSON.
@@ -177,7 +176,7 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
 
               // Delete the token so we'll generate a new one next time.
               // This is to fix the game in case the cached token is invalid.
-              delete global.tokens[tokenChannel.id];
+              delete OpenTDB.tokens[tokenChannel.id];
             }
             else {
               global.questions = json.results;
@@ -621,15 +620,19 @@ exports.parse = (str, msg) => {
       }
     }
 
-    if(cmd.startsWith("PLAY")) {
-      var categoryInput = cmd.replace("PLAY ","");
-
+    if(cmd.startsWith("PLAY ") || cmd === "PLAY") {
       if(typeof global.game[id] !== "undefined" && global.game[id].inProgress) {
         return;
       }
 
-      if(categoryInput.length >= 3 && categoryInput !== "PLAY") {
+      var categoryInput = cmd.replace("PLAY ","");
+      if(categoryInput !== "PLAY") {
         new Promise((resolve, reject) => {
+          // Automatically give "invalid category" if query is shorter than 3 chars.
+          if(categoryInput.length < 3) {
+            categoryInput = void 0;
+          }
+
           if(typeof OpenTDB.categories === "undefined") {
             // Categories are missing, so we'll try to re-initialize them.
             OpenTDB.initCategories()
