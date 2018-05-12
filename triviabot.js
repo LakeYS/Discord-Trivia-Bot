@@ -706,7 +706,7 @@ async function doTriviaHelp(msg) {
     console.log("Error while parsing help cmd apiCountGlobal: " + err.message);
     apiCountGlobal = "*(unknown)*";
   }
-  res = res + `\nThere are ${apiCountGlobal} total questions.`;
+  res = res + `\nThere are ${apiCountGlobal.toLocaleString()} total questions.`;
 
   // Guild count
   var guildCount;
@@ -718,7 +718,7 @@ async function doTriviaHelp(msg) {
     console.log("Error while parsing help cmd guildCount: " + err.message);
     guildCount = "*(unknown)*";
   }
-  res = res + ` Currently in ${guildCount} guild${guildCount!==1?"s":""}.`;
+  res = res + ` Currently in ${guildCount.toLocaleString()} guild${guildCount!==1?"s":""}.`;
 
   // Commands and links
   res = res + `\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`, \`${config.prefix}stop\`\nBot by Lake Y - [LakeYS.net](http://lakeys.net). ${config.databaseURL==="https://opentdb.com"?"Powered by the [Open Trivia Database](https://opentdb.com/).":""}`;
