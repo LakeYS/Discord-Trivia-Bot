@@ -596,6 +596,7 @@ exports.parse = (str, msg) => {
       if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
         if(typeof global.game[id] !== "undefined" && global.game[id].inProgress) {
           let timeout = global.game[id].timeout;
+          let inRound = global.game[id].inRound;
 
           global.game[id].cancelled = 1;
 
@@ -608,10 +609,17 @@ exports.parse = (str, msg) => {
               onTimeout();
             }
           }
-
           // If there's still a game, clear it.
           if(typeof global.game[id] !== "undefined") {
             triviaEndGame(id);
+          }
+
+          // Display a message if between rounds
+          if(!inRound) {
+            triviaSend(msg.channel, void 0, {embed: {
+              color: 14164000,
+              description: "Game stopped by admin."
+            }});
           }
         }
       }
