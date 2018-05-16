@@ -5,6 +5,48 @@ const snekfetch = require("snekfetch");
 
 var config = require("./lib/config.js")(process.argv[2]);
 
+// # Post to Bot Listings # //
+function postBotStats() {
+  var success = 0;
+
+  // ## bots.discord.pw ## //
+  if(config["bots.discord.pw-token"] && config["bots.discord.pw-token"] !== "optionaltokenhere")
+  {
+    snekfetch.post("https://bots.discord.pw/api/bots/" + global.client.user.id + "/stats")
+      .set("Authorization", config["bots.discord.pw-token"])
+      .send({
+        shard_id: global.client.shard.id,
+        shard_count: global.client.shard.count,
+        server_count: global.client.guilds.size
+      }).catch((err) => {
+        console.log("Error occurred while posting to bots.discord.pw on shard " + global.client.shard.id + ":\n" + err);
+      })
+      .then(() => {
+        success++;
+      });
+
+      console.log(`Shard ${global.client.shard.id} posted to ${success} listings.`);
+  }
+
+  // ## discordbots.org ## //
+  if(config["discordbots.org-token"] && config["discordbots.org-token"] !== "optionaltokenhere")
+  {
+    snekfetch.post("https://discordbots.org/api/bots/" + global.client.user.id + "/stats")
+      .set("Authorization", config["discordbots.org-token"])
+      .send({
+        shard_id: global.client.shard.id,
+        shard_count: global.client.shard.count,
+        server_count: global.client.guilds.size
+      }).catch((err) => {
+        console.log("Error occurred while posting to discordbots.org on shard " + global.client.shard.id + ":\n" + err);
+      })
+      .then(() => {
+        success++;
+      });
+  }
+}
+
+// # Discord Client Login # //
 global.client.login(global.client.token);
 
 global.client.on("ready", () => {
@@ -17,7 +59,7 @@ global.client.on("ready", () => {
 
   global.client.user.setPresence({ game: { name: "Trivia! Type '" + config.prefix + "help' to get started.", type: 0 } });
 
-  global.postBotStats();
+  postBotStats();
 });
 
 global.client.on("disconnect", (event) => {
@@ -84,35 +126,3 @@ if(config["allow-eval"] === true) {
 //global.client.shard.manager.on("message", (msg) => {
 //  console.log(`Message on ${global.client.shard.id}!: ${msg}`);
 //});
-
-// # Post to Bot Listings # //
-global.postBotStats = () => {
-  // ## bots.discord.pw ## //
-  if(config["bots.discord.pw-token"] && config["bots.discord.pw-token"] !== "optionaltokenhere")
-  {
-    snekfetch.post("https://bots.discord.pw/api/bots/" + global.client.user.id + "/stats")
-      .set("Authorization", config["bots.discord.pw-token"])
-      .send({
-        shard_id: global.client.shard.id,
-        shard_count: global.client.shard.count,
-        server_count: global.client.guilds.size
-      }).catch((err) => {
-        console.log("Error occurred while posting to bots.discord.pw on shard " + global.client.shard.id + ":\n" + err);
-        console.log("Error occurred while posting to bots.discord.pw on shard " + global.client.shard.id + ":\n" + err);
-      });
-  }
-
-  // ## discordbots.org ## //
-  if(config["discordbots.org-token"] && config["discordbots.org-token"] !== "optionaltokenhere")
-  {
-    snekfetch.post("https://discordbots.org/api/bots/" + global.client.user.id + "/stats")
-      .set("Authorization", config["discordbots.org-token"])
-      .send({
-        shard_id: global.client.shard.id,
-        shard_count: global.client.shard.count,
-        server_count: global.client.guilds.size
-      }).catch((err) => {
-        console.log("Error occurred while posting to discordbots.org on shard " + global.client.shard.id + ":\n" + err);
-      });
-  }
-};
