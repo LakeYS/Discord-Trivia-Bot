@@ -7,8 +7,6 @@ var config = require("./lib/config.js")(process.argv[2]);
 
 // # Post to Bot Listings # //
 function postBotStats() {
-  var success = 0;
-
   // ## bots.discord.pw ## //
   if(config["bots.discord.pw-token"] && config["bots.discord.pw-token"] !== "optionaltokenhere")
   {
@@ -20,12 +18,7 @@ function postBotStats() {
         server_count: global.client.guilds.size
       }).catch((err) => {
         console.log("Error occurred while posting to bots.discord.pw on shard " + global.client.shard.id + ":\n" + err);
-      })
-      .then(() => {
-        success++;
       });
-
-      console.log(`Shard ${global.client.shard.id} posted to ${success} listings.`);
   }
 
   // ## discordbots.org ## //
@@ -39,9 +32,6 @@ function postBotStats() {
         server_count: global.client.guilds.size
       }).catch((err) => {
         console.log("Error occurred while posting to discordbots.org on shard " + global.client.shard.id + ":\n" + err);
-      })
-      .then(() => {
-        success++;
       });
   }
 }
