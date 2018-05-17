@@ -8,31 +8,46 @@ var config = require("./lib/config.js")(process.argv[2]);
 // # Post to Bot Listings # //
 function postBotStats() {
   // ## bots.discord.pw ## //
-  if(config["bots.discord.pw-token"] && config["bots.discord.pw-token"] !== "optionaltokenhere")
-  {
+  if(config["bots.discord.pw-token"] && config["bots.discord.pw-token"] !== "optionaltokenhere") {
     snekfetch.post("https://bots.discord.pw/api/bots/" + global.client.user.id + "/stats")
-      .set("Authorization", config["bots.discord.pw-token"])
-      .send({
-        shard_id: global.client.shard.id,
-        shard_count: global.client.shard.count,
-        server_count: global.client.guilds.size
-      }).catch((err) => {
-        console.log("Error occurred while posting to bots.discord.pw on shard " + global.client.shard.id + ":\n" + err);
-      });
+    .set("Authorization", config["bots.discord.pw-token"])
+    .send({
+      shard_id: global.client.shard.id,
+      shard_count: global.client.shard.count,
+      server_count: global.client.guilds.size
+    }).catch((err) => {
+      console.log("Error occurred while posting to bots.discord.pw on shard " + global.client.shard.id + ":\n" + err);
+    });
   }
 
   // ## discordbots.org ## //
-  if(config["discordbots.org-token"] && config["discordbots.org-token"] !== "optionaltokenhere")
-  {
+  if(config["discordbots.org-token"] && config["discordbots.org-token"] !== "optionaltokenhere") {
     snekfetch.post("https://discordbots.org/api/bots/" + global.client.user.id + "/stats")
-      .set("Authorization", config["discordbots.org-token"])
+    .set("Authorization", config["discordbots.org-token"])
+    .send({
+      shard_id: global.client.shard.id,
+      shard_count: global.client.shard.count,
+      server_count: global.client.guilds.size
+    }).catch((err) => {
+      console.log("Error occurred while posting to discordbots.org on shard " + global.client.shard.id + ":\n" + err);
+    });
+  }
+
+  // ## botlist.space ## //
+  // This site only takes total shard count, so we only need to post using the last shard.
+  if(global.client.shard.id === global.client.shard.count-1 && config["botlist.space-token"] && config["botlist.space-token"] !== "optionaltokenhere") {
+    global.client.shard.fetchClientValues("guilds.size")
+    .then((countArray) => {
+      var guildCount = countArray.reduce((prev, val) => prev + val, 0);
+
+      snekfetch.post("https://botlist.space/api/bots/" + global.client.user.id + "/")
+      .set("Authorization", config["botlist.space-token"])
       .send({
-        shard_id: global.client.shard.id,
-        shard_count: global.client.shard.count,
-        server_count: global.client.guilds.size
+        server_count: guildCount
       }).catch((err) => {
-        console.log("Error occurred while posting to discordbots.org on shard " + global.client.shard.id + ":\n" + err);
+        console.log("Error occurred while posting to botlist.space:\n" + err);
       });
+    });
   }
 }
 
