@@ -298,11 +298,22 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
   }
 
   var gameEndedMsg = "";
+  var doAutoEnd = 0;
   if(game[id].cancelled) {
-  gameEndedMsg = "\n\n*Game ended by admin.*";
+    gameEndedMsg = "\n\n*Game ended by admin.*";
   }
   else if(game[id].participants.length === 0) {
-    gameEndedMsg = "\n\n*Game ended.*";
+    // If there were no participants...
+    if(game[id].emptyRoundCount+1 >= config["rounds-end-after"]) {
+      doAutoEnd = 1;
+      gameEndedMsg = "\n\n*Game ended.*";
+    } else {
+      game[id].emptyRoundCount++;
+    }
+  } else {
+    // If there are participants and the game wasn't force-cancelled...
+    game[id].emptyRoundCount = 0;
+    doAutoEnd = 0;
   }
 
   triviaSend(channel, void 0, {embed: {
@@ -310,9 +321,8 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
     description: "**" + letters[game[id].correct_id] + ":** " + entities.decode(game[id].answer) + "\n\n" + correct_users_str + gameEndedMsg
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
-      var participants = game[id].participants;
       // NOTE: Participants check is repeated below in doTriviaGame
-      if(!err && participants.length !== 0) {
+      if(!err && !doAutoEnd) {
         game[id].timeout = setTimeout(() => {
           if(config["auto-delete-msgs"]) {
             msg.delete()
@@ -376,6 +386,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 
   // ## Game ##
   // Define the variables for the new game.
+  // NOTE: This is run between rounds, plan accordingly.
   game[id] = {
     "inProgress": 1,
     "inRound": 1,
@@ -390,7 +401,8 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     "correct_names": [],
     "correct_times": [], // Not implemented
 
-    "prev_participants": typeof game[id]!=="undefined"?game[id].participants:null
+    "prev_participants": typeof game[id]!=="undefined"?game[id].participants:null,
+    "emptyRoundCount": typeof game[id]!=="undefined"?game[id].emptyRoundCount:null
   };
 
   getTriviaQuestion(0, game[id].category, channel)
