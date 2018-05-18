@@ -592,8 +592,8 @@ exports.parse = (str, msg) => {
     var cmd = str.replace(prefix, "");
 
     if(cmd === "STOP" || cmd === "CANCEL" || cmd === "ADMIN STOP" || cmd === "ADMIN CANCEL") {
-      if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
-        if(typeof game[id] !== "undefined" && game[id].inProgress) {
+      if(typeof game[id] !== "undefined" && game[id].inProgress) {
+        if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
           let timeout = game[id].timeout;
           let inRound = game[id].inRound;
 
@@ -621,9 +621,9 @@ exports.parse = (str, msg) => {
             }});
           }
         }
-      }
-      else {
-        triviaSend(msg.channel, void 0, "Only users with the \"Manage Server\" permission can use this command. Trivia games stop automatically if the game is inactive.");
+        else {
+          triviaSend(msg.channel, void 0, "Trivia games will end automatically if the game is inactive for more than one round. Only users with the \"Manage Server\" permission can force-end a game.");
+        }
       }
     }
 
