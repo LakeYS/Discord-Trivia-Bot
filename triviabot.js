@@ -392,7 +392,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     "inProgress": 1,
     "inRound": 1,
 
-    "guildId": channel.guild.id,
+    "guildId": channel.type==="dm"?void 0:channel.guild.id,
 
     useReactions,
     "category": typeof game[id]!=="undefined"?game[id].category:category,
@@ -889,6 +889,13 @@ exports.exportGame = (file) => {
     if(typeof json[key].timeout !== "undefined") {
       delete json[key].timeout;
       delete json[key].message;
+    }
+
+    // If there is no guild ID, the game is a DM game.
+    // Due to a conflict with the current import system, these are excluded for now.
+    if(typeof json[key].guildId === "undefined") {
+      delete json[key];
+      return;
     }
 
     // Never export a game if it has already been exported before.

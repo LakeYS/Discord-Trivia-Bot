@@ -69,8 +69,6 @@ function refreshGameExports() {
       continue;
     }
 
-    // TODO: fill empty values so that the empty files are re-written
-
     //if(Object.keys(games).length === 0) {
     //  // File is empty, ignore it and move on.
     //  i++;
@@ -80,6 +78,11 @@ function refreshGameExports() {
     var shardId;
     // We only need to sample one guild ID in the file to determine its corresponding shard.
     if(typeof Object.values(games)[0] !== "undefined") {
+      if(manager.totalShards === "auto") {
+        console.error("ERROR: manager.totalShards must be a number in order to import properly.");
+        return;
+      }
+
       // We'll use Discord's sharding formula to determine the corresponding shard.
       shardId = parseInt((Object.values(games)[0].guildId/2**22) % manager.totalShards);
       console.log(`Contents of file "game.${i}.json.bak" belong to shard ${shardId}`);
@@ -121,8 +124,6 @@ function refreshGameExports() {
 }
 
 // # ShardingManager # //
-// Refresh exports before spawning the shards
-refreshGameExports();
 manager.spawn()
 .catch((err) => {
   var warning = "";
@@ -138,6 +139,11 @@ manager.spawn()
 
 manager.on("launch", (shard) => {
   console.log(`Successfully launched shard ${shard.id} of ${manager.totalShards-1}`);
+  if(shard.id === 0) {
+    // Refresh exports before the first shard spawns.
+    // This is done on launch because it requires totalShards to be a number.
+    refreshGameExports();
+  }
 });
 
 // ## Manager Messages ## //
