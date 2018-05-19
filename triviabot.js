@@ -606,7 +606,7 @@ exports.parse = (str, msg) => {
 
     if(cmd === "STOP" || cmd === "CANCEL" || cmd === "ADMIN STOP" || cmd === "ADMIN CANCEL") {
       if(typeof game[id] !== "undefined" && game[id].inProgress) {
-        if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD") && config["disable-admin-commands"] !== true) {
+        if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm") && config["disable-admin-commands"] !== true) {
           let timeout = game[id].timeout;
           let inRound = game[id].inRound;
 
