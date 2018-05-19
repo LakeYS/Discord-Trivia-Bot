@@ -379,7 +379,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
   // ## Permission Checks ##
   var useReactions = 0;
 
-  if(channel.type !== "dm" && typeof author !== "undefined") {
+  if(channel.type !== "dm") {
     if(config["use-reactions"]) {
       useReactions = 1;
     }
@@ -454,7 +454,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 
     triviaSend(channel, author, {embed: {
       color: game[id].color,
-      description: "*" + categoryString + "*\n**" + entities.decode(question.question) + "**\n" + answerString + (!scheduled&&!useReactions?`\nType a letter to answer! The answer will be revealed in ${config["round-length"]/1000} seconds.`:"")
+      description: "*" + categoryString + "*\n**" + entities.decode(question.question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer! ":"" + `\nThe answer will be revealed in ${config["round-length"]/1000} seconds.`)
     }}, (msg, err) => {
       if(err) {
         game[id].timeout = void 0;
