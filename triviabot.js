@@ -452,9 +452,20 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 
     var categoryString = entities.decode(question.category);
 
+    var infoString = "";
+    if(!scheduled) {
+      infoString = "\n";
+
+      if(!useReactions) {
+        infoString = `${infoString}Type a letter to answer! `;
+      }
+
+      infoString = `${infoString}The answer will be revealed in ${config["round-length"]/1000} seconds.`;
+    }
+
     triviaSend(channel, author, {embed: {
       color: game[id].color,
-      description: "*" + categoryString + "*\n**" + entities.decode(question.question) + "**\n" + answerString + (!scheduled&&!useReactions?"\nType a letter to answer! ":"" + `\nThe answer will be revealed in ${config["round-length"]/1000} seconds.`)
+      description: "*" + categoryString + "*\n**" + entities.decode(question.question) + "**\n" + answerString + infoString
     }}, (msg, err) => {
       if(err) {
         game[id].timeout = void 0;

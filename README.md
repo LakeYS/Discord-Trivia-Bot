@@ -25,7 +25,7 @@ For support, questions, and comments, you can join the Discord server or contact
 (Subject to change)
 - Dynamic scoring and statistics for each player (weekly and overall stats, etc.)
 - Custom questions and categories, configurable by server administrators.
-- Vote to play in any specific category, question type, or difficulty level. (Also configurable by administractors)
+- Vote to play in any specific category, question type, or difficulty level. (Also configurable by administrators)
 - Reaction-based trivia. (Users click reaction buttons rather then typing their answers)
 
 # How to Install
