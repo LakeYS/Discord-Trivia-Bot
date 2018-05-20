@@ -69,12 +69,6 @@ function refreshGameExports() {
       continue;
     }
 
-    //if(Object.keys(games).length === 0) {
-    //  // File is empty, ignore it and move on.
-    //  i++;
-    //  continue;
-    //}
-
     var shardId;
     // We only need to sample one guild ID in the file to determine its corresponding shard.
     if(typeof Object.values(games)[0] !== "undefined") {
@@ -85,6 +79,10 @@ function refreshGameExports() {
 
       // We'll use Discord's sharding formula to determine the corresponding shard.
       shardId = parseInt((Object.values(games)[0].guildId/2**22) % manager.totalShards);
+      if(isNaN(shardId)) {
+        console.error(`ERROR: Shard ID (${Object.values(games)[0].guildId/2**22} % ${manager.totalShards}) is NaN, defaulting to ${i}`);
+        shardId = i;
+      }
       console.log(`Contents of file "game.${i}.json.bak" belong to shard ${shardId}`);
     }
     else {
