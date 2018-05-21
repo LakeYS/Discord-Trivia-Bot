@@ -272,28 +272,28 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
 
   var correct_users_str = "**Correct answers:**\n";
 
-  if(game[id].correct_names.length === 0) {
+  if(game[id].correctNames.length === 0) {
     correct_users_str = correct_users_str + "Nobody!";
   }
   else {
     if(game[id].participants.length === 1) {
       correct_users_str = "Correct!"; // Only one player overall, simply say "Correct!"
     }
-    else if(game[id].correct_names.length > 10) {
+    else if(game[id].correctNames.length > 10) {
       // More than 10 correct players, player names are separated by comma to save space.
       var comma = ", ";
-      for(var i = 0; i <= game[id].correct_names.length-1; i++) {
-        if(i === game[id].correct_names.length-1) {
+      for(var i = 0; i <= game[id].correctNames.length-1; i++) {
+        if(i === game[id].correctNames.length-1) {
           comma = "";
         }
 
-        correct_users_str = correct_users_str + game[id].correct_names[i] + comma;
+        correct_users_str = correct_users_str + game[id].correctNames[i] + comma;
       }
     }
     else {
       // Less than 10 correct players, all names are on their own line.
-      for(var i2 = 0; i2 <= game[id].correct_names.length-1; i2++) {
-        correct_users_str = correct_users_str + game[id].correct_names[i2] + "\n";
+      for(var i2 = 0; i2 <= game[id].correctNames.length-1; i2++) {
+        correct_users_str = correct_users_str + game[id].correctNames[i2] + "\n";
       }
     }
   }
@@ -398,11 +398,11 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     "category": typeof game[id]!=="undefined"?game[id].category:category,
 
     "participants": [],
-    "correct_users": [],
-    "correct_names": [],
-    "correct_times": [], // Not implemented
+    "correctUsers": [],
+    "correctNames": [],
+    "correctTimes": [], // Not implemented
 
-    "prev_participants": typeof game[id]!=="undefined"?game[id].participants:null,
+    "prevParticipants": typeof game[id]!=="undefined"?game[id].participants:null,
     "emptyRoundCount": typeof game[id]!=="undefined"?game[id].emptyRoundCount:null
   };
 
@@ -595,8 +595,8 @@ exports.parse = (str, msg) => {
     // Make sure they haven't already submitted an answer
     if(game[id].inProgress && game[id].participants.includes(msg.author.id) === false) {
       if(str === letters[game[id].correct_id]) {
-        game[id].correct_users.push(msg.author.id);
-        game[id].correct_names.push(msg.author.username);
+        game[id].correctUsers.push(msg.author.id);
+        game[id].correctNames.push(msg.author.username);
       }
 
       if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
@@ -878,8 +878,8 @@ exports.reactionAdd = function(reaction, user) {
     if(game[id].inProgress && game[id].participants.includes(user.id) === false) {
       if(str === letters[game[id].correct_id]) {
         // Only counts if this is the first time they type an answer
-        game[id].correct_users.push(user.id);
-        game[id].correct_names.push(user.username);
+        game[id].correctUsers.push(user.id);
+        game[id].correctNames.push(user.username);
       }
 
       if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
