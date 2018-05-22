@@ -2,6 +2,7 @@
   "token": "yourtokenhere",
   "bots.discord.pw-token": "optionaltokenhere",
   "discordbots.org-token": "optionaltokenhere",
+  "botlist.space-token": "optionaltokenhere",
 
   "disable-admin-commands": false,
   "use-reactions": false,

@@ -270,14 +270,14 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
 
   game[id].inRound = 0;
 
-  var correct_users_str = "**Correct answers:**\n";
+  var correctUsersStr = "**Correct answers:**\n";
 
   if(game[id].correctNames.length === 0) {
-    correct_users_str = correct_users_str + "Nobody!";
+    correctUsersStr = correctUsersStr + "Nobody!";
   }
   else {
     if(game[id].participants.length === 1) {
-      correct_users_str = "Correct!"; // Only one player overall, simply say "Correct!"
+      correctUsersStr = "Correct!"; // Only one player overall, simply say "Correct!"
     }
     else if(game[id].correctNames.length > 10) {
       // More than 10 correct players, player names are separated by comma to save space.
@@ -287,13 +287,13 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
           comma = "";
         }
 
-        correct_users_str = correct_users_str + game[id].correctNames[i] + comma;
+        correctUsersStr = correctUsersStr + game[id].correctNames[i] + comma;
       }
     }
     else {
       // Less than 10 correct players, all names are on their own line.
       for(var i2 = 0; i2 <= game[id].correctNames.length-1; i2++) {
-        correct_users_str = correct_users_str + game[id].correctNames[i2] + "\n";
+        correctUsersStr = correctUsersStr + game[id].correctNames[i2] + "\n";
       }
     }
   }
@@ -319,7 +319,7 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
 
   triviaSend(channel, void 0, {embed: {
     color: game[id].color,
-    description: "**" + letters[game[id].correct_id] + ":** " + entities.decode(game[id].answer) + "\n\n" + correct_users_str + gameEndedMsg
+    description: "**" + letters[game[id].correctId] + ":** " + entities.decode(game[id].answer) + "\n\n" + correctUsersStr + gameEndedMsg
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
       // NOTE: Participants check is repeated below in doTriviaGame
@@ -400,7 +400,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     "participants": [],
     "correctUsers": [],
     "correctNames": [],
-    "correctTimes": [], // Not implemented
+    "scores": {},
 
     "prevParticipants": typeof game[id]!=="undefined"?game[id].participants:null,
     "emptyRoundCount": typeof game[id]!=="undefined"?game[id].emptyRoundCount:null
@@ -444,7 +444,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     var answerString = "";
     for(var i = 0; i <= answers.length-1; i++) {
       if(answers[i] === question.correct_answer) {
-        game[id].correct_id = i;
+        game[id].correctId = i;
       }
 
       answerString = answerString + "**" + letters[i] + ":** " + entities.decode(answers[i]) + "\n";
@@ -594,7 +594,7 @@ exports.parse = (str, msg) => {
 
     // Make sure they haven't already submitted an answer
     if(game[id].inProgress && game[id].participants.includes(msg.author.id) === false) {
-      if(str === letters[game[id].correct_id]) {
+      if(str === letters[game[id].correctId]) {
         game[id].correctUsers.push(msg.author.id);
         game[id].correctNames.push(msg.author.username);
       }
@@ -876,7 +876,7 @@ exports.reactionAdd = function(reaction, user) {
 
     ////////// **Note that the following is copied and modified from above.**
     if(game[id].inProgress && game[id].participants.includes(user.id) === false) {
-      if(str === letters[game[id].correct_id]) {
+      if(str === letters[game[id].correctId]) {
         // Only counts if this is the first time they type an answer
         game[id].correctUsers.push(user.id);
         game[id].correctNames.push(user.username);
