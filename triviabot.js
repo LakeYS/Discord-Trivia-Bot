@@ -3,8 +3,10 @@ const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
 
-const pjson = require("./package.json");
 var config = require("./lib/config.js")(process.argv[2]);
+
+const footerString = `Commands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`, \`${config.prefix}stop\`
+*Bot by [Lake Y](http://lakeys.net). ${config.databaseURL==="https://opentdb.com"?`Powered by discord.js ${require("./package.json").dependencies["discord.js"].replace("^","")} and the [Open Trivia Database](https://opentdb.com/).*`:""}`;
 
 const letters = ["A", "B", "C", "D"];
 const embedCol = config["beta-mode"]?8609529:27903;
@@ -745,7 +747,7 @@ async function doTriviaHelp(msg) {
   res = res + ` Currently in ${guildCount.toLocaleString()} guild${guildCount!==1?"s":""}.`;
 
   // Commands and links
-  res = `${res}\n\nCommands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`, \`${config.prefix}stop\`\n*Bot by [Lake Y](http://lakeys.net). ${config.databaseURL==="https://opentdb.com"?`Powered by discord.js ${pjson.dependencies["discord.js"].replace("^","")} and the [Open Trivia Database](https://opentdb.com/).*`:""}`;
+  res = `${res}\n\n${footerString}`;
 
   return triviaSend(msg.channel, msg.author, {embed: {
     color: embedCol,

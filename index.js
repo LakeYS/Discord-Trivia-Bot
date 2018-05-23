@@ -2,14 +2,43 @@ const pjson = require("./package.json");
 
 // The spacing of the artwork will mess up with double-digit version numbers (such as '1.10.0')
 // process.stdout.columns returns "undefined" in certain situations
+var strSide = ["", "", ""];
+var strBottom = "";
+
 if(process.stdout.columns > 61) {
-  console.log("                 ########\n            ##################\n         ###      #######     ###\n       ###    ###############   ###\n     ###    ####################  ###\n    ###     #########    ########  ###\n   ###     ########      ########   ###\n  ###       #####       ########     ###\n ###                  ##########      ### \x1b[7m TriviaBot Version " + pjson.version + "   \x1b[0m\n ###               ###########        ### \x1b[7m Copyright (c) 2018 Lake Y \x1b[0m\n ###              #########           ### \x1b[7m http://lakeys.net         \x1b[0m\n  ###             ########           ###\n   ###            ######            ###\n    ###            ####            ###\n      ###         ######         ###\n        ###      #######       ###\n          #####    ####    #####\n               ############\n                  ######");
+  strSide[0] = `\x1b[7m TriviaBot Version ${pjson.version}   \x1b[0m`;
+  strSide[1] = "\x1b[7m Copyright (c) 2018 Lake Y \x1b[0m";
+  strSide[2] = "\x1b[7m http://lakeys.net         \x1b[0m";
 }
 else {
-  console.log("                 ########\n            ##################\n         ###      #######     ###\n       ###    ###############   ###\n     ###    ####################  ###\n    ###     #########    ########  ###\n   ###     ########      ########   ###\n  ###       #####       ########     ###\n ###                  ##########      ###\n ###               ###########        ###\n ###              #########           ###\n  ###             ########           ###\n   ###            ######            ###\n    ###            ####            ###\n      ###         ######         ###\n        ###      #######       ###\n          #####    ####    #####\n               ############\n                  ######\n\x1b[7m TriviaBot Version " + pjson.version + "   \x1b[0m\n\x1b[7m Copyright (c) 2018 Lake Y \x1b[0m\n\x1b[7m http://lakeys.net         \x1b[0m");
+  // Break characters are used at the ends to avoid unwanted extra lines.
+  strBottom = `\n\x1b[7m TriviaBot Version ${pjson.version}   \x1b[0m\
+  \n\x1b[7m Copyright (c) 2018 Lake Y \x1b[0m\
+  \n\x1b[7m http://lakeys.net         \x1b[0m`;
 }
 
-process.title = "TriviaBot " + pjson.version;
+console.log(`\
+                 ########
+            ##################
+         ###      #######     ###
+       ###    ###############   ###
+     ###    ####################  ###
+    ###     #########    ########  ###
+   ###     ########      ########   ###
+  ###       #####       ########     ###
+ ###                  ##########      ### ${strSide[0]}
+ ###               ###########        ### ${strSide[1]}
+ ###              #########           ### ${strSide[2]}
+  ###             ########           ###
+   ###            ######            ###
+    ###            ####            ###
+      ###         ######         ###
+        ###      #######       ###
+          #####    ####    #####
+               ############
+                  ######${strBottom}`);
+
+process.title = `TriviaBot ${pjson.version}`;
 
 // # Initialize Config Args # //
 var configFile;
@@ -44,7 +73,7 @@ try {
     // If an error occurs, don't overwrite the old stats.
     config["stat-file"] = config["stat-file"] + ".1";
     stats = {};
-    console.log("Failed to load stats file, stats will be saved to " + config["stat-file"] + ". Received error:\n" + error);
+    console.log(`Failed to load stats file, stats will be saved to ${config["stat-file"]}. Received error:\n${error}`);
   }
 }
 
@@ -116,7 +145,7 @@ function refreshGameExports() {
       console.log(`Exported ${Object.keys(gameExports[key]).length} game(s) to ${file}`);
     }
     catch(err) {
-      console.error("Failed to rewrite to game.json.bak with the following err:\n" + err);
+      console.error(`Failed to rewrite to game.json.bak with the following err:\n ${err}`);
     }
   });
 }
