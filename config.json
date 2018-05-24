@@ -3,6 +3,8 @@
   "bots.discord.pw-token": "optionaltokenhere",
   "discordbots.org-token": "optionaltokenhere",
   "botlist.space-token": "optionaltokenhere",
+  "discordbots.co.uk-token": "optionaltokenhere",
+  "botsfordiscord.com-token": "optionaltokenhere",
 
   "disable-admin-commands": false,
   "use-reactions": false,

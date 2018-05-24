@@ -66,6 +66,23 @@ function postBotStats() {
       });
     });
   }
+
+  // ## botsfordiscord.com ## //
+  // Same as above, only post once.
+  if(global.client.shard.id === global.client.shard.count-1 && config["botsfordiscord.com-token"] && config["botsfordiscord.com-token"] !== "optionaltokenhere") {
+    global.client.shard.fetchClientValues("guilds.size")
+    .then((countArray) => {
+      var guildCount = countArray.reduce((prev, val) => prev + val, 0);
+
+      snekfetch.post("https://botsfordiscord.com/api/v1/bots/" + global.client.user.id + "/")
+      .set("Authorization", config["botsfordiscord.com-token"])
+      .send({
+        server_count: guildCount
+      }).catch((err) => {
+        console.log("Error occurred while posting to botsfordiscord.com:\n" + err);
+      });
+    });
+  }
 }
 
 // # Discord Client Login # //
