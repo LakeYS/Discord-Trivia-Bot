@@ -49,6 +49,23 @@ function postBotStats() {
       });
     });
   }
+
+  // ## discordbots.co.uk ## //
+  // Same as above, only post once.
+  if(global.client.shard.id === global.client.shard.count-1 && config["discordbots.co.uk-token"] && config["discordbots.co.uk-token"] !== "optionaltokenhere") {
+    global.client.shard.fetchClientValues("guilds.size")
+    .then((countArray) => {
+      var guildCount = countArray.reduce((prev, val) => prev + val, 0);
+
+      snekfetch.post("https://discordbots.co.uk/api/v1/bots/" + global.client.user.id + "/")
+      .set("Authorization", config["discordbots.co.uk-token"])
+      .send({
+        server_count: guildCount
+      }).catch((err) => {
+        console.log("Error occurred while posting to discordbots.co.uk:\n" + err);
+      });
+    });
+  }
 }
 
 // # Discord Client Login # //
@@ -56,7 +73,7 @@ global.client.login(global.client.token);
 
 global.client.on("ready", () => {
   console.log("Shard " + global.client.shard.id + " connected to\x1b[1m " + global.client.guilds.size + " \x1b[0mserver" + (global.client.guilds.size===1?"":"s") + ".");
-  
+
   process.title = `Shard ${global.client.shard.id} - TriviaBot`;
 
   if(global.client.user.avatar == null) {
