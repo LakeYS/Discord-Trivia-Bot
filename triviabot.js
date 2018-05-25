@@ -56,11 +56,11 @@ var triviaSend = function(channel, author, msg, callback, noDelete) {
           description: "TriviaBot is unable to send messages in this channel:\n" + err.message.replace("DiscordAPIError: ","") + str
         }})
         .catch(() => {
-          console.warn("Failed to send message to user " + author.id + ". (DM failed)");
+          console.warn(`Failed to send message to user ${author.id}. (DM failed)`);
         });
       }
       else {
-        console.warn("Failed to send message to user " + author.id + ". (already in DM)");
+        console.warn(`Failed to send message to user ${author.id}. (already in DM)`);
       }
     }
     else {
@@ -98,7 +98,7 @@ function isFallbackMode(channel) {
 
 OpenTDB.initCategories()
 .catch((err) => {
-  console.log("Failed to retrieve category list:\n" + err);
+  console.log(`Failed to retrieve category list:\n ${err}`);
 });
 
 // getTriviaQuestion
@@ -120,7 +120,7 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
         args += "?amount=1&category=" + category;
       }
       else {
-        args += "?amount=" + config["database-cache-size"];
+        args += `?amount=${config["database-cache-size"]}`;
       }
 
       // Get a token if one is requested.
@@ -135,7 +135,7 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
         .then((token) => {
           if(typeof token !== "undefined" && typeof  category !== "undefined") {
             // Set the token and continue.
-            args += "&token=" + token;
+            args += `&token=${token}`;
           }
 
           parseURL(config.databaseURL + "/api.php" + args)
@@ -159,8 +159,8 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
                   });
                 })
                 .catch((err) => {
-                  console.log("Failed to reset token - " + err.message);
-                  reject(new Error("Failed to reset token - " + err.message));
+                  console.log(`Failed to reset token - ${err.message}`);
+                  reject(new Error(`Failed to reset token - ${err.message}`));
                   return;
                 });
               }
@@ -233,7 +233,7 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
 // Initialize the question cache
 getTriviaQuestion(1)
 .catch((err) => {
-  console.log("An error occurred while attempting to initialize the question cache:\n" + err);
+  console.log(`An error occurred while attempting to initialize the question cache:\n ${err}`);
 });
 
 // Function to end trivia games
@@ -330,7 +330,7 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
           if(config["auto-delete-msgs"]) {
             msg.delete()
             .catch((err) => {
-              console.log("Failed to delete message - " + err.message);
+              console.log(`Failed to delete message - ${err.message}`);
             });
           }
           doTriviaGame(id, channel, void 0, 1);
@@ -359,18 +359,18 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     if(!scheduled && typeof  game[id].timeout !== "undefined" && game[id].timeout._called === true) {
       // The timeout should never be stuck on 'called' during a round.
       // Dump the game in the console, clear it, and continue.
-      console.error("ERROR: Unscheduled game '" + id + "' timeout appears to be stuck in the 'called' state. Cancelling game...");
+      console.error(`ERROR: Unscheduled game '${id}' timeout appears to be stuck in the 'called' state. Cancelling game...`);
       triviaEndGame(id);
     }
     else if(typeof game[id].timeout !== "undefined" && game[id].timeout._idleTimeout === -1) {
       // This check may not be working, have yet to see it catch any games.
       // The timeout reads -1. (Can occur if clearTimeout is called without deleting.)
       // Dump the game in the console, clear it, and continue.
-      console.error("ERROR: Game '" + id + "' timeout reads -1. Game will be cancelled.");
+      console.error(`ERROR: Game '${id}' timeout reads -1. Game will be cancelled.`);
       triviaEndGame(id);
     }
     else if(typeof game[id].answer === "undefined") {
-      console.error("ERROR: Game '" + id + "' is missing information. Game will be cancelled.");
+      console.error(`ERROR: Game '${id}' is missing information. Game will be cancelled.`);
       triviaEndGame(id);
     }
     else if(!scheduled && game[id].inProgress === 1) {
@@ -502,13 +502,13 @@ function doTriviaGame(id, channel, author, scheduled, category) {
           var error = 0; // This will be set to 1 if something goes wrong.
           msg.react("🇦")
           .catch((err) => {
-            console.log("Failed to add reaction A: " + err);
+            console.log(`Failed to add reaction A: ${err}`);
             error = 1;
           })
           .then(() => {
             msg.react("🇧")
             .catch((err) => {
-              console.log("Failed to add reaction B: " + err);
+              console.log(`Failed to add reaction B: ${err}`);
               error = 1;
             })
             .then(() => {
@@ -517,13 +517,13 @@ function doTriviaGame(id, channel, author, scheduled, category) {
               if(typeof game[id] == "undefined" || !game[id].isTrueFalse) {
                 msg.react("🇨")
                 .catch((err) => {
-                  console.log("Failed to add reaction C: " + err);
+                  console.log(`Failed to add reaction C: ${err}`);
                   error = 1;
                 })
                 .then(() => {
                   msg.react("🇩")
                   .catch((err) => {
-                    console.log("Failed to add reaction D: " + err);
+                    console.log(`Failed to add reaction D: ${err}`);
                     error = 1;
                   });
                 });
@@ -562,10 +562,10 @@ function doTriviaGame(id, channel, author, scheduled, category) {
   .catch((err) => {
     triviaSend(channel, author, {embed: {
       color: 14164000,
-      description: "An error occurred while attempting to query the trivia database:\n*" + err.message + "*"
+      description: `An error occurred while attempting to query the trivia database:\n*${err.message}*`
     }});
 
-    console.log("Database query error: " + err.message);
+    console.log(`Database query error: ${err.message}`);
 
     triviaEndGame(id);
   });
@@ -702,9 +702,9 @@ exports.parse = (str, msg) => {
         .catch((err) => {
           triviaSend(msg.channel, msg.author, {embed: {
             color: 14164000,
-            description: "Failed to retrieve the category list:\n" + err
+            description: `Failed to retrieve the category list:\n${err}`
           }});
-          console.log("Failed to retrieve category list:\n" + err);
+          console.log(`Failed to retrieve category list:\n${err}`);
           return;
         });
       }
@@ -729,7 +729,7 @@ async function doTriviaHelp(msg) {
     apiCountGlobal = json.overall.total_num_of_verified_questions;
   }
   catch(err) {
-    console.log("Error while parsing help cmd apiCountGlobal: " + err.message);
+    console.log(`Error while parsing help cmd apiCountGlobal: ${err.message}`);
     apiCountGlobal = "*(unknown)*";
   }
   res = res + `\nThere are ${apiCountGlobal.toLocaleString()} total questions.`;
@@ -741,7 +741,7 @@ async function doTriviaHelp(msg) {
     guildCount = guildCountArray.reduce((prev, val) => prev + val, 0);
   }
   catch(err) {
-    console.log("Error while parsing help cmd guildCount: " + err.message);
+    console.log(`Error while parsing help cmd guildCount: ${err.message}`);
     guildCount = "*(unknown)*";
   }
   res = res + ` Currently in ${guildCount.toLocaleString()} guild${guildCount!==1?"s":""}.`;
@@ -765,9 +765,9 @@ async function doTriviaCategories(msg) {
     // List was queried successfully, but the question was not received.
     triviaSend(msg.channel, msg.author, {embed: {
       color: 14164000,
-      description: "Failed to query category counts.\n" + err
+      description: `Failed to query category counts.\n${err}`
     }});
-    console.log("Failed to retrieve category counts for 'trivia categories'.\n" + err);
+    console.log(`Failed to retrieve category counts for 'trivia categories'.\n${err}`);
     return;
   }
 
@@ -921,10 +921,10 @@ exports.exportGame = (file) => {
   file = file || "./game."  + global.client.shard.id + ".json.bak";
   try {
     fs.writeFileSync(file, JSON.stringify(json, null, "\t"), "utf8");
-    console.log("Game exported to " + file);
+    console.log(`Game exported to ${file}`);
   }
   catch(err) {
-    console.error("Failed to write to game.json.bak with the following err:\n" + err);
+    console.error(`Failed to write to game.json.bak with the following err:\n${err}`);
   }
 };
 
@@ -980,7 +980,7 @@ process.stdin.on("data", (text) => {
   }
 
   if(text.toString() === "import\r\n") {
-    exports.importGame("./game." + global.client.shard.id + ".json.bak");
+    exports.importGame(`"./game.${global.client.shard.id}.json.bak`);
   }
 });
 
