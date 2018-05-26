@@ -395,6 +395,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     "inRound": 1,
 
     "guildId": channel.type==="dm"?void 0:channel.guild.id,
+    "userId": channel.type!=="dm"?void 0:channel.recipient.id,
 
     useReactions,
     "category": typeof game[id]!=="undefined"?game[id].category:category,
@@ -797,7 +798,22 @@ async function doTriviaCategories(msg) {
 // triviaResumeGame
 // Restores a game that does not have an active timeout.
 function triviaResumeGame(json, id) {
-  var channel = global.client.channels.find("id", id);
+  var channel;
+  if(typeof json.userId !== "undefined") {
+    channel = global.client.users.find("id", json.userId);
+
+    // Re-create the dmChannel object.
+    if(channel !== null) {
+      channel.createDM()
+      .then((dmChannel) => {
+        channel = dmChannel;
+      });
+    }
+
+  }
+  else {
+    channel = global.client.channels.find("id", id);
+  }
 
   if(!json.inProgress) {
     delete game[id];
@@ -905,10 +921,12 @@ exports.exportGame = (file) => {
     }
 
     // If there is no guild ID, the game is a DM game.
-    // Due to a conflict with the current import system, these are excluded for now.
+    // DM games are re-assigned to make sure they show up last.
+    // This ensures that the first key is always a non-DM game if possible.
     if(typeof json[key].guildId === "undefined") {
+      var replace = json[key];
       delete json[key];
-      return;
+      json[key] = replace;
     }
 
     // Never export a game if it has already been exported before.
