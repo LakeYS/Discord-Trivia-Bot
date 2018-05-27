@@ -649,7 +649,7 @@ exports.parse = (str, msg) => {
           }
         }
         else {
-          triviaSend(msg.channel, void 0, "Trivia games will end automatically if the game is inactive for more than one round. Only users with the \"Manage Server\" permission can force-end a game.");
+          triviaSend(msg.channel, void 0, `Trivia games will end automatically if the game is inactive for more than ${config["rounds-end-after"]-1} round${config["rounds-end-after"]-1===1?"":"s"}. Only users with the "Manage Server" permission can force-end a game.`);
         }
       }
     }
