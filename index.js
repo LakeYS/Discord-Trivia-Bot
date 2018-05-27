@@ -61,6 +61,13 @@ const { ShardingManager } = require("discord.js");
 var token = config.token;
 const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: config["shard-count"], token, shardArgs: [configFile] });
 
+// # Custom Package Loading # //
+if(typeof config["additional-packages"] !== "undefined") {
+  config["additional-packages"].forEach((key) => {
+    require(key)(config["additional-config-passthrough"]?config:void 0, config["additional-manager-passthrough"]?manager:void 0);
+  });
+}
+
 // # Stats # //
 var stats;
 try {

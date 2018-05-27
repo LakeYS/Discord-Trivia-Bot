@@ -23,6 +23,10 @@
   "database-cache-size": 32,
   "stat-file": "./stats.json",
 
+  "additional-config-passthrough": true,
+  "additional-manager-passthrough": true,
+  "additional-packages": [],
+  "beta-mode": false,
   "fallback-mode": false,
   "fallback-silent": false,
   "fallback-exceptions": []
