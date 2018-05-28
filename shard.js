@@ -128,6 +128,12 @@ global.client.on("messageReactionAdd", (reaction, user) => {
   global.Trivia.reactionAdd(reaction, user);
 });
 
+if(config["beta-mode"]) {
+  global.client.on("guildCreate", (guild) => {
+    console.log("Guild authorized: " + guild.id)
+  });
+}
+
 // # Console Functions # //
 if(config["allow-eval"] === true) {
   process.stdin.on("data", (text) => {
