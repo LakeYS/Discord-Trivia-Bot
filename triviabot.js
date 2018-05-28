@@ -131,7 +131,10 @@ function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
           // Something went wrong. We'll display a warning but we won't cancel the game.
           console.log(error);
           console.log("Failed to generate token for channel " + tokenChannel.id + ": " + error.message);
-          triviaSend(tokenChannel, void 0, "Failed to generate a session token for this channel. You may see repeating questions in this category.\n(" + error.message + ")");
+          triviaSend(tokenChannel, void 0, {embed: {
+            color: 14164000,
+            description: `Error: Failed to generate a session token for this channel. You may see repeating questions.\n(${error.message})`
+          }});
         })
         .then((token) => {
           if(typeof token !== "undefined" && typeof  category !== "undefined") {
