@@ -85,6 +85,33 @@ function postBotStats() {
   }
 }
 
+// # Beta/Private Mode # //
+// TODO: Add limit to how many guilds a single user can authorize
+// TODO: Check periodically/when commands are entered
+function guildBetaCheck(guild) {
+  var authorized = guild.members.find((member) => {
+    var toReturn;
+    config["beta-authorized-users"].forEach((id) => {
+      toReturn = id.toString() === member.id.toString();
+    });
+    return toReturn;
+  });
+
+  if(authorized === null) {
+    console.log(`Guild ${guild.id} (${guild.name}) REJECTED`);
+    guild.leave();
+  }
+  else {
+    console.log(`Guild ${guild.id} (${guild.name}) AUTHORIZED by user ${authorized.user.id} (${authorized.user.tag})`);
+  }
+}
+
+if(config["beta-mode"]) {
+  global.client.on("guildCreate", (guild) => {
+    guildBetaCheck(guild);
+  });
+}
+
 // # Discord Client Login # //
 global.client.login(global.client.token);
 
@@ -93,12 +120,18 @@ global.client.on("ready", () => {
 
   process.title = `Shard ${global.client.shard.id} - TriviaBot`;
 
-  if(global.client.user.avatar == null) {
+  if(global.client.user.avatar === null) {
     console.log("Set profile image to profile.png");
     global.client.user.setAvatar("./profile.png");
   }
 
   global.client.user.setPresence({ game: { name: "Trivia! Type '" + config.prefix + "help' to get started.", type: 0 } });
+
+  if(config["beta-mode"]) {
+    global.client.guilds.forEach((guild) => {
+      guildBetaCheck(guild);
+    });
+  }
 
   postBotStats();
 });
@@ -127,12 +160,6 @@ global.client.on("message", (msg) => {
 global.client.on("messageReactionAdd", (reaction, user) => {
   global.Trivia.reactionAdd(reaction, user);
 });
-
-if(config["beta-mode"]) {
-  global.client.on("guildCreate", (guild) => {
-    console.log("Guild authorized: " + guild.id)
-  });
-}
 
 // # Console Functions # //
 if(config["allow-eval"] === true) {

@@ -26,6 +26,7 @@
   "additional-config-passthrough": true,
   "additional-manager-passthrough": true,
   "additional-packages": [],
+  "beta-authorized-users": [],
   "beta-mode": false,
   "fallback-mode": false,
   "fallback-silent": false,
