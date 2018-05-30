@@ -27,6 +27,7 @@
   "additional-manager-passthrough": true,
   "additional-packages": [],
   "beta-authorized-users": [],
+  "beta-authorized-count": 2,
   "beta-mode": false,
   "fallback-mode": false,
   "fallback-silent": false,

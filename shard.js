@@ -86,8 +86,7 @@ function postBotStats() {
 }
 
 // # Beta/Private Mode # //
-// TODO: Add limit to how many guilds a single user can authorize
-// TODO: Check periodically/when commands are entered
+var authorizedCounts = {};
 function guildBetaCheck(guild) {
   var authorized = guild.members.find((member) => {
     var toReturn;
@@ -97,12 +96,17 @@ function guildBetaCheck(guild) {
     return toReturn;
   });
 
-  if(authorized === null) {
+  if(authorized !== null && typeof authorizedCounts[authorized.user.id] === "undefined") {
+    authorizedCounts[authorized.user.id] = 0;
+  }
+
+  if(authorized === null || authorizedCounts[authorized.user.id] >= config["beta-authorized-count"]) {
     console.log(`Guild ${guild.id} (${guild.name}) REJECTED`);
     guild.leave();
   }
   else {
     console.log(`Guild ${guild.id} (${guild.name}) AUTHORIZED by user ${authorized.user.id} (${authorized.user.tag})`);
+    authorizedCounts[authorized.user.id]++;
   }
 }
 
