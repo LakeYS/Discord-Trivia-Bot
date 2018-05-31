@@ -88,6 +88,10 @@ function postBotStats() {
 // # Beta/Private Mode # //
 var authorizedCounts = {};
 function guildBetaCheck(guild) {
+  if(typeof config.betaAuthorizedRefresh === "function"){
+    config.betaAuthorizedRefresh();
+  }
+
   var authorized = guild.members.find((member) => {
     var toReturn;
     config["beta-authorized-users"].forEach((id) => {
