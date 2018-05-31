@@ -30,6 +30,7 @@ function parseURL(url) {
           resolve(json);
         } catch(error) {
           reject(error);
+          console.log(data);
         }
       });
     }).on("error", (error) => {
@@ -109,13 +110,12 @@ OpenTDB.initCategories()
 async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
   var length = global.questions.length;
   var toReturn;
+  var args = "";
 
   // To keep the question response quick, the bot always stays one question ahead.
   // This way, we're never waiting for OpenTDB to respond.
   if(typeof length === "undefined" || length < 2 || typeof category !== "undefined") {
     // We need a new question, either due to an empty cache or because we need a specific category.
-    var args = "";
-
     // TODO: Check the cache for a question in the category
     if(typeof category !== "undefined") {
       args += "?amount=1&category=" + category;
@@ -143,42 +143,43 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
         // Set the token and continue.
         args += `&token=${token}`;
       }
+    }
 
-      // TODO: Error test the following await var:
-      var json = await parseURL(config.databaseURL + "/api.php" + args);
-      if(json.response_code === 4) {
-        // Token empty, reset it and start over.
-        if(tokenRetry !== 1) {
-          try {
-            await OpenTDB.resetToken(token);
-          } catch(error) {
-            console.log(`Failed to reset token - ${error.message}`);
-            throw new Error(`Failed to reset token - ${error.message}`);
-          }
-          triviaSend(tokenChannel, void 0, "You've played all of the questions in this category! Questions will start to repeat.");
-
-          // Start over now that we have a token.
-          return await getTriviaQuestion(initial, category, tokenChannel, 1);
+    var json = await parseURL(config.databaseURL + "/api.php" + args);
+    if(json.response_code === 4 && typeof token !== "undefined") {
+      // Token empty, reset it and start over.
+      if(tokenRetry !== 1) {
+        try {
+          await OpenTDB.resetToken(token);
+        } catch(error) {
+          console.log(`Failed to reset token - ${error.message}`);
+          throw new Error(`Failed to reset token - ${error.message}`);
         }
-        else {
-          // This shouldn't ever happen.
-          throw new Error("Token reset loop.");
-        }
-      }
-      else if(json.response_code !== 0) {
-        console.log("Received error from OpenTDB.");
-        console.log(json);
+        triviaSend(tokenChannel, void 0, "You've played all of the questions in this category! Questions will start to repeat.");
 
-        // Delete the token so we'll generate a new one next time.
-        // This is to fix the game in case the cached token is invalid.
-        delete OpenTDB.tokens[tokenChannel.id];
-
-        // Author is passed through; triviaSend will handle it if author is undefined.
-        throw new Error(`Failed to query the trivia database with error code ${json.response_code} (${OpenTDB.responses[json.response_code]})`);
+        // Start over now that we have a token.
+        return await getTriviaQuestion(initial, category, tokenChannel, 1);
       }
       else {
-        global.questions = json.results;
+        // This shouldn't ever happen.
+        throw new Error("Token reset loop.");
       }
+    }
+    else if(json.response_code !== 0) {
+      console.log("Received error from OpenTDB.");
+      console.log(json);
+
+      // Delete the token so we'll generate a new one next time.
+      // This is to fix the game in case the cached token is invalid.
+      if(typeof token !== undefined) {
+        delete OpenTDB.tokens[tokenChannel.id];
+      }
+
+      // Author is passed through; triviaSend will handle it if author is undefined.
+      throw new Error(`Failed to query the trivia database with error code ${json.response_code} (${OpenTDB.responses[json.response_code]})`);
+    }
+    else {
+      global.questions = json.results;
     }
   }
 
@@ -377,7 +378,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
     "emptyRoundCount": typeof game[id]!=="undefined"?game[id].emptyRoundCount:null
   };
 
-  getTriviaQuestion(0, game[id].category, channel)
+  getTriviaQuestion(0, game[id].category, scheduled?void 0:channel)
   .then((question) => {
     // Make sure the game wasn't cancelled while querying OpenTDB.
     if(!game[id]) {
