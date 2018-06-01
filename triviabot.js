@@ -171,7 +171,7 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
 
       // Delete the token so we'll generate a new one next time.
       // This is to fix the game in case the cached token is invalid.
-      if(typeof token !== undefined) {
+      if(typeof token !== "undefined") {
         delete OpenTDB.tokens[tokenChannel.id];
       }
 
