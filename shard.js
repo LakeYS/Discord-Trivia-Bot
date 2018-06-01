@@ -87,9 +87,9 @@ function postBotStats() {
 
 // # Beta/Private Mode # //
 var authorizedCounts = {};
-function guildBetaCheck(guild) {
+async function guildBetaCheck(guild) {
   if(typeof config.betaAuthorizedRefresh === "function"){
-    config.betaAuthorizedRefresh();
+    await config.betaAuthorizedRefresh();
   }
 
   var authorized = guild.members.find((member) => {
