@@ -127,14 +127,10 @@ function refreshGameExports() {
     }
 
     // Initialize the shard in preparation for exporting
-    if(typeof gameExports[shardId] === "undefined") {
-      gameExports[shardId] = {};
-    }
+    gameExports[shardId] = gameExports[shardId] || {};
 
     // Define the old shard if it does not exist yet.
-    if(typeof gameExports[i] === "undefined") {
-      gameExports[i] = {};
-    }
+    gameExports[i] = gameExports[i] || {};
 
     Object.keys(games).forEach((key) => {
       gameExports[shardId][key] = games[key];
@@ -191,9 +187,7 @@ manager.on("message", (shard, input) => {
     // Example: client.shard.send({stats: { test: 123 }});
     if(config["fallback-mode"] !== true) {
       Object.keys(input.stats).forEach((stat) => {
-        if(typeof stats == "undefined") {
-          stats = {};
-        }
+        stats = stats || {};
 
         if(typeof stats[stat] !== "number") {
           // This stat doesn't exist, initialize it.
