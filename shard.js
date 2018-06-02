@@ -85,11 +85,32 @@ function postBotStats() {
   }
 }
 
+// # Custom Package Loading # //
+if(typeof config["additional-packages-shard"] !== "undefined") {
+  config["additional-packages-shard"].forEach((key) => {
+    require(key)(config["additional-config-passthrough"]?config:void 0);
+  });
+}
+
 // # Beta/Private Mode # //
+// NOTE: Not compatible with multiple shards if using external authentication.
 var authorizedCounts = {};
-async function guildBetaCheck(guild) {
-  if(typeof config.betaAuthorizedRefresh === "function"){
-    await config.betaAuthorizedRefresh();
+async function guildBetaCheck(guild, skip) {
+  if(typeof config.betaAuthorizedRefresh === "function") {
+    if(!skip) {
+      // If initializing, we only need to refresh once.
+      await config.betaAuthorizedRefresh();
+    }
+  }
+  else if(config["beta-require-external-function"]) {
+    console.error("ERROR: Unable to refresh beta authorized list. Skipping auth process.");
+
+    // Auto-reject guilds that were just added in the last 60s.
+    if(new Date().getTime()-60000 < guild.joinedAt.getTime()) {
+      console.log(`Guild ${guild.id} (${guild.name}) REJECTED (Unable to authenticate, auto-rejected)`);
+      guild.leave();
+    }
+    return;
   }
 
   var authorized = guild.members.find((member) => {
@@ -111,6 +132,10 @@ async function guildBetaCheck(guild) {
   else {
     console.log(`Guild ${guild.id} (${guild.name}) AUTHORIZED by user ${authorized.user.id} (${authorized.user.tag})`);
     authorizedCounts[authorized.user.id]++;
+
+    if(typeof config.betaOnAuthorized === "function"){
+      config.betaOnAuthorized(authorized.user.id);
+    }
   }
 }
 
@@ -119,6 +144,8 @@ if(config["beta-mode"]) {
     guildBetaCheck(guild);
   });
 }
+
+// TODO: Fix authorizedCounts not decreasing when bot is kicked from a guild
 
 // # Discord Client Login # //
 global.client.login(global.client.token);
@@ -136,8 +163,10 @@ global.client.on("ready", () => {
   global.client.user.setPresence({ game: { name: "Trivia! Type '" + config.prefix + "help' to get started.", type: 0 } });
 
   if(config["beta-mode"]) {
+    var skip = false;
     global.client.guilds.forEach((guild) => {
-      guildBetaCheck(guild);
+      guildBetaCheck(guild, skip);
+      skip = true;
     });
   }
 
@@ -205,6 +234,3 @@ if(config["allow-eval"] === true) {
     }
   });
 }
-//global.client.shard.manager.on("message", (msg) => {
-//  console.log(`Message on ${global.client.shard.id}!: ${msg}`);
-//});
