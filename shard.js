@@ -141,7 +141,9 @@ async function guildBetaCheck(guild, skip) {
 
 if(config["beta-mode"]) {
   global.client.on("guildCreate", (guild) => {
-    guildBetaCheck(guild);
+    setTimeout(() => {
+      guildBetaCheck(guild);
+    }, 1000);
   });
 }
 
