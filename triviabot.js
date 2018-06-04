@@ -467,53 +467,8 @@ function doTriviaGame(id, channel, author, scheduled, category) {
         game[id].message = msg;
 
         // Add reaction emojis if configured to do so.
-        // Blahhh. Can this be simplified?
         if(useReactions) {
-          var error = 0; // This will be set to 1 if something goes wrong.
-          msg.react("🇦")
-          .catch((err) => {
-            console.log(`Failed to add reaction A: ${err}`);
-            error = 1;
-          })
-          .then(() => {
-            msg.react("🇧")
-            .catch((err) => {
-              console.log(`Failed to add reaction B: ${err}`);
-              error = 1;
-            })
-            .then(() => {
-              // Only add C and D if it isn't a true/false question.
-              // Reactions will stop here if the game has since been cancelled.
-              if(typeof game[id] == "undefined" || !game[id].isTrueFalse) {
-                msg.react("🇨")
-                .catch((err) => {
-                  console.log(`Failed to add reaction C: ${err}`);
-                  error = 1;
-                })
-                .then(() => {
-                  msg.react("🇩")
-                  .catch((err) => {
-                    console.log(`Failed to add reaction D: ${err}`);
-                    error = 1;
-                  });
-                });
-              }
-
-              process.nextTick(() => {
-                if(error) {
-                  triviaSend(channel, author, {embed: {
-                    color: 14164000,
-                    description: "Error: Failed to add reaction. This may be due to the channel's configuration.\n\nMake sure that the bot has the \"Use Reactions\" and \"Read Message History\" permissions or disable reaction mode to play."
-                  }});
-
-                  msg.delete();
-                  triviaEndGame(id);
-                  return;
-                }
-              });
-
-            });
-          });
+          addAnswerReactions(msg, id);
         }
 
         if(typeof game[id] !== "undefined") {
@@ -539,6 +494,29 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 
     triviaEndGame(id);
   });
+}
+
+async function addAnswerReactions(msg, id) {
+  try {
+    await msg.react("🇦");
+    await msg.react("🇧");
+
+    if(typeof game[id] == "undefined" || !game[id].isTrueFalse) {
+      await msg.react("🇨");
+      await msg.react("🇩");
+    }
+  } catch (error) {
+    console.log(`Failed to add reaction: ${error}`);
+
+    triviaSend(msg.channel, void 0, {embed: {
+      color: 14164000,
+      description: "Error: Failed to add reaction. This may be due to the channel's configuration.\n\nMake sure that the bot has the \"Use Reactions\" and \"Read Message History\" permissions or disable reaction mode to play."
+    }});
+
+    msg.delete();
+    triviaEndGame(id);
+    return;
+  }
 }
 
 // # trivia.parse #
