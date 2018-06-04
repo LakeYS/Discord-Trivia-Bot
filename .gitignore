@@ -18,6 +18,7 @@ update*.sh
 TriviaBot/*
 triviabot.tar.gz
 TriviaBot.zip
+guilds*.json
 
 # Windows image file caches
 Thumbs.db
