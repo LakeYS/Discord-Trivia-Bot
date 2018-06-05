@@ -2,19 +2,21 @@ const pjson = require("./package.json");
 
 // The spacing of the artwork will mess up with double-digit version numbers (such as '1.10.0')
 // process.stdout.columns returns "undefined" in certain situations
+var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version} `,
+                 "\x1b[7m Copyright (c) 2018 Lake Y \x1b[0m",
+                 "\x1b[7m http://lakeys.net         \x1b[0m" ];
+
+// Adjust length of the first line
+strArray[0] = strArray[0].padEnd(31," ") + "\x1b[0m";
+
 var strSide = ["", "", ""];
 var strBottom = "";
 
 if(process.stdout.columns > 61) {
-  strSide[0] = `\x1b[7m TriviaBot Version ${pjson.version}   \x1b[0m`;
-  strSide[1] = "\x1b[7m Copyright (c) 2018 Lake Y \x1b[0m";
-  strSide[2] = "\x1b[7m http://lakeys.net         \x1b[0m";
+  strSide = strArray;
 }
 else {
-  // Break characters are used at the ends to avoid unwanted extra lines.
-  strBottom = `\n\x1b[7m TriviaBot Version ${pjson.version}   \x1b[0m\
-  \n\x1b[7m Copyright (c) 2018 Lake Y \x1b[0m\
-  \n\x1b[7m http://lakeys.net         \x1b[0m`;
+  strBottom = `\n${strArray[0]}\n${strArray[1]}\n${strArray[2]}`;
 }
 
 console.log(`\
