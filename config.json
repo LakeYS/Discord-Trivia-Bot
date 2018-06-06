@@ -29,6 +29,7 @@
   "additional-packages-shard": [],
   "beta-authorized-users": [],
   "beta-authorized-count": 2,
+  "beta-reset-timer": 900000,
   "beta-require-external-function": false,
   "beta-mode": false,
   "fallback-mode": false,
