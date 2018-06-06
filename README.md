@@ -4,14 +4,14 @@
 [![Discord Bots](https://discordbots.org/api/widget/servers/337654994461261825.png?noavatar=true)](https://discordbots.org/bot/337654994461261825)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2f6bcffc370943d4954606feb26e5873)](https://app.codacy.com/app/Lake/Discord-Trivia-Bot?utm_source=github.com&utm_medium=referral&utm_content=LakeYS/Discord-Trivia-Bot&utm_campaign=badger)
 
-# Trivia Bot
-TriviaBot brings multiplayer trivia games to your Discord server! With over 3,000 questions and 24 categories, TriviaBot offers endless trivia fun.
-[Click here to invite the bot to your server.](https://discordapp.com/oauth2/authorize?client_id=337654994461261825&scope=bot)
+# TriviaBot
+TriviaBot brings multiplayer trivia games to your Discord server! With over 3,000 questions and 24 categories, TriviaBot offers endless multiplayer trivia fun.
+
+[__Invite TriviaBot to a server__](https://discordapp.com/oauth2/authorize?client_id=337654994461261825&scope=bot) | [View update progress on Trello](https://trello.com/b/8QQm4ZPe/triviabot) | [Join the Discord](https://discord.gg/s3vCQba)
+------------ | ------------- | ------------- 
 
 # Development and Support
 For support, questions, and comments, you can join the Discord server or contact me directly at contact@LakeYS.net. You can also [submit an issue](https://github.com/LakeYS/Discord-Trivia-Bot/issues/new) for bugs and support.
-
-**[Join the Discord](https://discord.gg/s3vCQba)**
 
 # Implemented Features
 - Access to a complete database of over 3,000 categorized, multiple-choice trivia questions. (Thanks to [OpenTDB](https://opentdb.com))
