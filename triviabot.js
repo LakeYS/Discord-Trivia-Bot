@@ -530,7 +530,7 @@ exports.parse = (str, msg) => {
   var id = msg.channel.id;
 
   // Other bots can't use commands
-  if(msg.author.bot === 1 && config["allow-bots"] !== true) {
+  if(msg.author.bot === true && config["allow-bots"] !== true) {
     return;
   }
 
