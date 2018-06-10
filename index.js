@@ -234,7 +234,7 @@ if(config["allow-eval"] === true) {
 }
 
 // # Beta Mode Reset # //
-if(config["beta-mode"]) {
+if(config["beta-mode"] && config["beta-reset-timer"] !== -1) {
   console.log(`This application will automatically reset for updates every ${config["beta-reset-timer"]/60000} minutes.`);
   setTimeout(async function() {
     await manager.broadcastEval("console.log(`Exporting game for shard ${global.client.shard.id}`); global.Trivia.exportGame();");
