@@ -33,54 +33,47 @@ function postBotStats() {
     });
   }
 
-  // ## botlist.space ## //
-  // This site only takes total shard count, so we only need to post using the last shard.
-  if(global.client.shard.id === global.client.shard.count-1 && config["botlist.space-token"] && config["botlist.space-token"] !== "optionaltokenhere") {
+  // The following sites only need the total shard count, so we'll only post using the last shard.
+  if(global.client.shard.id === global.client.shard.count-1) {
     global.client.shard.fetchClientValues("guilds.size")
     .then((countArray) => {
       var guildCount = countArray.reduce((prev, val) => prev + val, 0);
 
-      snekfetch.post("https://botlist.space/api/bots/" + global.client.user.id + "/")
-      .set("Authorization", config["botlist.space-token"])
-      .send({
-        server_count: guildCount
-      }).catch((err) => {
-        console.log("Error occurred while posting to botlist.space:\n" + err);
-      });
-    });
-  }
+      // ## botlist.space ## //
+      // This site only takes total shard count, so we only need to post using the last shard.
+      if(config["botlist.space-token"] && config["botlist.space-token"] !== "optionaltokenhere") {
+        snekfetch.post("https://botlist.space/api/bots/" + global.client.user.id + "/")
+        .set("Authorization", config["botlist.space-token"])
+        .send({
+          server_count: guildCount
+        }).catch((err) => {
+          console.log("Error occurred while posting to botlist.space:\n" + err);
+        });
+      }
 
-  // ## discordbots.co.uk ## //
-  // Same as above, only post once.
-  if(global.client.shard.id === global.client.shard.count-1 && config["discordbots.co.uk-token"] && config["discordbots.co.uk-token"] !== "optionaltokenhere") {
-    global.client.shard.fetchClientValues("guilds.size")
-    .then((countArray) => {
-      var guildCount = countArray.reduce((prev, val) => prev + val, 0);
+      // ## discordbots.co.uk ## //
+      // Same as above, only post once.
+      if(config["discordbots.co.uk-token"] && config["discordbots.co.uk-token"] !== "optionaltokenhere") {
+        snekfetch.post("https://discordbots.co.uk/api/v1/bots/" + global.client.user.id + "/")
+        .set("Authorization", config["discordbots.co.uk-token"])
+        .send({
+          server_count: guildCount
+        }).catch((err) => {
+          console.log("Error occurred while posting to discordbots.co.uk:\n" + err);
+        });
+      }
 
-      snekfetch.post("https://discordbots.co.uk/api/v1/bots/" + global.client.user.id + "/")
-      .set("Authorization", config["discordbots.co.uk-token"])
-      .send({
-        server_count: guildCount
-      }).catch((err) => {
-        console.log("Error occurred while posting to discordbots.co.uk:\n" + err);
-      });
-    });
-  }
-
-  // ## botsfordiscord.com ## //
-  // Same as above, only post once.
-  if(global.client.shard.id === global.client.shard.count-1 && config["botsfordiscord.com-token"] && config["botsfordiscord.com-token"] !== "optionaltokenhere") {
-    global.client.shard.fetchClientValues("guilds.size")
-    .then((countArray) => {
-      var guildCount = countArray.reduce((prev, val) => prev + val, 0);
-
-      snekfetch.post("https://botsfordiscord.com/api/v1/bots/" + global.client.user.id + "/")
-      .set("Authorization", config["botsfordiscord.com-token"])
-      .send({
-        server_count: guildCount
-      }).catch((err) => {
-        console.log("Error occurred while posting to botsfordiscord.com:\n" + err);
-      });
+      // ## botsfordiscord.com ## //
+      // Same as above, only post once.
+      if(config["botsfordiscord.com-token"] && config["botsfordiscord.com-token"] !== "optionaltokenhere") {
+        snekfetch.post("https://botsfordiscord.com/api/v1/bots/" + global.client.user.id + "/")
+        .set("Authorization", config["botsfordiscord.com-token"])
+        .send({
+          server_count: guildCount
+        }).catch((err) => {
+          console.log("Error occurred while posting to botsfordiscord.com:\n" + err);
+        });
+      }
     });
   }
 }
@@ -203,11 +196,6 @@ global.client.on("messageReactionAdd", (reaction, user) => {
 // # Console Functions # //
 if(config["allow-eval"] === true) {
   process.stdin.on("data", (text) => {
-    var id = process.pid;
-    if(global.client.shard !== null) {
-      id = id + ":" + global.client.shard.id;
-    }
-
     if(text.toString() === "stop\r\n" || text.toString() === "exit\r\n" || text.toString() === "stop\n" || text.toString() === "exit\n") {
       global.client.shard.send({evalStr: "doExit();"});
     }
@@ -226,6 +214,10 @@ if(config["allow-eval"] === true) {
       });
     }
     else {
+      var id = process.pid;
+      if(global.client.shard !== null) {
+        id = id + ":" + global.client.shard.id;
+      }
       global.client.shard.broadcastEval(text.toString())
       .then((res) => {
         console.log("#" + id + ": " + res);
