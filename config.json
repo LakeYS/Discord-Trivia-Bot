@@ -4,6 +4,7 @@
   "discordbots.org-token": "optionaltokenhere",
   "botlist.space-token": "optionaltokenhere",
   "botsfordiscord.com-token": "optionaltokenhere",
+  "discordbot.world-token": "optionaltokenhere",
 
   "disable-admin-commands": false,
   "use-reactions": false,

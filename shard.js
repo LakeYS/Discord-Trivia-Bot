@@ -40,7 +40,6 @@ function postBotStats() {
       var guildCount = countArray.reduce((prev, val) => prev + val, 0);
 
       // ## botlist.space ## //
-      // This site only takes total shard count, so we only need to post using the last shard.
       if(config["botlist.space-token"] && config["botlist.space-token"] !== "optionaltokenhere") {
         snekfetch.post("https://botlist.space/api/bots/" + global.client.user.id + "/")
         .set("Authorization", config["botlist.space-token"])
@@ -52,7 +51,6 @@ function postBotStats() {
       }
 
       // ## discordbots.co.uk ## //
-      // Same as above, only post once.
       if(config["discordbots.co.uk-token"] && config["discordbots.co.uk-token"] !== "optionaltokenhere") {
         snekfetch.post("https://discordbots.co.uk/api/v1/bots/" + global.client.user.id + "/")
         .set("Authorization", config["discordbots.co.uk-token"])
@@ -64,7 +62,6 @@ function postBotStats() {
       }
 
       // ## botsfordiscord.com ## //
-      // Same as above, only post once.
       if(config["botsfordiscord.com-token"] && config["botsfordiscord.com-token"] !== "optionaltokenhere") {
         snekfetch.post("https://botsfordiscord.com/api/v1/bots/" + global.client.user.id + "/")
         .set("Authorization", config["botsfordiscord.com-token"])
@@ -72,6 +69,17 @@ function postBotStats() {
           server_count: guildCount
         }).catch((err) => {
           console.log("Error occurred while posting to botsfordiscord.com:\n" + err);
+        });
+      }
+
+      // ## discordbot.world ## //
+      if(config["discordbot.world-token"] && config["discordbot.world.com-token"] !== "optionaltokenhere") {
+        snekfetch.post("https://discordbot.world/api/bot/" + global.client.user.id + "/stats")
+        .set("Authorization", config["discordbot.world-token"])
+        .send({
+          server_count: guildCount
+        }).catch((err) => {
+          console.log("Error occurred while posting to discordbot.world:\n" + err);
         });
       }
     });
