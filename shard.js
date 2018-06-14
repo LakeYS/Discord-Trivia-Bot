@@ -214,6 +214,16 @@ if(config["allow-eval"] === true) {
         console.error(err);
       });
     }
+    else if(text.toString() === "exportexit\r\n" || text.toString() === "exportexit\n") {
+      console.log("Exporting game for all processes...");
+      global.client.shard.broadcastEval("global.Trivia.exportGame();")
+      .catch((err) => {
+        console.error(err);
+      })
+      .then(() => {
+        global.client.shard.send({evalStr: "doExit();"});
+      });
+    }
     else if(text.toString() === "importall\r\n" || text.toString() === "importall\n") {
       console.log("Importing game for all processes...");
       global.client.shard.broadcastEval("global.Trivia.importGame(\"./game.\" + global.client.shard.id + \".json.bak\");")
