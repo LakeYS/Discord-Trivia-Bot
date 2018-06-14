@@ -161,6 +161,10 @@ manager.spawn()
 
   if(err.message.includes("401 Unauthorized")) {
     warning += "\nPlease double-check your token and try again.";
+
+    if(token.length < 50) {
+      warning = "\nIt appears that you have entered a client secret or other invalid string. Please ensure that you have entered a token and try again.";
+    }
   }
 
   console.error("Discord client login failed - " + err + warning);
