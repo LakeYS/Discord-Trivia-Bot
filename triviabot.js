@@ -448,7 +448,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
         game[id].timeout = void 0;
         triviaEndGame(id);
       }
-      else if(typeof msg !== "undefined" && typeof game[id] !== undefined) {
+      else if(typeof msg !== "undefined" && typeof game[id] !== "undefined") {
 
         if(game[id].category) {
           // Stat: Rounds played - custom
