@@ -244,7 +244,12 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
   var correctUsersStr = "**Correct answers:**\n";
 
   if(game[id].correctNames.length === 0) {
-    correctUsersStr = correctUsersStr + "Nobody!";
+    if(game[id].participants.length === 1) {
+      correctUsersStr = "Incorrect!";
+    }
+    else {
+      correctUsersStr = correctUsersStr + "Nobody!";
+    }
   }
   else {
     if(game[id].participants.length === 1) {
