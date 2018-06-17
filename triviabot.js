@@ -524,58 +524,9 @@ async function addAnswerReactions(msg, id) {
   }
 }
 
-// # trivia.parse #
-exports.parse = (str, msg) => {
-  // No games in fallback mode
-  if(isFallbackMode(msg.channel.id)) {
-    return;
-  }
-
-  // Str is always uppercase
-  var id = msg.channel.id;
-
-  // Other bots can't use commands
-  if(msg.author.bot === true && config["allow-bots"] !== true) {
-    return;
-  }
-
-  var prefix = config.prefix.toUpperCase();
-
-  // ## Answers ##
-  // Check for letters if not using reactions
-  ////////// **Note that this is copied below for reaction mode.**
-  if(typeof game[id] !== "undefined" && !game[id].useReactions) {
-    // inProgress is always true when a game is active, even between rounds.
-
-    // Make sure they haven't already submitted an answer
-    if(game[id].inProgress && game[id].participants.includes(msg.author.id) === false) {
-      if(str === letters[game[id].correctId]) {
-        game[id].correctUsers.push(msg.author.id);
-        game[id].correctNames.push(msg.author.username);
-      }
-
-      if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
-        game[id].participants.push(msg.author.id);
-      }
-    }
-  }
-
-  // ## Help Command Parser ##
-  if(str === prefix + "HELP" || str.includes("<@" + global.client.user.id + ">")) {
-    doTriviaHelp(msg);
-  }
-
-  // ## Normal Commands ##
-  // If the string starts with the specified prefix (converted to uppercase)
-  if(str.startsWith(prefix)) {
-    var cmd = str.replace(prefix, "");
-    parseCommand(msg, cmd);
-  }
-};
-
 function parseCommand(msg, cmd) {
   var id = msg.channel.id;
-  
+
   if(cmd === "STOP" || cmd === "CANCEL" || cmd === "ADMIN STOP" || cmd === "ADMIN CANCEL") {
     if(typeof game[id] !== "undefined" && game[id].inProgress) {
       if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm") && config["disable-admin-commands"] !== true) {
@@ -676,6 +627,55 @@ function parseCommand(msg, cmd) {
     doTriviaCategories(msg);
   }
 }
+
+// # trivia.parse #
+exports.parse = (str, msg) => {
+  // No games in fallback mode
+  if(isFallbackMode(msg.channel.id)) {
+    return;
+  }
+
+  // Str is always uppercase
+  var id = msg.channel.id;
+
+  // Other bots can't use commands
+  if(msg.author.bot === true && config["allow-bots"] !== true) {
+    return;
+  }
+
+  var prefix = config.prefix.toUpperCase();
+
+  // ## Answers ##
+  // Check for letters if not using reactions
+  ////////// **Note that this is copied below for reaction mode.**
+  if(typeof game[id] !== "undefined" && !game[id].useReactions) {
+    // inProgress is always true when a game is active, even between rounds.
+
+    // Make sure they haven't already submitted an answer
+    if(game[id].inProgress && game[id].participants.includes(msg.author.id) === false) {
+      if(str === letters[game[id].correctId]) {
+        game[id].correctUsers.push(msg.author.id);
+        game[id].correctNames.push(msg.author.username);
+      }
+
+      if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
+        game[id].participants.push(msg.author.id);
+      }
+    }
+  }
+
+  // ## Help Command Parser ##
+  if(str === prefix + "HELP" || str.includes("<@" + global.client.user.id + ">")) {
+    doTriviaHelp(msg);
+  }
+
+  // ## Normal Commands ##
+  // If the string starts with the specified prefix (converted to uppercase)
+  if(str.startsWith(prefix)) {
+    var cmd = str.replace(prefix, "");
+    parseCommand(msg, cmd);
+  }
+};
 
 async function doTriviaHelp(msg) {
   var res = "Let's play trivia! Type 'trivia play' to start a game.";
