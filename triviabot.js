@@ -318,6 +318,24 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
   }, 1);
 }
 
+// # parseTriviaAnswer # //
+// Str: Letter answer -- id: channel identifier
+function parseTriviaAnswer(str, id, userId, username) {
+  // inProgress is always true when a game is active, even between rounds.
+
+  // Make sure they haven't already submitted an answer
+  if(game[id].inProgress && game[id].participants.includes(userId) === false) {
+    if(str === letters[game[id].correctId]) {
+      game[id].correctUsers.push(userId);
+      game[id].correctNames.push(username);
+    }
+
+    if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
+      game[id].participants.push(userId);
+    }
+  }
+}
+
 // # doTriviaGame #
 // - id: The unique identifier for the channel that the game is in.
 // - channel: The channel object that correlates with the game.
@@ -647,21 +665,8 @@ exports.parse = (str, msg) => {
 
   // ## Answers ##
   // Check for letters if not using reactions
-  ////////// **Note that this is copied below for reaction mode.**
   if(typeof game[id] !== "undefined" && !game[id].useReactions) {
-    // inProgress is always true when a game is active, even between rounds.
-
-    // Make sure they haven't already submitted an answer
-    if(game[id].inProgress && game[id].participants.includes(msg.author.id) === false) {
-      if(str === letters[game[id].correctId]) {
-        game[id].correctUsers.push(msg.author.id);
-        game[id].correctNames.push(msg.author.username);
-      }
-
-      if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
-        game[id].participants.push(msg.author.id);
-      }
-    }
+    parseTriviaAnswer(str, id, msg.author.id, msg.author.username);
   }
 
   // ## Help Command Parser ##
@@ -849,18 +854,7 @@ exports.reactionAdd = function(reaction, user) {
       return; // The reaction isn't a letter, ignore it.
     }
 
-    ////////// **Note that the following is copied and modified from above.**
-    if(game[id].inProgress && game[id].participants.includes(user.id) === false) {
-      if(str === letters[game[id].correctId]) {
-        // Only counts if this is the first time they type an answer
-        game[id].correctUsers.push(user.id);
-        game[id].correctNames.push(user.username);
-      }
-
-      if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
-        game[id].participants.push(user.id);
-      }
-    }
+    parseTriviaAnswer(str, id, user.id, user.username);
   }
 };
 
