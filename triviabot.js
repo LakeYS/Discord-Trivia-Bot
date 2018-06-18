@@ -675,7 +675,7 @@ exports.parse = (str, msg) => {
   // ## Answers ##
   // Check for letters if not using reactions
   if(typeof game[id] !== "undefined" && !game[id].useReactions) {
-    parseTriviaAnswer(str, id, msg.author.id, msg.author.username);
+    parseTriviaAnswer(str, id, msg.author.id, msg.member.displayName);
   }
 
   // ## Help Command Parser ##
@@ -864,7 +864,9 @@ exports.reactionAdd = function(reaction, user) {
       return; // The reaction isn't a letter, ignore it.
     }
 
-    parseTriviaAnswer(str, id, user.id, user.username);
+    // Get the user's nickname.
+    var username = reaction.message.guild.members.find("id", user.id).displayName;
+    parseTriviaAnswer(str, id, user.id, username);
   }
 };
 
