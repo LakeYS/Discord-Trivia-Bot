@@ -323,15 +323,24 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
 function parseTriviaAnswer(str, id, userId, username) {
   // inProgress is always true when a game is active, even between rounds.
 
-  // Make sure they haven't already submitted an answer
+  // Add to participants if they aren't already on the list
   if(game[id].inProgress && game[id].participants.includes(userId) === false) {
-    if(str === letters[game[id].correctId]) {
-      game[id].correctUsers.push(userId);
-      game[id].correctNames.push(username);
-    }
-
     if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
       game[id].participants.push(userId);
+    }
+  }
+
+  if(str === letters[game[id].correctId]) {
+    game[id].correctUsers.push(userId);
+    game[id].correctNames.push(username);
+  }
+  else {
+    // If the answer is wrong, remove them from correctUsers if necessary
+    if(game[id].correctUsers.includes(userId) === true) {
+      game[id].correctUsers.splice(game[id].correctUsers.indexOf(userId), 1);
+
+      // Remove the name using the index of the ID. (This is important in case the user changes names)
+      game[id].correctNames.splice(game[id].correctNames.indexOf(userId), 1);
     }
   }
 }
@@ -762,6 +771,7 @@ async function doTriviaCategories(msg) {
 function triviaResumeGame(json, id) {
   var channel;
   if(typeof json.userId !== "undefined") {
+    // Find the DM channel
     channel = global.client.users.find("id", json.userId);
 
     // Re-create the dmChannel object.
