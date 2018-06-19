@@ -16,6 +16,7 @@
   "rounds-end-after": 2,
 
   "allow-eval": false,
+  "debug-mode": false,
   "shard-count": "auto",
   "disable-version-check": false,
   "allow-bots": false,

@@ -451,7 +451,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
         game[id].correctId = i;
       }
 
-      answerString = answerString + "**" + letters[i] + ":** " + entities.decode(answers[i]) + "\n";
+      answerString = `${answerString}**${letters[i]}:** ${entities.decode(answers[i])}${config["debug-mode"]&&i===game[id].correctId?" *(Answer)*":""}\n`;
     }
 
     var categoryString = entities.decode(question.category);
