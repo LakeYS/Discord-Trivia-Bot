@@ -12,7 +12,7 @@ ${config.databaseURL==="https://opentdb.com"?" and the [Open Trivia Database](ht
 const letters = ["A", "B", "C", "D"];
 const embedCol = config["beta-mode"]?8609529:27903;
 
-const OpenTDB = require("./lib/opentdb.js")(config);
+const Database = require("./lib/database/opentdb.js")(config);
 
 var game = {};
 global.questions = [];
@@ -98,7 +98,7 @@ function isFallbackMode(channel) {
   }
 }
 
-OpenTDB.initCategories()
+Database.initCategories()
 .catch((err) => {
   console.log(`Failed to retrieve category list:\n ${err}`);
 });
@@ -113,7 +113,7 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
   var args = "";
 
   // To keep the question response quick, the bot always stays one question ahead.
-  // This way, we're never waiting for OpenTDB to respond.
+  // This way, we're never waiting for the database to respond.
   if(typeof length === "undefined" || length < 2 || typeof category !== "undefined") {
     // We need a new question, either due to an empty cache or because we need a specific category.
     // TODO: Check the cache for a question in the category
@@ -128,7 +128,7 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
     var token;
     if(typeof tokenChannel !== "undefined") {
       try {
-        token = await OpenTDB.getToken(tokenChannel.id);
+        token = await Database.getToken(tokenChannel.id);
       } catch(error) {
         // Something went wrong. We'll display a warning but we won't cancel the game.
         console.log(error);
@@ -150,7 +150,7 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
       // Token empty, reset it and start over.
       if(tokenRetry !== 1) {
         try {
-          await OpenTDB.resetToken(token);
+          await Database.resetToken(token);
         } catch(error) {
           console.log(`Failed to reset token - ${error.message}`);
           throw new Error(`Failed to reset token - ${error.message}`);
@@ -166,17 +166,17 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
       }
     }
     else if(json.response_code !== 0) {
-      console.log("Received error from OpenTDB.");
+      console.log("Received error from the trivia database..");
       console.log(json);
 
       // Delete the token so we'll generate a new one next time.
       // This is to fix the game in case the cached token is invalid.
       if(typeof token !== "undefined") {
-        delete OpenTDB.tokens[tokenChannel.id];
+        delete Database.tokens[tokenChannel.id];
       }
 
       // Author is passed through; triviaSend will handle it if author is undefined.
-      throw new Error(`Failed to query the trivia database with error code ${json.response_code} (${OpenTDB.responses[json.response_code]})`);
+      throw new Error(`Failed to query the trivia database with error code ${json.response_code} (${Database.responses[json.response_code]})`);
     }
     else {
       global.questions = json.results;
@@ -412,7 +412,7 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 
   getTriviaQuestion(0, game[id].category, scheduled?void 0:channel)
   .then((question) => {
-    // Make sure the game wasn't cancelled while querying OpenTDB.
+    // Make sure the game wasn't cancelled while querying the database.
     if(!game[id]) {
       return;
     }
@@ -603,9 +603,9 @@ function parseCommand(msg, cmd) {
           categoryInput = void 0;
         }
 
-        if(typeof OpenTDB.categories === "undefined") {
+        if(typeof Database.categories === "undefined") {
           // Categories are missing, so we'll try to re-initialize them.
-          OpenTDB.initCategories()
+          Database.initCategories()
           .then(() => {
             // Success, we'll continue as normal.
             resolve();
@@ -621,7 +621,7 @@ function parseCommand(msg, cmd) {
         }
       })
       .then(() => {
-        var category = OpenTDB.categories.find((el) => {
+        var category = Database.categories.find((el) => {
           return el.name.toUpperCase().includes(categoryInput);
         });
 
@@ -645,7 +645,8 @@ function parseCommand(msg, cmd) {
         return;
       });
     }
-    else { // No category specified, start a normal game. (OpenTDB will pick a random category for us)
+    else {
+      // No category specified, start a normal game. (The database will pick a random category for us)
       doTriviaGame(msg.channel.id, msg.channel, msg.author, 0);
     }
   }
@@ -697,7 +698,7 @@ async function doTriviaHelp(msg) {
   // Question count
   var apiCountGlobal;
   try {
-    var json = await OpenTDB.getGlobalCounts();
+    var json = await Database.getGlobalCounts();
     apiCountGlobal = json.overall.total_num_of_verified_questions;
   }
   catch(err) {
@@ -731,8 +732,8 @@ async function doTriviaCategories(msg) {
   var json;
   var json2;
   try {
-    json = await OpenTDB.getCategories();
-    json2 = await OpenTDB.getGlobalCounts();
+    json = await Database.getCategories();
+    json2 = await Database.getGlobalCounts();
   } catch(err) {
     // List was queried successfully, but the question was not received.
     triviaSend(msg.channel, msg.author, {embed: {
