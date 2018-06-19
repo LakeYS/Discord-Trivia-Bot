@@ -338,7 +338,6 @@ function parseTriviaAnswer(str, id, userId, username) {
       if(game[id].correctUsers.includes(userId) === true) {
         game[id].correctUsers.splice(game[id].correctUsers.indexOf(userId), 1);
 
-        console.log("Pulling entry from correctUsers and correctNames");
         // Remove the name using the index of the ID. (This is important in case the user changes names)
         game[id].correctNames.splice(game[id].correctNames.indexOf(userId), 1);
       }
