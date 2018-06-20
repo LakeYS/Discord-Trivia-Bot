@@ -7,7 +7,7 @@ var config = require("./lib/config.js")(process.argv[2]);
 
 const footerString = `Commands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`, \`${config.prefix}stop\`
 *Bot by [Lake Y](http://lakeys.net). Powered by discord.js ${require("./package.json").dependencies["discord.js"].replace("^","")}\
-${config.databaseURL==="https://opentdb.com"?" and the [Open Trivia Database](https://opentdb.com/)*":"*"}.`;
+${config.databaseURL==="https://opentdb.com"?" and the [Open Trivia Database](https://opentdb.com/)*":"*"}. *([Patreon](https://www.patreon.com/LakeYS))*`;
 
 const letters = ["A", "B", "C", "D"];
 const embedCol = config["beta-mode"]?8609529:27903;
