@@ -128,7 +128,7 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
     var token;
     if(typeof tokenChannel !== "undefined") {
       try {
-        token = await Database.getToken(tokenChannel.id);
+        token = await Database.getTokenByIdentifier(tokenChannel.id);
       } catch(error) {
         // Something went wrong. We'll display a warning but we won't cancel the game.
         console.log(error);
