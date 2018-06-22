@@ -17,6 +17,9 @@ const Database = require("./lib/database/opentdb.js")(config);
 var game = {};
 global.questions = [];
 
+// These two functions rely on each other, so we'll initialize them ahead of time.
+var doTriviaGame, triviaRevealAnswer;
+
 // parseURL
 // Returns a promise. Queries the specified URL and parses the data as JSON.
 function parseURL(url) {
@@ -221,7 +224,7 @@ function triviaEndGame(id) {
 
 // # triviaRevealAnswer #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
-function triviaRevealAnswer(id, channel, answer, importOverride) {
+triviaRevealAnswer = (id, channel, answer, importOverride) => {
   if(typeof game[id] === "undefined" || !game[id].inProgress) {
     return;
   }
@@ -316,7 +319,7 @@ function triviaRevealAnswer(id, channel, answer, importOverride) {
       }
     }
   }, 1);
-}
+};
 
 // # parseTriviaAnswer # //
 // Str: Letter answer -- id: channel identifier
@@ -345,6 +348,29 @@ function parseTriviaAnswer(str, id, userId, username) {
   }
 }
 
+async function addAnswerReactions(msg, id) {
+  try {
+    await msg.react("🇦");
+    await msg.react("🇧");
+
+    if(typeof game[id] == "undefined" || !game[id].isTrueFalse) {
+      await msg.react("🇨");
+      await msg.react("🇩");
+    }
+  } catch (error) {
+    console.log(`Failed to add reaction: ${error}`);
+
+    triviaSend(msg.channel, void 0, {embed: {
+      color: 14164000,
+      description: "Error: Failed to add reaction. This may be due to the channel's configuration.\n\nMake sure that the bot has the \"Use Reactions\" and \"Read Message History\" permissions or disable reaction mode to play."
+    }});
+
+    msg.delete();
+    triviaEndGame(id);
+    return;
+  }
+}
+
 // # doTriviaGame #
 // - id: The unique identifier for the channel that the game is in.
 // - channel: The channel object that correlates with the game.
@@ -353,7 +379,7 @@ function parseTriviaAnswer(str, id, userId, username) {
 // - scheduled: Set to true if starting a game scheduled by the bot.
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
-function doTriviaGame(id, channel, author, scheduled, category) {
+doTriviaGame = (id, channel, author, scheduled, category) => {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   // Checks are excepted for games that are being resumed from cache or file.
   if(typeof game[id] !== "undefined" && !game[id].resuming) {
@@ -526,29 +552,81 @@ function doTriviaGame(id, channel, author, scheduled, category) {
 
     triviaEndGame(id);
   });
+};
+
+async function doTriviaHelp(msg) {
+  var res = "Let's play trivia! Type 'trivia play' to start a game.";
+
+  // Question count
+  var apiCountGlobal;
+  try {
+    var json = await Database.getGlobalCounts();
+    apiCountGlobal = json.overall.total_num_of_verified_questions;
+  }
+  catch(err) {
+    console.log(`Error while parsing help cmd apiCountGlobal: ${err.message}`);
+    apiCountGlobal = "*(unknown)*";
+  }
+  res = res + `\nThere are ${apiCountGlobal.toLocaleString()} total questions.`;
+
+  // Guild count
+  var guildCount;
+  try {
+    var guildCountArray = await global.client.shard.fetchClientValues("guilds.size");
+    guildCount = guildCountArray.reduce((prev, val) => prev + val, 0);
+  }
+  catch(err) {
+    console.log(`Error while parsing help cmd guildCount: ${err.message}`);
+    guildCount = "*(unknown)*";
+  }
+  res = res + ` Currently in ${guildCount.toLocaleString()} guild${guildCount!==1?"s":""}.`;
+
+  // Commands and links
+  res = `${res}\n\n${footerString}`;
+
+  return triviaSend(msg.channel, msg.author, {embed: {
+    color: embedCol,
+    description: res
+  }});
 }
 
-async function addAnswerReactions(msg, id) {
+async function doTriviaCategories(msg) {
+  var json;
+  var json2;
   try {
-    await msg.react("🇦");
-    await msg.react("🇧");
-
-    if(typeof game[id] == "undefined" || !game[id].isTrueFalse) {
-      await msg.react("🇨");
-      await msg.react("🇩");
-    }
-  } catch (error) {
-    console.log(`Failed to add reaction: ${error}`);
-
-    triviaSend(msg.channel, void 0, {embed: {
+    json = await Database.getCategories();
+    json2 = await Database.getGlobalCounts();
+  } catch(err) {
+    // List was queried successfully, but the question was not received.
+    triviaSend(msg.channel, msg.author, {embed: {
       color: 14164000,
-      description: "Error: Failed to add reaction. This may be due to the channel's configuration.\n\nMake sure that the bot has the \"Use Reactions\" and \"Read Message History\" permissions or disable reaction mode to play."
+      description: `Failed to query category counts.\n${err}`
     }});
-
-    msg.delete();
-    triviaEndGame(id);
+    console.log(`Failed to retrieve category counts for 'trivia categories'.\n${err}`);
     return;
   }
+
+  var categoryListStr = "**Categories:** ";
+  var i = 0;
+  //console.log(json2);
+  for(i in json) {
+    categoryListStr = categoryListStr + "\n" + json[i].name + " - " + json2.categories[json[i].id].total_num_of_verified_questions + " questions";
+  }
+
+  var str = "A list has been sent to you via DM.";
+  if(msg.channel.type === "dm") {
+    str = "";
+  }
+
+  triviaSend(msg.author, void 0, categoryListStr, (msg2, err) => {
+    if(err) {
+      str = "Unable to send you the list because you cannot receive DMs.";
+    }
+    else {
+      i++;
+      triviaSend(msg.channel, void 0, `There ${i===1?"is":"are"} ${i} categor${i===1?"y":"ies"}. ${str}`);
+    }
+  });
 }
 
 function parseCommand(msg, cmd) {
@@ -691,81 +769,6 @@ exports.parse = (str, msg) => {
     parseCommand(msg, cmd);
   }
 };
-
-async function doTriviaHelp(msg) {
-  var res = "Let's play trivia! Type 'trivia play' to start a game.";
-
-  // Question count
-  var apiCountGlobal;
-  try {
-    var json = await Database.getGlobalCounts();
-    apiCountGlobal = json.overall.total_num_of_verified_questions;
-  }
-  catch(err) {
-    console.log(`Error while parsing help cmd apiCountGlobal: ${err.message}`);
-    apiCountGlobal = "*(unknown)*";
-  }
-  res = res + `\nThere are ${apiCountGlobal.toLocaleString()} total questions.`;
-
-  // Guild count
-  var guildCount;
-  try {
-    var guildCountArray = await global.client.shard.fetchClientValues("guilds.size");
-    guildCount = guildCountArray.reduce((prev, val) => prev + val, 0);
-  }
-  catch(err) {
-    console.log(`Error while parsing help cmd guildCount: ${err.message}`);
-    guildCount = "*(unknown)*";
-  }
-  res = res + ` Currently in ${guildCount.toLocaleString()} guild${guildCount!==1?"s":""}.`;
-
-  // Commands and links
-  res = `${res}\n\n${footerString}`;
-
-  return triviaSend(msg.channel, msg.author, {embed: {
-    color: embedCol,
-    description: res
-  }});
-}
-
-async function doTriviaCategories(msg) {
-  var json;
-  var json2;
-  try {
-    json = await Database.getCategories();
-    json2 = await Database.getGlobalCounts();
-  } catch(err) {
-    // List was queried successfully, but the question was not received.
-    triviaSend(msg.channel, msg.author, {embed: {
-      color: 14164000,
-      description: `Failed to query category counts.\n${err}`
-    }});
-    console.log(`Failed to retrieve category counts for 'trivia categories'.\n${err}`);
-    return;
-  }
-
-  var categoryListStr = "**Categories:** ";
-  var i = 0;
-  //console.log(json2);
-  for(i in json) {
-    categoryListStr = categoryListStr + "\n" + json[i].name + " - " + json2.categories[json[i].id].total_num_of_verified_questions + " questions";
-  }
-
-  var str = "A list has been sent to you via DM.";
-  if(msg.channel.type === "dm") {
-    str = "";
-  }
-
-  triviaSend(msg.author, void 0, categoryListStr, (msg2, err) => {
-    if(err) {
-      str = "Unable to send you the list because you cannot receive DMs.";
-    }
-    else {
-      i++;
-      triviaSend(msg.channel, void 0, `There ${i===1?"is":"are"} ${i} categor${i===1?"y":"ies"}. ${str}`);
-    }
-  });
-}
 
 // triviaResumeGame
 // Restores a game that does not have an active timeout.
