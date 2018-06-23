@@ -5,6 +5,13 @@ const snekfetch = require("snekfetch");
 
 var config = require("./lib/config.js")(process.argv[2]);
 
+if(config["fallback-mode"]) {
+  require("./lib/failover_client.js")(config);
+}
+else {
+  require("./lib/failover_server.js");
+}
+
 // # Post to Bot Listings # //
 function postBotStats() {
   // ## bots.discord.pw ## //
