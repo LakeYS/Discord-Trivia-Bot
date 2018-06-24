@@ -248,7 +248,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
 
   if(game[id].correctNames.length === 0) {
     if(game[id].participants.length === 1) {
-      correctUsersStr = "Incorrect!";
+      correctUsersStr = `Incorrect, ${game[id].participantNames[0]}!`;
     }
     else {
       correctUsersStr = correctUsersStr + "Nobody!";
@@ -256,7 +256,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
   }
   else {
     if(game[id].participants.length === 1) {
-      correctUsersStr = "Correct!"; // Only one player overall, simply say "Correct!"
+      correctUsersStr = `Correct, ${game[id].correctNames[0]}!`; // Only one player overall, simply say "Correct!"
     }
     else if(game[id].correctNames.length > 10) {
       // More than 10 correct players, player names are separated by comma to save space.
@@ -330,6 +330,7 @@ function parseTriviaAnswer(str, id, userId, username) {
     // Add to participants if they aren't already on the list
     if(game[id].inProgress && game[id].participants.includes(userId) === false) {
       game[id].participants.push(userId);
+      game[id].participantNames.push(username);
     }
 
     if(str === letters[game[id].correctId]) {
@@ -428,6 +429,7 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
     "category": typeof game[id]!=="undefined"?game[id].category:category,
 
     "participants": [],
+    "participantNames": [],
     "correctUsers": [],
     "correctNames": [],
     "scores": {},
