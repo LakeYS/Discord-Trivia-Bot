@@ -102,6 +102,7 @@ if(typeof config["additional-packages-shard"] !== "undefined") {
 
 // # Beta/Private Mode # //
 // NOTE: Not compatible with multiple shards if using external authentication.
+// TODO: Implement authorized count overrides
 var authorizedCounts = {};
 async function guildBetaCheck(guild, skip) {
   if(typeof config.betaAuthorizedRefresh === "function") {
@@ -122,9 +123,11 @@ async function guildBetaCheck(guild, skip) {
   }
 
   var authorized = guild.members.find((member) => {
-    var toReturn;
+    var toReturn = false;
     config["beta-authorized-users"].forEach((id) => {
-      toReturn = id.toString() === member.id.toString();
+      if(id.toString() === member.id.toString()) {
+        toReturn = true;
+      }
     });
     return toReturn;
   });
