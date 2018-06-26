@@ -102,7 +102,6 @@ if(typeof config["additional-packages-shard"] !== "undefined") {
 
 // # Beta/Private Mode # //
 // NOTE: Not compatible with multiple shards if using external authentication.
-// TODO: Implement authorized count overrides
 var authorizedCounts = {};
 async function guildBetaCheck(guild, skip) {
   if(typeof config.betaAuthorizedRefresh === "function") {
@@ -132,11 +131,20 @@ async function guildBetaCheck(guild, skip) {
     return toReturn;
   });
 
-  if(authorized !== null && typeof authorizedCounts[authorized.user.id] === "undefined") {
-    authorizedCounts[authorized.user.id] = 0;
+  var authorizedCountMax = config["beta-authorized-count"];
+
+  if(authorized !== null) {
+    if(typeof authorizedCounts[authorized.user.id] === "undefined") {
+      authorizedCounts[authorized.user.id] = 0;
+    }
+
+    authorizedCountMax = config["beta-authorized-count-overrides"][config["beta-authorized-users"].indexOf(authorized.user.id)] || authorizedCountMax;
   }
 
-  if(authorized === null || authorizedCounts[authorized.user.id] >= config["beta-authorized-count"]) {
+  console.log("Authorized count cap for user " + authorized.user.id + " is " + authorizedCountMax);
+
+  console.log(authorizedCounts[authorized.user.id]+1 + " | " + authorizedCountMax);
+  if(authorized === null || authorizedCounts[authorized.user.id] >= authorizedCountMax) {
     console.log(`Guild ${guild.id} (${guild.name}) REJECTED`);
     guild.leave();
   }

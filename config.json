@@ -31,6 +31,7 @@
   "beta-mode": false,
   "beta-authorized-users": [],
   "beta-authorized-count": 2,
+  "beta-authorized-count-overrides": [],
   "beta-reset-timer": 900000,
   "beta-require-external-function": false,
   "fallback-mode": false,
