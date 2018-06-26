@@ -13,20 +13,13 @@ TriviaBot brings multiplayer trivia games to your Discord server! With over 3,00
 # Development and Support
 For support, questions, and comments, you can join the Discord server or contact me directly at contact@LakeYS.net. You can also [submit an issue](https://github.com/LakeYS/Discord-Trivia-Bot/issues/new) for bugs and support.
 
-# Implemented Features
+# Features
 - Access to a complete database of over 3,000 categorized, multiple-choice trivia questions. (Thanks to [OpenTDB](https://opentdb.com))
 - Works across simultaneous channels and Discord servers. (For example, large servers can have multiple trivia channels)
 - Responsive game system that automatically adapts to the player count.
 - Single-player trivia games via DM.
 - Easy to install and configure for server owners that wish to host the bot themselves.
 - Play in random categories or choose a category to play in.
-
-# Planned Features
-(Subject to change)
-- Dynamic scoring and statistics for each player (weekly and overall stats, etc.)
-- Custom questions and categories, configurable by server administrators.
-- Vote to play in any specific category, question type, or difficulty level. (Also configurable by administrators)
-- Reaction-based trivia. (Users click reaction buttons rather then typing their answers)
 
 # How to Install
 If you'd like to install and host TriviaBot yourself, you can find out how to do so [here](http://lakeys.net/triviabot/install.html).
