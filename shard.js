@@ -141,9 +141,6 @@ async function guildBetaCheck(guild, skip) {
     authorizedCountMax = config["beta-authorized-count-overrides"][config["beta-authorized-users"].indexOf(authorized.user.id)] || authorizedCountMax;
   }
 
-  console.log("Authorized count cap for user " + authorized.user.id + " is " + authorizedCountMax);
-
-  console.log(authorizedCounts[authorized.user.id]+1 + " | " + authorizedCountMax);
   if(authorized === null || authorizedCounts[authorized.user.id] >= authorizedCountMax) {
     console.log(`Guild ${guild.id} (${guild.name}) REJECTED`);
     guild.leave();
