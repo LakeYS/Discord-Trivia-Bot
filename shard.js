@@ -102,13 +102,13 @@ if(typeof config["additional-packages-shard"] !== "undefined") {
 
 // # Beta/Private Mode # //
 // NOTE: Not compatible with multiple shards if using external authentication.
-var authorizedCounts = {};
-async function guildBetaCheck(guild, skip) {
+async function guildBetaCheck(guild, skipRefresh) {
   if(typeof config.betaAuthorizedRefresh === "function") {
-    if(!skip) {
-      // If initializing, we only need to refresh once.
+    // If initializing, we only need to refresh once.
+    if(!skipRefresh) {
       await config.betaAuthorizedRefresh();
     }
+    config.guildBetaCheck(guild);
   }
   else if(config["beta-require-external-function"]) {
     console.error("ERROR: Unable to refresh beta authorized list. Skipping auth process.");
@@ -119,39 +119,6 @@ async function guildBetaCheck(guild, skip) {
       guild.leave();
     }
     return;
-  }
-
-  var authorized = guild.members.find((member) => {
-    var toReturn = false;
-    config["beta-authorized-users"].forEach((id) => {
-      if(id.toString() === member.id.toString()) {
-        toReturn = true;
-      }
-    });
-    return toReturn;
-  });
-
-  var authorizedCountMax = config["beta-authorized-count"];
-
-  if(authorized !== null) {
-    if(typeof authorizedCounts[authorized.user.id] === "undefined") {
-      authorizedCounts[authorized.user.id] = 0;
-    }
-
-    authorizedCountMax = config["beta-authorized-count-overrides"][config["beta-authorized-users"].indexOf(authorized.user.id)] || authorizedCountMax;
-  }
-
-  if(authorized === null || authorizedCounts[authorized.user.id] >= authorizedCountMax) {
-    console.log(`Guild ${guild.id} (${guild.name}) REJECTED`);
-    guild.leave();
-  }
-  else {
-    console.log(`Guild ${guild.id} (${guild.name}) AUTHORIZED by user ${authorized.user.id} (${authorized.user.tag})`);
-    authorizedCounts[authorized.user.id]++;
-
-    if(typeof config.betaOnAuthorized === "function"){
-      config.betaOnAuthorized(authorized.user.id);
-    }
   }
 }
 
