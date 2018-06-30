@@ -51,7 +51,12 @@ console.log(`\
                   ######${strBottom}`);
 
 // # Requirements/Init # //
-require("./lib/init.js")(pjson,config);
+const configPrivate = {
+  githubAuthor: "LakeYS",
+  githubName: "Discord-Trivia-Bot"
+};
+
+require("./lib/init.js")(pjson, config, configPrivate);
 
 process.stdin.resume();
 process.stdin.setEncoding("utf8");
