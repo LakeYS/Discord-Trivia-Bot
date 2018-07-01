@@ -7,6 +7,7 @@ cp triviabot.js TriviaBot
 cp index.js TriviaBot
 cp shard.js TriviaBot
 cp run.sh TriviaBot
+cp run_silent.sh TriviaBot
 cp profile.png TriviaBot
 cp README.md TriviaBot
 cp lib TriviaBot/lib -r
