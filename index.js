@@ -165,10 +165,15 @@ manager.spawn()
   var warning = "";
 
   if(err.message.includes("401 Unauthorized")) {
-    warning += "\nPlease double-check your token and try again.";
+    if(token === "yourtokenhere") {
+      warning = "\nIt appears that you have not yet added a token. Please replace \"yourtokenhere\" with a valid token in the config file.";
+    }
+    else {
+      warning += "\nPlease double-check your token and try again.";
 
-    if(token.length < 50) {
-      warning = "\nIt appears that you have entered a client secret or other invalid string. Please ensure that you have entered a token and try again.";
+      if(token.length < 50) {
+        warning = "\nIt appears that you have entered a client secret or other invalid string. Please ensure that you have entered a token and try again.";
+      }
     }
   }
 
