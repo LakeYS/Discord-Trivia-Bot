@@ -101,11 +101,6 @@ function isFallbackMode(channel) {
   }
 }
 
-Database.initCategories()
-.catch((err) => {
-  console.log(`Failed to retrieve category list:\n ${err}`);
-});
-
 // getTriviaQuestion
 // Returns a promise, fetches a random question from the database.
 // If initial is set to true, a question will not be returned. (For initializing the cache)
@@ -677,31 +672,28 @@ function parseCommand(msg, cmd) {
 
     var categoryInput = cmd.replace("PLAY ","");
     if(categoryInput !== "PLAY") {
+
+      var categoryList;
       new Promise((resolve, reject) => {
         // Automatically give "invalid category" if query is shorter than 3 chars.
         if(categoryInput.length < 3) {
           categoryInput = void 0;
         }
 
-        if(typeof Database.categories === "undefined") {
-          // Categories are missing, so we'll try to re-initialize them.
-          Database.initCategories()
-          .then(() => {
-            // Success, we'll continue as normal.
-            resolve();
-          })
-          .catch((err) => {
-            // Should this fail, the error will be passed to the check below.
-            reject(err);
-          });
-        }
-        else {
-          // Categories are already defined and ready to use, so we'll continue.
+        // Get the category list.
+        Database.getCategories()
+        .then((json) => {
+          // Success, we'll continue as normal.
+          categoryList = json;
           resolve();
-        }
+        })
+        .catch((err) => {
+          // Should this fail, the error will be passed to the check below.
+          reject(err);
+        });
       })
       .then(() => {
-        var category = Database.categories.find((el) => {
+        var category = categoryList.find((el) => {
           return el.name.toUpperCase().includes(categoryInput);
         });
 
