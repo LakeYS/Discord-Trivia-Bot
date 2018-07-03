@@ -1,5 +1,5 @@
 #!/bin/sh
-# Auto-restart
+# Auto-restart (silent)
 {
   echo "Launching... Use \"screen -r trivia\" to access the terminal and ctrl+a+d to exit the terminal."
   screen -dmS trivia ./run.sh
