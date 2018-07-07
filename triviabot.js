@@ -335,10 +335,11 @@ function parseTriviaAnswer(str, id, userId, username) {
     else {
       // If the answer is wrong, remove them from correctUsers if necessary
       if(game[id].correctUsers.includes(userId) === true) {
-        game[id].correctUsers.splice(game[id].correctUsers.indexOf(userId), 1);
-
         // Remove the name using the index of the ID. (This is important in case the user changes names)
-        game[id].correctNames.splice(game[id].correctNames.indexOf(userId), 1);
+        game[id].correctNames.splice(game[id].correctUsers.indexOf(userId), 1);
+
+        // Now that the name is removed, we can remove the ID.
+        game[id].correctUsers.splice(game[id].correctUsers.indexOf(userId), 1);
       }
     }
   }
