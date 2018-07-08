@@ -317,6 +317,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
 };
 
 // # parseTriviaAnswer # //
+// Parses a user's letter answer and scores it accordingly.
 // Str: Letter answer -- id: channel identifier
 function parseTriviaAnswer(str, id, userId, username) {
   // inProgress is always true when a game is active, even between rounds.
@@ -428,7 +429,7 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
     "participantNames": [],
     "correctUsers": [],
     "correctNames": [],
-    "scores": {},
+    "scores": {}, // TODO
 
     "prevParticipants": typeof game[id]!=="undefined"?game[id].participants:null,
     "emptyRoundCount": typeof game[id]!=="undefined"?game[id].emptyRoundCount:null
