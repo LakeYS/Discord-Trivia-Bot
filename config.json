@@ -5,6 +5,7 @@
   "botlist.space-token": "optionaltokenhere",
   "botsfordiscord.com-token": "optionaltokenhere",
   "discordbot.world-token": "optionaltokenhere",
+  "listcord.com-token": "optionaltokenhere",
 
   "disable-admin-commands": false,
   "use-reactions": false,

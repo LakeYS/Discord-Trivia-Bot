@@ -14,6 +14,7 @@ else {
 
 // # Post to Bot Listings # //
 function postBotStats() {
+  // TODO: Refactor this mess
   // The following sites only need the total shard count, so we'll only post using the last shard.
   if(global.client.shard.id === global.client.shard.count-1) {
     global.client.shard.fetchClientValues("guilds.size")
@@ -76,13 +77,24 @@ function postBotStats() {
       }
 
       // ## discordbot.world ## //
-      if(config["discordbot.world-token"] && config["discordbot.world.com-token"] !== "optionaltokenhere") {
+      if(config["discordbot.world-token"] && config["discordbot.world-token"] !== "optionaltokenhere") {
         snekfetch.post("https://discordbot.world/api/bot/" + global.client.user.id + "/stats")
         .set("Authorization", config["discordbot.world-token"])
         .send({
           server_count: guildCount
         }).catch((err) => {
           console.log("Error occurred while posting to discordbot.world:\n" + err);
+        });
+      }
+
+      // ## listcord.com ## //
+      if(config["listcord.com-token"] && config["listcord.com-token"] !== "optionaltokenhere") {
+        snekfetch.post("https://listcord.com/api/bot/" + global.client.user.id + "/guilds")
+        .set("Authorization", config["listcord.com-token"])
+        .send({
+          guilds: guildCount
+        }).catch((err) => {
+          console.log("Error occurred while posting to listcord.com:\n" + err);
         });
       }
     });
