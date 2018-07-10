@@ -97,6 +97,17 @@ function postBotStats() {
           console.log("Error occurred while posting to listcord.com:\n" + err);
         });
       }
+
+      // ## discordbots.group ## //
+      if(config["discordbots.group-token"] && config["discordbots.group-token"] !== "optionaltokenhere") {
+        snekfetch.post("https://discordbots.group/api/bot/" + global.client.user.id )
+        .set("Authorization", config["discordbots.group-token"])
+        .send({
+          count: guildCount
+        }).catch((err) => {
+          console.log("Error occurred while posting to discordbots.group:\n" + err);
+        });
+      }
     });
   }
 }

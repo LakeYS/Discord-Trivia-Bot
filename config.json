@@ -6,6 +6,7 @@
   "botsfordiscord.com-token": "optionaltokenhere",
   "discordbot.world-token": "optionaltokenhere",
   "listcord.com-token": "optionaltokenhere",
+  "discordbots.group-token": "optionaltokenhere",
 
   "disable-admin-commands": false,
   "use-reactions": false,
