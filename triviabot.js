@@ -241,7 +241,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
 
   var correctUsersStr = "**Correct answers:**\n";
 
-  if(game[id].correctNames.length === 0) {
+  if(game[id].correctUsers.length === 0) {
     if(game[id].participants.length === 1) {
       correctUsersStr = `Incorrect, ${game[id].participantNames[0]}!`;
     }
@@ -251,23 +251,23 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
   }
   else {
     if(game[id].participants.length === 1) {
-      correctUsersStr = `Correct, ${game[id].correctNames[0]}!`; // Only one player overall, simply say "Correct!"
+      correctUsersStr = `Correct, ${Object.values(game[id].correctNames)[0]}!`; // Only one player overall, simply say "Correct!"
     }
-    else if(game[id].correctNames.length > 10) {
+    else if(game[id].correctUsers.length > 10) {
       // More than 10 correct players, player names are separated by comma to save space.
       var comma = ", ";
-      for(var i = 0; i <= game[id].correctNames.length-1; i++) {
-        if(i === game[id].correctNames.length-1) {
+      for(var i = 0; i <= game[id].correctUsers.length-1; i++) {
+        if(i === game[id].correctUsers.length-1) {
           comma = "";
         }
 
-        correctUsersStr = correctUsersStr + game[id].correctNames[i] + comma;
+        correctUsersStr = correctUsersStr + game[id].correctNames[game[id].correctUsers[i]] + comma;
       }
     }
     else {
       // Less than 10 correct players, all names are on their own line.
-      for(var i2 = 0; i2 <= game[id].correctNames.length-1; i2++) {
-        correctUsersStr = correctUsersStr + game[id].correctNames[i2] + "\n";
+      for(var i2 = 0; i2 <= game[id].correctUsers.length-1; i2++) {
+        correctUsersStr = correctUsersStr + game[id].correctNames[game[id].correctUsers[i2]] + "\n";
       }
     }
   }
@@ -331,13 +331,13 @@ function parseTriviaAnswer(str, id, userId, username) {
 
     if(str === letters[game[id].correctId]) {
       game[id].correctUsers.push(userId);
-      game[id].correctNames.push(username);
+      game[id].correctNames[userId] = username;
     }
     else {
       // If the answer is wrong, remove them from correctUsers if necessary
       if(game[id].correctUsers.includes(userId) === true) {
         // Remove the name using the index of the ID. (This is important in case the user changes names)
-        game[id].correctNames.splice(game[id].correctUsers.indexOf(userId), 1);
+        delete game[id].correctNames[userId];
 
         // Now that the name is removed, we can remove the ID.
         game[id].correctUsers.splice(game[id].correctUsers.indexOf(userId), 1);
@@ -428,7 +428,7 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
     "participants": [],
     "participantNames": [],
     "correctUsers": [],
-    "correctNames": [],
+    "correctNames": {},
     "scores": {}, // TODO
 
     "prevParticipants": typeof game[id]!=="undefined"?game[id].participants:null,
