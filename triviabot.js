@@ -332,12 +332,18 @@ function parseTriviaAnswer(str, id, userId, username) {
     if(str === letters[game[id].correctId]) {
       game[id].correctUsers.push(userId);
       game[id].correctNames[userId] = username;
+
+      game[id].scores[userId] = game[id].scores[userId] || 0;
+
+      game[id].scores[userId] += 0; // TODO
     }
     else {
       // If the answer is wrong, remove them from correctUsers if necessary
       if(game[id].correctUsers.includes(userId) === true) {
         // Remove the name using the index of the ID. (This is important in case the user changes names)
         delete game[id].correctNames[userId];
+
+        game[id].scores[userId] -= 0; // TODO
 
         // Now that the name is removed, we can remove the ID.
         game[id].correctUsers.splice(game[id].correctUsers.indexOf(userId), 1);
@@ -429,7 +435,7 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
     "participantNames": [],
     "correctUsers": [],
     "correctNames": {},
-    "scores": {}, // TODO
+    "scores": typeof game[id]!=="undefined"?game[id].scores:{}, // TODO
 
     "prevParticipants": typeof game[id]!=="undefined"?game[id].participants:null,
     "emptyRoundCount": typeof game[id]!=="undefined"?game[id].emptyRoundCount:null
