@@ -21,6 +21,8 @@ function postBotStats() {
     .then((countArray) => {
       var guildCount = countArray.reduce((prev, val) => prev + val, 0);
 
+      console.log(`Posting guild count of ${guildCount}...`);
+
       // ## bots.discord.pw ## //
       if(config["bots.discord.pw-token"] && config["bots.discord.pw-token"] !== "optionaltokenhere") {
         snekfetch.post("https://bots.discord.pw/api/bots/" + global.client.user.id + "/stats")

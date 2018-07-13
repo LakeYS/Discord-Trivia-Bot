@@ -58,8 +58,11 @@ const configPrivate = {
 
 require("./lib/init.js")(pjson, config, configPrivate);
 
-process.stdin.resume();
-process.stdin.setEncoding("utf8");
+if(config["allow-eval"] === true) {
+  process.stdin.resume();
+  process.stdin.setEncoding("utf8");
+}
+
 const fs = require("fs");
 
 // # Discord # //

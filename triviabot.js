@@ -961,15 +961,17 @@ exports.importGame = (input, unlink) => {
 };
 
 // # Console Commands #
-process.stdin.on("data", (text) => {
-  if(text.toString() === "export\r\n") {
-    exports.exportGame();
-  }
+if(config["allow-eval"] === true) {
+  process.stdin.on("data", (text) => {
+    if(text.toString() === "export\r\n") {
+      exports.exportGame();
+    }
 
-  if(text.toString() === "import\r\n") {
-    exports.importGame(`"./game.${global.client.shard.id}.json.bak`);
-  }
-});
+    if(text.toString() === "import\r\n") {
+      exports.importGame(`"./game.${global.client.shard.id}.json.bak`);
+    }
+  });
+}
 
 // # Fallback Mode Functionality #
 if(config["fallback-mode"] && !config["fallback-silent"]) {
