@@ -253,21 +253,24 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     if(game[id].participants.length === 1) {
       correctUsersStr = `Correct, ${Object.values(game[id].correctNames)[0]}!`; // Only one player overall, simply say "Correct!"
     }
-    else if(game[id].correctUsers.length > 10) {
+    else  {
       // More than 10 correct players, player names are separated by comma to save space.
       var comma = ", ";
       for(var i = 0; i <= game[id].correctUsers.length-1; i++) {
         if(i === game[id].correctUsers.length-1) {
           comma = "";
         }
+        else if(game[id].correctUsers.length <= 10) {
+          comma = "\n";
+        }
 
-        correctUsersStr = correctUsersStr + game[id].correctNames[game[id].correctUsers[i]] + comma;
-      }
-    }
-    else {
-      // Less than 10 correct players, all names are on their own line.
-      for(var i2 = 0; i2 <= game[id].correctUsers.length-1; i2++) {
-        correctUsersStr = correctUsersStr + game[id].correctNames[game[id].correctUsers[i2]] + "\n";
+        var scoreDisplayStr = "";
+
+        if(!config["disable-score-display"]) {
+          scoreDisplayStr = `(${game[id].scores[game[id].correctUsers[i]]} points)`;
+        }
+
+        correctUsersStr = `${correctUsersStr}${game[id].correctNames[game[id].correctUsers[i]]} ${scoreDisplayStr}${comma}`;
       }
     }
   }
