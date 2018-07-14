@@ -241,6 +241,13 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
 
   var correctUsersStr = "**Correct answers:**\n";
 
+  var scoreStr = "";
+
+  // If only one participant, we'll only need the first user's score.
+  if(!config["disable-score-display"]) {
+    scoreStr = `(${game[id].scores[game[id].correctUsers[0]]} points)`;
+  }
+
   if(game[id].correctUsers.length === 0) {
     if(game[id].participants.length === 1) {
       correctUsersStr = `Incorrect, ${game[id].participantNames[0]}!`;
@@ -251,7 +258,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
   }
   else {
     if(game[id].participants.length === 1) {
-      correctUsersStr = `Correct, ${Object.values(game[id].correctNames)[0]}!`; // Only one player overall, simply say "Correct!"
+      correctUsersStr = `Correct, ${Object.values(game[id].correctNames)[0]}! ${scoreStr}`; // Only one player overall, simply say "Correct!"
     }
     else  {
       // More than 10 correct players, player names are separated by comma to save space.
@@ -264,13 +271,11 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
           comma = "\n";
         }
 
-        var scoreDisplayStr = "";
-
         if(!config["disable-score-display"]) {
-          scoreDisplayStr = `(${game[id].scores[game[id].correctUsers[i]]} points)`;
+          scoreStr = `(${game[id].scores[game[id].correctUsers[i]]} points)`;
         }
 
-        correctUsersStr = `${correctUsersStr}${game[id].correctNames[game[id].correctUsers[i]]} ${scoreDisplayStr}${comma}`;
+        correctUsersStr = `${correctUsersStr}${game[id].correctNames[game[id].correctUsers[i]]} ${scoreStr}${comma}`;
       }
     }
   }
