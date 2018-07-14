@@ -333,12 +333,14 @@ function parseTriviaAnswer(str, id, userId, username) {
     }
 
     if(str === letters[game[id].correctId]) {
-      game[id].correctUsers.push(userId);
-      game[id].correctNames[userId] = username;
+      if(!game[id].correctUsers.includes(userId)) {
+        game[id].correctUsers.push(userId);
+        game[id].correctNames[userId] = username;
 
-      game[id].scores[userId] = game[id].scores[userId] || 0;
+        game[id].scores[userId] = game[id].scores[userId] || 0;
 
-      game[id].scores[userId] += 0; // TODO
+        game[id].scores[userId] += 0; // TODO
+      }
     }
     else {
       // If the answer is wrong, remove them from correctUsers if necessary
