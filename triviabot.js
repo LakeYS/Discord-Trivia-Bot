@@ -11,6 +11,7 @@ ${config.databaseURL==="https://opentdb.com"?" and the [Open Trivia Database](ht
 
 const letters = ["A", "B", "C", "D"];
 const embedCol = config["beta-mode"]?8609529:27903;
+const scoreValue = config["score-value"];
 
 const Database = require("./lib/database/opentdb.js")(config);
 
@@ -344,7 +345,7 @@ function parseTriviaAnswer(str, id, userId, username) {
 
         game[id].scores[userId] = game[id].scores[userId] || 0;
 
-        game[id].scores[userId] += 0; // TODO
+        game[id].scores[userId] += scoreValue[game[id].difficulty];
       }
     }
     else {
@@ -353,7 +354,7 @@ function parseTriviaAnswer(str, id, userId, username) {
         // Remove the name using the index of the ID. (This is important in case the user changes names)
         delete game[id].correctNames[userId];
 
-        game[id].scores[userId] -= 0; // TODO
+        game[id].scores[userId] -= scoreValue[game[id].difficulty];
 
         // Now that the name is removed, we can remove the ID.
         game[id].correctUsers.splice(game[id].correctUsers.indexOf(userId), 1);
