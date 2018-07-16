@@ -5,9 +5,13 @@ const JSON = require("circular-json");
 
 var config = require("./lib/config.js")(process.argv[2]);
 
+const infoFooter = "([Support TriviaBot on Patreon](https://www.patreon.com/LakeYS)) ([Contribute questions to the database](http://lakeys.net/triviabot/contribute))";
+const infoFooterB = "[Support TriviaBot on Patreon](https://www.patreon.com/LakeYS)\n[Contribute questions to the database](http://lakeys.net/triviabot/contribute)";
+
+
 const footerString = `Commands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`, \`${config.prefix}stop\`
 *Bot by [Lake Y](http://lakeys.net). Powered by discord.js ${require("./package.json").dependencies["discord.js"].replace("^","")}\
-${config.databaseURL==="https://opentdb.com"?" and the [Open Trivia Database](https://opentdb.com/)*":"*"}. *([Patreon](https://www.patreon.com/LakeYS))*`;
+${config.databaseURL==="https://opentdb.com"?" and the [Open Trivia Database](https://opentdb.com/)*":"*"}. *${infoFooter}*`;
 
 const letters = ["A", "B", "C", "D"];
 const embedCol = config["beta-mode"]?8609529:27903;
@@ -299,6 +303,8 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     game[id].emptyRoundCount = 0;
     doAutoEnd = 0;
   }
+
+  gameEndedMsg = gameEndedMsg===""?"":`${gameEndedMsg}\n${infoFooterB}`;
 
   triviaSend(channel, void 0, {embed: {
     color: game[id].color,
