@@ -224,6 +224,7 @@ function triviaEndGame(id) {
 
 // # triviaRevealAnswer #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
+// TODO: Refactor
 triviaRevealAnswer = (id, channel, answer, importOverride) => {
   if(typeof game[id] === "undefined" || !game[id].inProgress) {
     return;
@@ -308,7 +309,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
 
   triviaSend(channel, void 0, {embed: {
     color: game[id].color,
-    description: "**" + letters[game[id].correctId] + ":** " + entities.decode(game[id].answer) + "\n\n" + correctUsersStr + gameEndedMsg
+    description: `**${letters[game[id].correctId]}:** ${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}`
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
       // NOTE: Participants check is repeated below in doTriviaGame
