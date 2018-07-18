@@ -6,12 +6,10 @@ const JSON = require("circular-json");
 var config = require("./lib/config.js")(process.argv[2]);
 
 const infoFooter = "([Support TriviaBot on Patreon](https://www.patreon.com/LakeYS)) ([Contribute questions to the database](http://lakeys.net/triviabot/contribute))";
-const infoFooterB = "[Support TriviaBot on Patreon](https://www.patreon.com/LakeYS)\n[Contribute questions to the database](http://lakeys.net/triviabot/contribute)";
-
 
 const footerString = `Commands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`, \`${config.prefix}stop\`
 *Bot by [Lake Y](http://lakeys.net). Powered by discord.js ${require("./package.json").dependencies["discord.js"].replace("^","")}\
-${config.databaseURL==="https://opentdb.com"?" and the [Open Trivia Database](https://opentdb.com/)*":"*"}. *${infoFooter}*`;
+${config.databaseURL==="https://opentdb.com"?" and the [Open Trivia Database](https://opentdb.com/)*":"*"}.\n*${infoFooter}*`;
 
 const letters = ["A", "B", "C", "D"];
 const embedCol = config["beta-mode"]?8609529:27903;
@@ -254,38 +252,6 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     scoreStr = `(${game[id].scores[game[id].correctUsers[0]]} points)`;
   }
 
-  if(game[id].correctUsers.length === 0) {
-    if(game[id].participants.length === 1) {
-      correctUsersStr = `Incorrect, ${game[id].participantNames[0]}!`;
-    }
-    else {
-      correctUsersStr = correctUsersStr + "Nobody!";
-    }
-  }
-  else {
-    if(game[id].participants.length === 1) {
-      correctUsersStr = `Correct, ${Object.values(game[id].correctNames)[0]}! ${scoreStr}`; // Only one player overall, simply say "Correct!"
-    }
-    else  {
-      // More than 10 correct players, player names are separated by comma to save space.
-      var comma = ", ";
-      for(var i = 0; i <= game[id].correctUsers.length-1; i++) {
-        if(i === game[id].correctUsers.length-1) {
-          comma = "";
-        }
-        else if(game[id].correctUsers.length <= 10) {
-          comma = "\n";
-        }
-
-        if(!config["disable-score-display"]) {
-          scoreStr = `(${game[id].scores[game[id].correctUsers[i]]} points)`;
-        }
-
-        correctUsersStr = `${correctUsersStr}${game[id].correctNames[game[id].correctUsers[i]]} ${scoreStr}${comma}`;
-      }
-    }
-  }
-
   var gameEndedMsg = "";
   var doAutoEnd = 0;
   if(game[id].cancelled) {
@@ -305,7 +271,62 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     doAutoEnd = 0;
   }
 
-  gameEndedMsg = gameEndedMsg===""?"":`${gameEndedMsg}\n${infoFooterB}`;
+  if(gameEndedMsg === "" || config["disable-score-display"]) {
+    // ## Normal Score Display ## //
+    if(game[id].correctUsers.length === 0) {
+      if(game[id].participants.length === 1) {
+        correctUsersStr = `Incorrect, ${game[id].participantNames[0]}!`;
+      }
+      else {
+        correctUsersStr = correctUsersStr + "Nobody!";
+      }
+    }
+    else {
+      if(game[id].participants.length === 1) {
+        correctUsersStr = `Correct, ${Object.values(game[id].correctNames)[0]}! ${scoreStr}`; // Only one player overall, simply say "Correct!"
+      }
+      else  {
+        // More than 10 correct players, player names are separated by comma to save space.
+        var comma = ", ";
+        for(var i = 0; i <= game[id].correctUsers.length-1; i++) {
+          if(i === game[id].correctUsers.length-1) {
+            comma = "";
+          }
+          else if(game[id].correctUsers.length <= 10) {
+            comma = "\n";
+          }
+
+          if(!config["disable-score-display"]) {
+            scoreStr = `(${game[id].scores[game[id].correctUsers[i]]} points)`;
+          }
+
+          correctUsersStr = `${correctUsersStr}${game[id].correctNames[game[id].correctUsers[i]]} ${scoreStr}${comma}`;
+        }
+      }
+    }
+  }
+  else {
+    // ## Game-Over Score Display ## //
+    correctUsersStr = "**Final scores:**";
+
+    //TODO: Sorting so top scores show up first
+    if(Object.keys(game[id].totalParticipants).length === 0) {
+      correctUsersStr = `${correctUsersStr}\nNone`;
+    }
+    else {
+      for(var user in game[id].totalParticipants) {
+        var score;
+        if(typeof game[id].scores[user] === "undefined") {
+          score = 0;
+        }
+        else {
+          score = game[id].scores[user];
+        }
+
+        correctUsersStr = `${correctUsersStr}\n${game[id].totalParticipants[user]}: ${score}`;
+      }
+    }
+  }
 
   triviaSend(channel, void 0, {embed: {
     color: game[id].color,
@@ -343,6 +364,8 @@ function parseTriviaAnswer(str, id, userId, username) {
     if(game[id].inProgress && game[id].participants.includes(userId) === false) {
       game[id].participants.push(userId);
       game[id].participantNames.push(username);
+
+      game[id].totalParticipants[userId] = username;
     }
 
     if(str === letters[game[id].correctId]) {
@@ -453,7 +476,9 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
     "participantNames": [],
     "correctUsers": [],
     "correctNames": {},
-    "scores": typeof game[id]!=="undefined"?game[id].scores:{}, // TODO
+
+    "totalParticipants": typeof game[id]!=="undefined"?game[id].totalParticipants:{},
+    "scores": typeof game[id]!=="undefined"?game[id].scores:{},
 
     "prevParticipants": typeof game[id]!=="undefined"?game[id].participants:null,
     "emptyRoundCount": typeof game[id]!=="undefined"?game[id].emptyRoundCount:null
