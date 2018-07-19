@@ -307,10 +307,12 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
   }
   else {
     // ## Game-Over Score Display ## //
-    correctUsersStr = "**Final scores:**";
+    var totalParticipantCount = Object.keys(game[id].totalParticipants).length;
+
+    correctUsersStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
 
     //TODO: Sorting so top scores show up first
-    if(Object.keys(game[id].totalParticipants).length === 0) {
+    if(totalParticipantCount === 0) {
       correctUsersStr = `${correctUsersStr}\nNone`;
     }
     else {
