@@ -5,10 +5,10 @@ const snekfetch = require("snekfetch");
 
 var config = require("./lib/config.js")(process.argv[2]);
 
-if(config["fallback-mode"]) {
+if(config["fallback-mode"] && config["debug-mode"]) {
   require("./lib/failover_client.js")(config);
 }
-else {
+else if(config["debug-mode"]) {
   require("./lib/failover_server.js");
 }
 
@@ -20,7 +20,7 @@ function postBotStats() {
     global.client.shard.fetchClientValues("guilds.size")
     .then((countArray) => {
       var guildCount = countArray.reduce((prev, val) => prev + val, 0);
-      
+
       // ## bots.discord.pw ## //
       if(config["bots.discord.pw-token"] && config["bots.discord.pw-token"] !== "optionaltokenhere") {
         snekfetch.post("https://bots.discord.pw/api/bots/" + global.client.user.id + "/stats")
