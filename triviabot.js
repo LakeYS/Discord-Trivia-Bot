@@ -316,17 +316,30 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
       correctUsersStr = `${correctUsersStr}\nNone`;
     }
     else {
+      var scoreArray = [];
       for(var user in game[id].totalParticipants) {
+        scoreArray.push(user);
+      }
+
+      var scoreA, scoreB;
+      scoreArray.sort((a, b) => {
+        scoreA = game[id].scores[a] || 0;
+        scoreB = game[id].scores[b] || 0;
+
+        return scoreB - scoreA;
+      });
+
+      scoreArray.forEach((userB) => {
         var score;
-        if(typeof game[id].scores[user] === "undefined") {
+        if(typeof game[id].scores[userB] === "undefined") {
           score = 0;
         }
         else {
-          score = game[id].scores[user];
+          score = game[id].scores[userB];
         }
 
-        correctUsersStr = `${correctUsersStr}\n${game[id].totalParticipants[user]}: ${score}`;
-      }
+        correctUsersStr = `${correctUsersStr}\n${game[id].totalParticipants[userB]}: ${score}`;
+      });
     }
   }
 
