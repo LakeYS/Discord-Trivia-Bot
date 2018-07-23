@@ -61,7 +61,7 @@ var triviaSend = function(channel, author, msg, callback, noDelete) {
 
         author.send({embed: {
           color: 14164000,
-          description: "TriviaBot is unable to send messages in this channel:\n" + err.message.replace("DiscordAPIError: ","") + str
+          description: `TriviaBot is unable to send messages in this channel:\n${err.message.replace("DiscordAPIError: ","")} ${str}`
         }})
         .catch(() => {
           console.warn(`Failed to send message to user ${author.id}. (DM failed)`);
@@ -119,7 +119,7 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
     // We need a new question, either due to an empty cache or because we need a specific category.
     // TODO: Check the cache for a question in the category
     if(typeof category !== "undefined") {
-      args += "?amount=1&category=" + category;
+      args += `?amount=1&category=${category}`;
     }
     else {
       args += `?amount=${config["database-cache-size"]}`;
@@ -146,7 +146,7 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
       }
     }
 
-    var json = await parseURL(config.databaseURL + "/api.php" + args);
+    var json = await parseURL(config.databaseURL + `/api.php${args}`);
     if(json.response_code === 4 && typeof token !== "undefined") {
       // Token empty, reset it and start over.
       if(tokenRetry !== 1) {
@@ -231,13 +231,13 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
   if(typeof game[id].message !== "undefined" && config["auto-delete-msgs"]) {
     game[id].message.delete()
     .catch((err) => {
-      console.log("Failed to delete message - " + err.message);
+      console.log(`Failed to delete message - ${err.message}`);
     });
   }
 
   // Quick fix for timeouts not clearing correctly.
   if(answer !== game[id].answer && !importOverride) {
-    console.warn("WARNING: Mismatched answers in timeout for game " + id + " (" + answer + "||" + game[id].answer + ")");
+    console.warn(`WARNING: Mismatched answers in timeout for game ${id} (${answer}||${game[id].answer})`);
     return;
   }
 
@@ -558,7 +558,7 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
 
     triviaSend(channel, author, {embed: {
       color: game[id].color,
-      description: "*" + categoryString + "*\n**" + entities.decode(question.question) + "**\n" + answerString + infoString
+      description: `*${categoryString}*\n**${entities.decode(question.question)}**\n${answerString}${infoString}`
     }}, (msg, err) => {
       if(err) {
         game[id].timeout = void 0;
@@ -673,7 +673,7 @@ async function doTriviaCategories(msg) {
   var i = 0;
   //console.log(json2);
   for(i in json) {
-    categoryListStr = categoryListStr + "\n" + json[i].name + " - " + json2.categories[json[i].id].total_num_of_verified_questions + " questions";
+    categoryListStr = `${categoryListStr}\n${json[i].name} - ${json2.categories[json[i].id].total_num_of_verified_questions} questions`;
   }
 
   var str = "A list has been sent to you via DM.";
@@ -820,7 +820,7 @@ exports.parse = (str, msg) => {
   }
 
   // ## Help Command Parser ##
-  if(str === prefix + "HELP" || str.includes("<@" + global.client.user.id + ">")) {
+  if(str === prefix + "HELP" || str.includes(`<@${global.client.user.id}>`)) {
     doTriviaHelp(msg);
   }
 
@@ -994,7 +994,7 @@ exports.importGame = (input, unlink) => {
 
       json = JSON.parse(file);
     } catch(error) {
-      console.log("Failed to parse JSON from ./game." + global.client.shard.id + ".json.bak");
+      console.log(`Failed to parse JSON from ./game.${global.client.shard.id}.json.bak`);
       console.log(error.message);
       return;
     }
@@ -1036,12 +1036,7 @@ if(config["allow-eval"] === true) {
 // # Fallback Mode Functionality #
 if(config["fallback-mode"] && !config["fallback-silent"]) {
   global.client.on("message", (msg) => {
-    if(msg.author === global.client.user) {
-      console.log("Msg (Self) - Shard " + global.client.shard.id + " - Channel " + msg.channel.id);
-    }
-    else {
-      console.log("Msg - Shard " + global.client.shard.id + " - Channel " + msg.channel.id);
-    }
+      console.log(`Msg - ${msg.author === global.client.user?"(self)":""} Shard ${global.client.shard.id} - Channel ${msg.channel.id}`);
   });
 }
 
@@ -1054,7 +1049,7 @@ process.on("exit", (code) => {
 
 // ## Import on Launch ## //
 global.client.on("ready", () => {
-  var file = "./game." + global.client.shard.id + ".json.bak";
+  var file = `./game.${global.client.shard.id}.json.bak`;
   if(fs.existsSync(file)) {
     // Import the file, then delete it.
     exports.importGame(file, 1);
