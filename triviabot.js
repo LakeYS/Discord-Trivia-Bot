@@ -220,6 +220,38 @@ function triviaEndGame(id) {
   delete game[id];
 }
 
+// # fetchFinalScores # //
+// Returns a string containing a game's complete leaderboard.
+function fetchFinalScores(id) {
+  var scoreArray = [];
+  var finalStr = "";
+  for(var user in game[id].totalParticipants) {
+    scoreArray.push(user);
+  }
+
+  var scoreA, scoreB;
+  scoreArray.sort((a, b) => {
+    scoreA = game[id].scores[a] || 0;
+    scoreB = game[id].scores[b] || 0;
+
+    return scoreB - scoreA;
+  });
+
+  scoreArray.forEach((userB) => {
+    var score;
+    if(typeof game[id].scores[userB] === "undefined") {
+      score = 0;
+    }
+    else {
+      score = game[id].scores[userB];
+    }
+
+    finalStr = `${finalStr}${finalStr!==""?"\n":""}${game[id].totalParticipants[userB]}: ${score}`;
+  });
+
+  return finalStr;
+}
+
 // # triviaRevealAnswer #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
 // TODO: Refactor
@@ -316,30 +348,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
       correctUsersStr = `${correctUsersStr}\nNone`;
     }
     else {
-      var scoreArray = [];
-      for(var user in game[id].totalParticipants) {
-        scoreArray.push(user);
-      }
-
-      var scoreA, scoreB;
-      scoreArray.sort((a, b) => {
-        scoreA = game[id].scores[a] || 0;
-        scoreB = game[id].scores[b] || 0;
-
-        return scoreB - scoreA;
-      });
-
-      scoreArray.forEach((userB) => {
-        var score;
-        if(typeof game[id].scores[userB] === "undefined") {
-          score = 0;
-        }
-        else {
-          score = game[id].scores[userB];
-        }
-
-        correctUsersStr = `${correctUsersStr}\n${game[id].totalParticipants[userB]}: ${score}`;
-      });
+      correctUsersStr = `${correctUsersStr}\n${fetchFinalScores(id)}`;
     }
   }
 
@@ -698,8 +707,11 @@ function parseCommand(msg, cmd) {
   if(cmd === "STOP" || cmd === "CANCEL" || cmd === "ADMIN STOP" || cmd === "ADMIN CANCEL") {
     if(typeof game[id] !== "undefined" && game[id].inProgress) {
       if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm") && config["disable-admin-commands"] !== true) {
+        // These are defined beforehand so we can refer to them after the game is deleted.
         let timeout = game[id].timeout;
         let inRound = game[id].inRound;
+        let color = game[id].color;
+        let finalScoreStr = fetchFinalScores(id);
 
         game[id].cancelled = 1;
 
@@ -720,8 +732,8 @@ function parseCommand(msg, cmd) {
         // Display a message if between rounds
         if(!inRound) {
           triviaSend(msg.channel, void 0, {embed: {
-            color: 14164000,
-            description: "Game stopped by admin."
+            color: embedCol,
+            description: `Game ended by admin.${finalScoreStr!==""?"\n\n**Final scores:**\n":""}${finalScoreStr}`
           }});
         }
       }
