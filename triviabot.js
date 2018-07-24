@@ -710,7 +710,6 @@ function parseCommand(msg, cmd) {
         // These are defined beforehand so we can refer to them after the game is deleted.
         let timeout = game[id].timeout;
         let inRound = game[id].inRound;
-        let color = game[id].color;
         let finalScoreStr = fetchFinalScores(id);
 
         game[id].cancelled = 1;
