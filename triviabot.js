@@ -23,28 +23,6 @@ global.questions = [];
 // These two functions rely on each other, so we'll initialize them ahead of time.
 var doTriviaGame, triviaRevealAnswer;
 
-// parseURL
-// Returns a promise. Queries the specified URL and parses the data as JSON.
-function parseURL(url) {
-  return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      var data = "";
-      res.on("data", (chunk) => { data += chunk; });
-      res.on("end", () => {
-        try {
-          var json =  JSON.parse(data);
-          resolve(json);
-        } catch(error) {
-          reject(error);
-          console.log(data);
-        }
-      });
-    }).on("error", (error) => {
-      reject(error);
-    });
-  });
-}
-
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
 //    channel: Channel ID -- author: Author ID -- msg: Message Object -- callback: Callback Function
@@ -146,7 +124,7 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
       }
     }
 
-    var json = await parseURL(config.databaseURL + `/api.php${args}`);
+    var json = await Database.parseURL(config.databaseURL + `/api.php${args}`);
     if(json.response_code === 4 && typeof token !== "undefined") {
       // Token empty, reset it and start over.
       if(tokenRetry !== 1) {
