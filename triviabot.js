@@ -1,4 +1,3 @@
-const https = require("https");
 const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
@@ -321,7 +320,6 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
 
     correctUsersStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
 
-    //TODO: Sorting so top scores show up first
     if(totalParticipantCount === 0) {
       correctUsersStr = `${correctUsersStr}\nNone`;
     }

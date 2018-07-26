@@ -149,8 +149,6 @@ if(config["beta-mode"]) {
   });
 }
 
-// TODO: Fix authorizedCounts not decreasing when bot is kicked from a guild
-
 // # Discord Client Login # //
 global.client.login(global.client.token);
 
