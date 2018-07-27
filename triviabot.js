@@ -801,7 +801,7 @@ exports.parse = (str, msg) => {
   // ## Answers ##
   // Check for letters if not using reactions
   if(typeof game[id] !== "undefined" && !game[id].useReactions) {
-    var name = msg.channel.type === "text"?msg.member.displayName:msg.author.username;
+    var name = msg.member !== null?msg.member.displayName:msg.author.username;
 
     parseTriviaAnswer(str, id, msg.author.id, name);
   }
