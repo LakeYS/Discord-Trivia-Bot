@@ -21,33 +21,34 @@ function postBotStats() {
     global.client.shard.fetchClientValues("guilds.size")
     .then((countArray) => {
       var guildCount = countArray.reduce((prev, val) => prev + val, 0);
+      var id = global.client.user.id;
 
       var listings = {
         // If 'data' not specified, assume it is this: { server_count: guildCount }
         "bots.discord.pw": {
-          url: "https://bots.discord.pw/api/bots/" + global.client.user.id + "/stats"
+          url: `https://bots.discord.pw/api/bots/${id}/stats`
         },
         "discordbots.org": {
-          url: "https://discordbots.org/api/bots/" + global.client.user.id + "/stats"
+          url: `https://discordbots.org/api/bots/${id}/stats`
         },
         "botlist.space": {
-          url: "https://botlist.space/api/bots/" + global.client.user.id + "/"
+          url: `https://botlist.space/api/bots/${id}/`
         },
         "discordbots.co.uk": {
-          url: "https://discordbots.co.uk/api/v1/bots/" + global.client.user.id + "/"
+          url: `https://discordbots.co.uk/api/v1/bots/${id}/`
         },
         "botsfordiscord.com": {
-          url: "https://botsfordiscord.com/api/v1/bots/" + global.client.user.id + "/"
+          url: `https://botsfordiscord.com/api/v1/bots/${id}/`
         },
         "discordbot.world": {
-          url: "https://discordbot.world/api/bot/" + global.client.user.id + "/stats"
+          url: `https://discordbot.world/api/bot/${id}/stats`
         },
         "listcord.com": {
-          url: "https://listcord.com/api/bot/" + global.client.user.id + "/guilds",
+          url: `https://listcord.com/api/bot/${id}/guilds`,
           data: { guilds: guildCount }
         },
         "discordbots.group": {
-          url: "https://discordbots.group/api/bot/" + global.client.user.id,
+          url: `https://discordbots.group/api/bot/${id}`,
           data: { count: guildCount }
         }
       };
