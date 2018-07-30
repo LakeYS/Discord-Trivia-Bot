@@ -14,99 +14,55 @@ else if(config["debug-mode"]) {
 
 // # Post to Bot Listings # //
 function postBotStats() {
-  // TODO: Refactor this mess
   // The following sites only need the total shard count, so we'll only post using the last shard.
+
+  // TODO: Fix this for when shards spawn out of order
   if(global.client.shard.id === global.client.shard.count-1) {
     global.client.shard.fetchClientValues("guilds.size")
     .then((countArray) => {
       var guildCount = countArray.reduce((prev, val) => prev + val, 0);
 
-      // ## bots.discord.pw ## //
-      if(config["bots.discord.pw-token"] && config["bots.discord.pw-token"] !== "optionaltokenhere") {
-        snekfetch.post("https://bots.discord.pw/api/bots/" + global.client.user.id + "/stats")
-        .set("Authorization", config["bots.discord.pw-token"])
-        .send({
-          server_count: guildCount
-        }).catch((err) => {
-          console.log("Error occurred while posting to bots.discord.pw on shard " + global.client.shard.id + ":\n" + err);
-        });
-      }
+      var listings = {
+        // If 'data' not specified, assume it is this: { server_count: guildCount }
+        "bots.discord.pw": {
+          url: "https://bots.discord.pw/api/bots/" + global.client.user.id + "/stats"
+        },
+        "discordbots.org": {
+          url: "https://discordbots.org/api/bots/" + global.client.user.id + "/stats"
+        },
+        "botlist.space": {
+          url: "https://botlist.space/api/bots/" + global.client.user.id + "/"
+        },
+        "discordbots.co.uk": {
+          url: "https://discordbots.co.uk/api/v1/bots/" + global.client.user.id + "/"
+        },
+        "botsfordiscord.com": {
+          url: "https://botsfordiscord.com/api/v1/bots/" + global.client.user.id + "/"
+        },
+        "discordbot.world": {
+          url: "https://discordbot.world/api/bot/" + global.client.user.id + "/stats"
+        },
+        "listcord.com": {
+          url: "https://listcord.com/api/bot/" + global.client.user.id + "/guilds",
+          data: { guilds: guildCount }
+        },
+        "discordbots.group": {
+          url: "https://discordbots.group/api/bot/" + global.client.user.id,
+          data: { count: guildCount }
+        }
+      };
 
-      // ## discordbots.org ## //
-      if(config["discordbots.org-token"] && config["discordbots.org-token"] !== "optionaltokenhere") {
-        snekfetch.post("https://discordbots.org/api/bots/" + global.client.user.id + "/stats")
-        .set("Authorization", config["discordbots.org-token"])
-        .send({
-          server_count: guildCount
-        }).catch((err) => {
-          console.log("Error occurred while posting to discordbots.org on shard " + global.client.shard.id + ":\n" + err);
-        });
-      }
+      for(var site in listings) {
+        if(config[`${site}-token`] && config[`${site}-token`] !== "optionaltokenhere") {
+          var data = listings[site].data || { server_count: guildCount };
 
-      // ## botlist.space ## //
-      if(config["botlist.space-token"] && config["botlist.space-token"] !== "optionaltokenhere") {
-        snekfetch.post("https://botlist.space/api/bots/" + global.client.user.id + "/")
-        .set("Authorization", config["botlist.space-token"])
-        .send({
-          server_count: guildCount
-        }).catch((err) => {
-          console.log("Error occurred while posting to botlist.space:\n" + err);
-        });
-      }
-
-      // ## discordbots.co.uk ## //
-      if(config["discordbots.co.uk-token"] && config["discordbots.co.uk-token"] !== "optionaltokenhere") {
-        snekfetch.post("https://discordbots.co.uk/api/v1/bots/" + global.client.user.id + "/")
-        .set("Authorization", config["discordbots.co.uk-token"])
-        .send({
-          server_count: guildCount
-        }).catch((err) => {
-          console.log("Error occurred while posting to discordbots.co.uk:\n" + err);
-        });
-      }
-
-      // ## botsfordiscord.com ## //
-      if(config["botsfordiscord.com-token"] && config["botsfordiscord.com-token"] !== "optionaltokenhere") {
-        snekfetch.post("https://botsfordiscord.com/api/v1/bots/" + global.client.user.id + "/")
-        .set("Authorization", config["botsfordiscord.com-token"])
-        .send({
-          server_count: guildCount
-        }).catch((err) => {
-          console.log("Error occurred while posting to botsfordiscord.com:\n" + err);
-        });
-      }
-
-      // ## discordbot.world ## //
-      if(config["discordbot.world-token"] && config["discordbot.world-token"] !== "optionaltokenhere") {
-        snekfetch.post("https://discordbot.world/api/bot/" + global.client.user.id + "/stats")
-        .set("Authorization", config["discordbot.world-token"])
-        .send({
-          server_count: guildCount
-        }).catch((err) => {
-          console.log("Error occurred while posting to discordbot.world:\n" + err);
-        });
-      }
-
-      // ## listcord.com ## //
-      if(config["listcord.com-token"] && config["listcord.com-token"] !== "optionaltokenhere") {
-        snekfetch.post("https://listcord.com/api/bot/" + global.client.user.id + "/guilds")
-        .set("Authorization", config["listcord.com-token"])
-        .send({
-          guilds: guildCount
-        }).catch((err) => {
-          console.log("Error occurred while posting to listcord.com:\n" + err);
-        });
-      }
-
-      // ## discordbots.group ## //
-      if(config["discordbots.group-token"] && config["discordbots.group-token"] !== "optionaltokenhere") {
-        snekfetch.post("https://discordbots.group/api/bot/" + global.client.user.id )
-        .set("Authorization", config["discordbots.group-token"])
-        .send({
-          count: guildCount
-        }).catch((err) => {
-          console.log("Error occurred while posting to discordbots.group:\n" + err);
-        });
+          snekfetch.post(listings[site].url)
+          .set("Authorization", config[`${site}-token`])
+          .send(data)
+          .catch((err) => {
+            console.log(`Error occurred while posting to ${site} on shard ${global.client.shard.id}:\n${err}`);
+          });
+        }
       }
     });
   }
