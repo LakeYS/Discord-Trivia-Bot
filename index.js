@@ -180,7 +180,7 @@ manager.spawn()
     }
   }
 
-  console.error("Discord client login failed - " + err + warning);
+  console.error(`Discord client login failed - ${err}${warning}`);
 
   process.exit();
 });
@@ -219,7 +219,7 @@ manager.on("message", (shard, input) => {
 
       fs.writeFile(config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
         if(err) {
-          console.error("Failed to save stats.json with the following err:\n" + err + "\nMake sure stats.json is not read-only or missing.");
+          console.error(`Failed to save stats.json with the following err:\n${err}\nMake sure stats.json is not read-only or missing.`);
         }
       });
     }
