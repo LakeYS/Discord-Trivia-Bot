@@ -88,18 +88,19 @@ function isFallbackMode(channel) {
 async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
   var length = global.questions.length;
   var toReturn;
-  var args = "";
 
   // To keep the question response quick, the bot always stays one question ahead.
   // This way, we're never waiting for the database to respond.
   if(typeof length === "undefined" || length < 2 || typeof category !== "undefined") {
     // We need a new question, either due to an empty cache or because we need a specific category.
-    // TODO: Check the cache for a question in the category
+    var options = {};
+
     if(typeof category !== "undefined") {
-      args += `?amount=1&category=${category}`;
+      options.amount = 1;
+      options.category = category;
     }
     else {
-      args += `?amount=${config["database-cache-size"]}`;
+      options.amount = config["database-cache-size"];
     }
 
     // Get a token if one is requested.
@@ -117,47 +118,51 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
         }});
       }
 
-      if(typeof token !== "undefined" && typeof  category !== "undefined") {
+      if(typeof token !== "undefined" && typeof category !== "undefined") {
         // Set the token and continue.
-        args += `&token=${token}`;
+        options.token = token;
       }
     }
 
-    var json = await Database.parseURL(config.databaseURL + `/api.php${args}`);
-    if(json.response_code === 4 && typeof token !== "undefined") {
-      // Token empty, reset it and start over.
-      if(tokenRetry !== 1) {
-        try {
-          await Database.resetToken(token);
-        } catch(error) {
-          console.log(`Failed to reset token - ${error.message}`);
-          throw new Error(`Failed to reset token - ${error.message}`);
-        }
-        triviaSend(tokenChannel, void 0, "You've played all of the questions in this category! Questions will start to repeat.");
+    try {
+      var json = await Database.fetchQuestions(options);
+    } catch(error) {
+      if(error.code === 4 && typeof token !== "undefined") {
+        // Token empty, reset it and start over.
+        if(tokenRetry !== 1) {
+          try {
+            await Database.resetToken(token);
+          } catch(error) {
+            console.log(`Failed to reset token - ${error.message}`);
+            throw new Error(`Failed to reset token - ${error.message}`);
+          }
+          triviaSend(tokenChannel, void 0, "You've played all of the questions in this category! Questions will start to repeat.");
 
-        // Start over now that we have a token.
-        return await getTriviaQuestion(initial, category, tokenChannel, 1);
+          // Start over now that we have a token.
+          return await getTriviaQuestion(initial, category, tokenChannel, 1);
+        }
+        else {
+          // This shouldn't ever happen.
+          throw new Error("Token reset loop.");
+        }
       }
       else {
-        // This shouldn't ever happen.
-        throw new Error("Token reset loop.");
+        console.log("Received error from the trivia database!");
+        console.log(error);
+        console.log(json);
+
+        // Delete the token so we'll generate a new one next time.
+        // This is to fix the game in case the cached token is invalid.
+        if(typeof token !== "undefined") {
+          delete Database.tokens[tokenChannel.id];
+        }
+
+        // Author is passed through; triviaSend will handle it if author is undefined.
+        throw new Error(`Failed to query the trivia database with error code ${json.response_code} (${Database.responses[json.response_code]})`);
       }
     }
-    else if(json.response_code !== 0) {
-      console.log("Received error from the trivia database..");
-      console.log(json);
-
-      // Delete the token so we'll generate a new one next time.
-      // This is to fix the game in case the cached token is invalid.
-      if(typeof token !== "undefined") {
-        delete Database.tokens[tokenChannel.id];
-      }
-
-      // Author is passed through; triviaSend will handle it if author is undefined.
-      throw new Error(`Failed to query the trivia database with error code ${json.response_code} (${Database.responses[json.response_code]})`);
-    }
-    else {
-      global.questions = json.results;
+    finally {
+      global.questions = json;
     }
   }
 
