@@ -124,8 +124,9 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
       }
     }
 
+    var json = {};
     try {
-      var json = await Database.fetchQuestions(options);
+      json = await Database.fetchQuestions(options);
     } catch(error) {
       if(error.code === 4 && typeof token !== "undefined") {
         // Token empty, reset it and start over.
