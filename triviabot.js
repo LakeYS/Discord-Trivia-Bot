@@ -16,6 +16,8 @@ const scoreValue = config["score-value"];
 
 const Database = require("./lib/database/opentdb.js")(config);
 
+exports.database = Database;
+
 var game = {};
 global.questions = [];
 

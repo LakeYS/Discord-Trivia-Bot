@@ -228,7 +228,7 @@ manager.on("message", (shard, input) => {
 
 // # Console Functions # //
 function doExit() {
-  manager.broadcastEval("client.destroy();")
+  manager.broadcastEval("client.destroy(); Trivia.database.destroy();")
   .then(() => {
     process.exit();
   });
