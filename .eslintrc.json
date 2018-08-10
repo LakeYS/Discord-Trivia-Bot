@@ -21,6 +21,9 @@
             "error",
             "always"
         ],
-        "no-console": "off"
+        "no-console": "off",
+        "block-scoped-var": [
+            "warn"
+        ]
     }
 }
