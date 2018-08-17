@@ -858,7 +858,7 @@ function triviaResumeGame(json, id) {
   var channel;
   if(typeof json.userId !== "undefined") {
     // Find the DM channel
-    channel = global.client.users.find("id", json.userId);
+    channel = global.client.users.get(json.userId);
 
     // Re-create the dmChannel object.
     if(channel !== null) {
@@ -870,7 +870,7 @@ function triviaResumeGame(json, id) {
 
   }
   else {
-    channel = global.client.channels.find("id", id);
+    channel = global.client.channels.get(id);
   }
 
   if(!json.inProgress) {
@@ -951,7 +951,7 @@ Trivia.reactionAdd = function(reaction, user) {
     }
 
     // Get the user's nickname.
-    var username = reaction.message.guild.members.find("id", user.id).displayName;
+    var username = reaction.message.guild.members.get(user.id).displayName;
     parseTriviaAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
   }
 };
