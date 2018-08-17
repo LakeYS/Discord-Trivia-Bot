@@ -685,7 +685,7 @@ function doTriviaPing(msg) {
     sent.edit({embed: {
       color: embedCol,
       title: "Pong!",
-      description: `That took ${tAfter-tBefore}ms.\nAverage client heartbeat: ${global.client.ping}ms\nShard ${global.client.shard.id} of ${global.client.shard.count-1}`
+      description: `That took ${tAfter-tBefore}ms.\nAverage client heartbeat: ${Math.round(global.client.ping)}ms\nShard ${global.client.shard.id} of ${global.client.shard.count-1}`
     }});
   });
 }
