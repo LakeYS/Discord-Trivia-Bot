@@ -6,7 +6,7 @@ var config = require("./lib/config.js")(process.argv[2]);
 
 const infoFooter = "([Support TriviaBot on Patreon](https://www.patreon.com/LakeYS)) ([Contribute questions to the database](http://lakeys.net/triviabot/contribute))";
 
-const footerString = `Commands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`, \`${config.prefix}stop\`
+const footerString = `Commands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`, \`${config.prefix}stop\`, \`${config.prefix}ping\`
 *Bot by [Lake Y](http://lakeys.net). Powered by discord.js ${require("./package.json").dependencies["discord.js"].replace("^","")}\
 ${config.databaseURL==="https://opentdb.com"?" and the [Open Trivia Database](https://opentdb.com/)*":"*"}.\n*${infoFooter}*`;
 
