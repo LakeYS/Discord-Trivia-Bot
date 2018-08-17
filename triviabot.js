@@ -10,12 +10,38 @@ const footerString = `Commands: \`${config.prefix}play <category>\`, \`${config.
 *Bot by [Lake Y](http://lakeys.net). Powered by discord.js ${require("./package.json").dependencies["discord.js"].replace("^","")}\
 ${config.databaseURL==="https://opentdb.com"?" and the [Open Trivia Database](https://opentdb.com/)*":"*"}.\n*${infoFooter}*`;
 
+var Trivia = exports;
+
+// getConfigValue(value, channel, guild)
+// channel: Unique identifier for the channel. If blank, falls back to guild.
+//          If detected as a discord.js TextChannel object, automatically fills the
+//          ID for itself and the guild.
+// guild: Unique identifier for the server. If blank, falls back to global.
+function getConfigVal(value, channel, guild) {
+  if(typeof channel !== "undefined") {
+    // discord.js class auto-detection
+    if(channel.type === "TextChannel") {
+      guild = channel.guild.id;
+      channel = channel.id;
+    }
+    else if(channel.type === "DMChannel") {
+      channel = channel.id;
+    }
+  }
+
+  channel, guild;
+
+  return config[value];
+}
+
+Trivia.getConfigVal = getConfigVal;
+
 const letters = ["A", "B", "C", "D"];
-const embedCol = config["beta-mode"]?8609529:27903;
+const embedCol = getConfigVal("beta-mode")?8609529:27903;
 
 const Database = require("./lib/database/opentdb.js")(config);
 
-exports.database = Database;
+Trivia.database = Database;
 
 var game = {};
 global.questions = [];
@@ -62,7 +88,7 @@ var triviaSend = function(channel, author, msg, callback, noDelete) {
       callback(msg);
     }
 
-    if(config["auto-delete-msgs"] && noDelete !== 1) {
+    if(getConfigVal("auto-delete-msgs", channel) && noDelete !== 1) {
       setTimeout(() => {
         msg.delete();
       }, 15000);
@@ -71,8 +97,8 @@ var triviaSend = function(channel, author, msg, callback, noDelete) {
 };
 
 function isFallbackMode(channel) {
-  if(config["fallback-mode"]) {
-    if(typeof config["fallback-exceptions"] !== "undefined" && config["fallback-exceptions"].indexOf(channel) !== -1) {
+  if(getConfigVal("fallback-mode")) {
+    if(typeof getConfigVal("fallback-exceptions") !== "undefined" && getConfigVal("fallback-exceptions").indexOf(channel) !== -1) {
       // Return if specified channel is an exception
       return;
     }
@@ -101,7 +127,7 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
       options.category = category;
     }
     else {
-      options.amount = config["database-cache-size"];
+      options.amount = getConfigVal("database-cache-size");
     }
 
     // Get a token if one is requested.
@@ -244,7 +270,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     return;
   }
 
-  if(typeof game[id].message !== "undefined" && config["auto-delete-msgs"]) {
+  if(typeof game[id].message !== "undefined" && getConfigVal("auto-delete-msgs", channel)) {
     game[id].message.delete()
     .catch((err) => {
       console.log(`Failed to delete message - ${err.message}`);
@@ -264,7 +290,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
   var scoreStr = "";
 
   // If only one participant, we'll only need the first user's score.
-  if(!config["disable-score-display"]) {
+  if(!getConfigVal("disable-score-display", channel)) {
     scoreStr = `(${game[id].scores[game[id].correctUsers[0]]} points)`;
   }
 
@@ -275,7 +301,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
   }
   else if(game[id].participants.length === 0) {
     // If there were no participants...
-    if(game[id].emptyRoundCount+1 >= config["rounds-end-after"]) {
+    if(game[id].emptyRoundCount+1 >= getConfigVal("rounds-end-after", channel)) {
       doAutoEnd = 1;
       gameEndedMsg = "\n\n*Game ended.*";
     } else {
@@ -287,7 +313,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     doAutoEnd = 0;
   }
 
-  if(gameEndedMsg === "" || config["disable-score-display"]) {
+  if(gameEndedMsg === "" || getConfigVal("disable-score-display", channel)) {
     // ## Normal Score Display ## //
     if(game[id].correctUsers.length === 0) {
       if(game[id].participants.length === 1) {
@@ -312,7 +338,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
             comma = "\n";
           }
 
-          if(!config["disable-score-display"]) {
+          if(!getConfigVal("disable-score-display", channel)) {
             scoreStr = `(${game[id].scores[game[id].correctUsers[i]]} points)`;
           }
 
@@ -343,14 +369,14 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
       // NOTE: Participants check is repeated below in doTriviaGame
       if(!err && !doAutoEnd) {
         game[id].timeout = setTimeout(() => {
-          if(config["auto-delete-msgs"]) {
+          if(getConfigVal("auto-delete-msgs", channel)) {
             msg.delete()
             .catch((err) => {
               console.log(`Failed to delete message - ${err.message}`);
             });
           }
           doTriviaGame(id, channel, void 0, 1);
-        }, config["round-timeout"]);
+        }, getConfigVal("round-timeout", channel));
       }
       else {
         game[id].timeout = void 0;
@@ -363,7 +389,8 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
 // # parseTriviaAnswer # //
 // Parses a user's letter answer and scores it accordingly.
 // Str: Letter answer -- id: channel identifier
-function parseTriviaAnswer(str, id, userId, username) {
+// scoreValue: Score value from the config file.
+function parseTriviaAnswer(str, id, userId, username, scoreValue) {
   // inProgress is always true when a game is active, even between rounds.
 
   if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
@@ -382,7 +409,7 @@ function parseTriviaAnswer(str, id, userId, username) {
 
         game[id].scores[userId] = game[id].scores[userId] || 0;
 
-        game[id].scores[userId] += config["score-value"][game[id].difficulty];
+        game[id].scores[userId] += scoreValue[game[id].difficulty];
       }
     }
     else {
@@ -391,7 +418,7 @@ function parseTriviaAnswer(str, id, userId, username) {
         // Remove the name using the index of the ID. (This is important in case the user changes names)
         delete game[id].correctNames[userId];
 
-        game[id].scores[userId] -= config["score-value"][game[id].difficulty];
+        game[id].scores[userId] -= scoreValue[game[id].difficulty];
 
         // Now that the name is removed, we can remove the ID.
         game[id].correctUsers.splice(game[id].correctUsers.indexOf(userId), 1);
@@ -461,7 +488,7 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
   var useReactions = 0;
 
   if(channel.type !== "dm") {
-    if(config["use-reactions"]) {
+    if(getConfigVal("use-reactions", channel)) {
       useReactions = 1;
     }
   }
@@ -507,7 +534,7 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
     }
 
     var color = embedCol;
-    if(config["hide-difficulty"] !== true) {
+    if(getConfigVal("hide-difficulty", channel) !== true) {
       switch(question.difficulty) {
         case "easy":
           color = 4249664;
@@ -532,7 +559,7 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
         game[id].correctId = i;
       }
 
-      answerString = `${answerString}**${letters[i]}:** ${entities.decode(answers[i])}${config["debug-mode"]&&i===game[id].correctId?" *(Answer)*":""}\n`;
+      answerString = `${answerString}**${letters[i]}:** ${entities.decode(answers[i])}${getConfigVal("debug-mode")&&i===game[id].correctId?" *(Answer)*":""}\n`;
     }
 
     var categoryString = entities.decode(question.category);
@@ -545,7 +572,7 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
         infoString = `${infoString}Type a letter to answer! `;
       }
 
-      infoString = `${infoString}The answer will be revealed in ${config["round-length"]/1000} seconds.`;
+      infoString = `${infoString}The answer will be revealed in ${getConfigVal("round-length", channel)/1000} seconds.`;
     }
 
     triviaSend(channel, author, {embed: {
@@ -592,7 +619,7 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
           // Reveal the answer after the time is up
           game[id].timeout = setTimeout(() => {
              triviaRevealAnswer(id, channel, question.correct_answer);
-          }, config["round-length"]);
+          }, getConfigVal("round-length", channel));
         }
       }
     }, 1);
@@ -689,7 +716,7 @@ function parseCommand(msg, cmd) {
 
   if(cmd === "STOP" || cmd === "CANCEL" || cmd === "ADMIN STOP" || cmd === "ADMIN CANCEL") {
     if(typeof game[id] !== "undefined" && game[id].inProgress) {
-      if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm") && config["disable-admin-commands"] !== true) {
+      if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm") && getConfigVal("disable-admin-commands", msg.channel) !== true) {
         // These are defined beforehand so we can refer to them after the game is deleted.
         let timeout = game[id].timeout;
         let inRound = game[id].inRound;
@@ -720,8 +747,7 @@ function parseCommand(msg, cmd) {
         }
       }
       else {
-        triviaSend(msg.channel, void 0, `Trivia games will end automatically if the game is inactive for more than ${config["rounds-end-after"]-1} round${config["rounds-end-after"]-1===1?"":"s"}. Only users with the "Manage Server" permission can force-end a game.`);
-      }
+        triviaSend(msg.channel, void 0, `Trivia games will end automatically if the game is inactive for more than ${getConfigVal("rounds-end-after", msg.channel)-1} round${getConfigVal("rounds-end-after", msg.channel)-1===1?"":"s"}. Only users with the "Manage Server" permission can force-end a game.`);      }
     }
   }
 
@@ -789,7 +815,7 @@ function parseCommand(msg, cmd) {
 }
 
 // # trivia.parse #
-exports.parse = (str, msg) => {
+Trivia.parse = (str, msg) => {
   // No games in fallback mode
   if(isFallbackMode(msg.channel.id)) {
     return;
@@ -799,18 +825,18 @@ exports.parse = (str, msg) => {
   var id = msg.channel.id;
 
   // Other bots can't use commands
-  if(msg.author.bot === true && config["allow-bots"] !== true) {
+  if(msg.author.bot === true && getConfigVal("allow-bots") !== true) {
     return;
   }
 
-  var prefix = config.prefix.toUpperCase();
+  var prefix = getConfigVal("prefix").toUpperCase();
 
   // ## Answers ##
   // Check for letters if not using reactions
   if(typeof game[id] !== "undefined" && !game[id].useReactions) {
     var name = msg.member !== null?msg.member.displayName:msg.author.username;
 
-    parseTriviaAnswer(str, id, msg.author.id, name);
+    parseTriviaAnswer(str, id, msg.author.id, name, getConfigVal("score-value", msg.channel));
   }
 
   // ## Help Command Parser ##
@@ -876,7 +902,7 @@ function triviaResumeGame(json, id) {
 
     // Calculate timeout based on game time
 
-    date.setMilliseconds(date.getMilliseconds()+config["round-length"]);
+    date.setMilliseconds(date.getMilliseconds()+getConfigVal("round-length", channel));
     timeout = date-new Date();
 
     game[id].timeout = setTimeout(() => {
@@ -886,7 +912,7 @@ function triviaResumeGame(json, id) {
   else {
     if(json.participants.length !== 0) {
       // Since date doesn't update between rounds, we'll have to add both the round's length and timeout
-      date.setMilliseconds(date.getMilliseconds()+config["round-timeout"]+config["round-length"]);
+      date.setMilliseconds(date.getMilliseconds()+getConfigVal("round-timeout", channel)+getConfigVal("round-length", channel));
       timeout = date-new Date();
 
       game[id].timeout = setTimeout(() => {
@@ -897,12 +923,12 @@ function triviaResumeGame(json, id) {
 }
 
 // Read game data
-exports.getGame = () => {
+Trivia.getGame = () => {
   return game;
 };
 
 // Detect reaction answers
-exports.reactionAdd = function(reaction, user) {
+Trivia.reactionAdd = function(reaction, user) {
   var id = reaction.message.channel.id;
   var str = reaction.emoji.name;
 
@@ -926,13 +952,13 @@ exports.reactionAdd = function(reaction, user) {
 
     // Get the user's nickname.
     var username = reaction.message.guild.members.find("id", user.id).displayName;
-    parseTriviaAnswer(str, id, user.id, username);
+    parseTriviaAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
   }
 };
 
 // # Game Exporter #
 // Export the current game data to a file.
-exports.exportGame = (file) => {
+Trivia.exportGame = (file) => {
   // Copy the data so we don't modify the actual game object.
   var json = JSON.parse(JSON.stringify(game));
 
@@ -973,7 +999,7 @@ exports.exportGame = (file) => {
 // Import game data from JSON files.
 // input: file string or valid JSON object
 // unlink (bool): delete file after opening
-exports.importGame = (input, unlink) => {
+Trivia.importGame = (input, unlink) => {
   console.log(`Importing games to shard ${global.client.shard.id} from file...`);
   var json;
   if(typeof input === "string") {
@@ -1015,20 +1041,20 @@ exports.importGame = (input, unlink) => {
 };
 
 // # Console Commands #
-if(config["allow-eval"] === true) {
+if(getConfigVal("allow-eval") === true) {
   process.stdin.on("data", (text) => {
     if(text.toString() === "export\r\n") {
-      exports.exportGame();
+      Trivia.exportGame();
     }
 
     if(text.toString() === "import\r\n") {
-      exports.importGame(`"./game.${global.client.shard.id}.json.bak`);
+      Trivia.importGame(`"./game.${global.client.shard.id}.json.bak`);
     }
   });
 }
 
 // # Fallback Mode Functionality #
-if(config["fallback-mode"] && !config["fallback-silent"]) {
+if(getConfigVal("fallback-mode") && !getConfigVal("fallback-silent")) {
   global.client.on("message", (msg) => {
       console.log(`Msg - ${msg.author === global.client.user?"(self)":""} Shard ${global.client.shard.id} - Channel ${msg.channel.id}`);
   });
@@ -1037,7 +1063,7 @@ if(config["fallback-mode"] && !config["fallback-silent"]) {
 process.on("exit", (code) => {
   if(code !== 0) {
     console.log("Exit with non-zero code, exporting game data...");
-    exports.exportGame();
+    Trivia.exportGame();
   }
 });
 
@@ -1046,6 +1072,6 @@ global.client.on("ready", () => {
   var file = `./game.${global.client.shard.id}.json.bak`;
   if(fs.existsSync(file)) {
     // Import the file, then delete it.
-    exports.importGame(file, 1);
+    Trivia.importGame(file, 1);
   }
 });
