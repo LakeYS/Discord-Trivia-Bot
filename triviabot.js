@@ -672,6 +672,24 @@ async function doTriviaHelp(msg) {
   }});
 }
 
+function doTriviaPing(msg) {
+  var tBefore = Date.now();
+
+  triviaSend(msg.channel, msg.author, {embed: {
+    color: embedCol,
+    title: "Pong!",
+    description: "Measuring how long that took..."
+  }}, (sent) => {
+    var tAfter = Date.now();
+
+    sent.edit({embed: {
+      color: embedCol,
+      title: "Pong!",
+      description: `That took ${tAfter-tBefore}ms.\nAverage client heartbeat: ${global.client.ping}ms\nShard ${global.client.shard.id} of ${global.client.shard.count-1}`
+    }});
+  });
+}
+
 async function doTriviaCategories(msg) {
   var json;
   var json2;
@@ -713,6 +731,10 @@ async function doTriviaCategories(msg) {
 
 function parseCommand(msg, cmd) {
   var id = msg.channel.id;
+
+  if(cmd == "PING") {
+    doTriviaPing(msg);
+  }
 
   if(cmd === "STOP" || cmd === "CANCEL" || cmd === "ADMIN STOP" || cmd === "ADMIN CANCEL") {
     if(typeof game[id] !== "undefined" && game[id].inProgress) {
