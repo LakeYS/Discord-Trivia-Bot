@@ -500,7 +500,7 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
     "inProgress": 1,
     "inRound": 1,
 
-    "guildId": channel.type==="dm"?void 0:channel.guild.id,
+    "guildId": channel.type==="text"?channel.guild.id:void 0,
     "userId": channel.type!=="dm"?void 0:channel.recipient.id,
 
     useReactions,
