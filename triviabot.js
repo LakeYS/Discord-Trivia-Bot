@@ -732,7 +732,7 @@ async function doTriviaCategories(msg) {
 function parseCommand(msg, cmd) {
   var id = msg.channel.id;
 
-  if(cmd == "PING") {
+  if(cmd === "PING") {
     doTriviaPing(msg);
   }
 
