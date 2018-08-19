@@ -293,7 +293,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
   if(!getConfigVal("disable-score-display", channel)) {
     scoreStr = `(${game[id].scores[game[id].correctUsers[0]]} points)`;
 
-    if(isNaN(game[id].scores[game[id].correctUsers[0]])) {
+    if(typeof game[id].scores[game[id].correctUsers[0]] !== "undefined" && isNaN(game[id].scores[game[id].correctUsers[0]])) {
       console.log("!!!!!!NaN SCORE DETECTED, DUMPING DATA!!!!!!");
       console.log(game[id]);
     }
