@@ -292,6 +292,11 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
   // If only one participant, we'll only need the first user's score.
   if(!getConfigVal("disable-score-display", channel)) {
     scoreStr = `(${game[id].scores[game[id].correctUsers[0]]} points)`;
+
+    if(isNaN(game[id].scores[game[id].correctUsers[0]])) {
+      console.log("!!!!!!NaN SCORE DETECTED, DUMPING DATA!!!!!!");
+      console.log(game[id]);
+    }
   }
 
   var gameEndedMsg = "";
