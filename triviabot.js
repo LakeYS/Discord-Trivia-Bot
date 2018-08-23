@@ -644,6 +644,8 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
 async function doTriviaHelp(msg) {
   var res = "Let's play trivia! Type 'trivia play' to start a game.";
 
+  global.client.shard.send({stats: { commandHelpCount: 1 }});
+
   // Question count
   var apiCountGlobal;
   try {
