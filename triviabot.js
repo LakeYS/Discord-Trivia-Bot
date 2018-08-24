@@ -682,6 +682,8 @@ async function doTriviaHelp(msg) {
 function doTriviaPing(msg) {
   var tBefore = Date.now();
 
+  global.client.shard.send({stats: { commandPingCount: 1 }});
+
   triviaSend(msg.channel, msg.author, {embed: {
     color: embedCol,
     title: "Pong!",
@@ -700,6 +702,9 @@ function doTriviaPing(msg) {
 async function doTriviaCategories(msg) {
   var json;
   var json2;
+
+  global.client.shard.send({stats: { commandCategoriesCount: 1 }});
+
   try {
     json = await Database.getCategories();
     json2 = await Database.getGlobalCounts();
