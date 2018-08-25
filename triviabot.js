@@ -291,9 +291,9 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
 
   // If only one participant, we'll only need the first user's score.
   if(!getConfigVal("disable-score-display", channel)) {
-    scoreStr = `(${game[id].scores[game[id].correctUsers[0]]} points)`;
+    scoreStr = `(${game[id].scores[ Object.keys(game[id].correctUsers)[0] ]} points)`;
 
-    if(typeof game[id].scores[game[id].correctUsers[0]] !== "undefined" && isNaN(game[id].scores[game[id].correctUsers[0]])) {
+    if(typeof game[id].scores[ Object.keys(game[id].correctUsers)[0] ] !== "undefined" && isNaN(game[id].scores[ Object.keys(game[id].correctUsers)[0] ])) {
       console.log("!!!!!!NaN SCORE DETECTED, DUMPING DATA!!!!!!");
       console.log(game[id]);
     }
@@ -320,7 +320,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
 
   if(gameEndedMsg === "" || getConfigVal("disable-score-display", channel)) {
     // ## Normal Score Display ## //
-    if(game[id].correctUsers.length === 0) {
+    if(Object.keys(game[id].correctUsers).length === 0) {
       if(Object.keys(game[id].participants).length === 1) {
         correctUsersStr = `Incorrect, ${Object.values(game[id].participants)[0]}!`;
       }
@@ -330,24 +330,26 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     }
     else {
       if(Object.keys(game[id].participants).length === 1) {
-        correctUsersStr = `Correct, ${Object.values(game[id].correctNames)[0]}! ${scoreStr}`; // Only one player overall, simply say "Correct!"
+        correctUsersStr = `Correct, ${Object.values(game[id].correctUsers)[0]}! ${scoreStr}`; // Only one player overall, simply say "Correct!"
       }
       else  {
         // More than 10 correct players, player names are separated by comma to save space.
         var comma = ", ";
-        for(var i = 0; i <= game[id].correctUsers.length-1; i++) {
-          if(i === game[id].correctUsers.length-1) {
+        var correctCount = Object.keys(game[id].correctUsers).length;
+
+        for(var i = 0; i <= correctCount-1; i++) {
+          if(i === correctCount-1) {
             comma = "";
           }
-          else if(game[id].correctUsers.length <= 10) {
+          else if(correctCount <= 10) {
             comma = "\n";
           }
 
           if(!getConfigVal("disable-score-display", channel)) {
-            scoreStr = `(${game[id].scores[game[id].correctUsers[i]]} points)`;
+            scoreStr = `(${game[id].scores[ Object.keys(game[id].correctUsers)[i] ]} points)`;
           }
 
-          correctUsersStr = `${correctUsersStr}${game[id].correctNames[game[id].correctUsers[i]]} ${scoreStr}${comma}`;
+          correctUsersStr = `${correctUsersStr}${Object.values(game[id].correctUsers)[i]} ${scoreStr}${comma}`;
         }
       }
     }
@@ -407,9 +409,8 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
     }
 
     if(str === letters[game[id].correctId]) {
-      if(!game[id].correctUsers.includes(userId)) {
-        game[id].correctUsers.push(userId);
-        game[id].correctNames[userId] = username;
+      if(typeof game[id].correctUsers[userId] === "undefined") {
+        game[id].correctUsers[userId] = username;
 
         game[id].scores[userId] = game[id].scores[userId] || 0;
 
@@ -418,14 +419,11 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
     }
     else {
       // If the answer is wrong, remove them from correctUsers if necessary
-      if(game[id].correctUsers.includes(userId) === true) {
-        // Remove the name using the index of the ID. (This is important in case the user changes names)
-        delete game[id].correctNames[userId];
-
+      if(typeof game[id].correctUsers[userId] !== "undefined") {
         game[id].scores[userId] -= scoreValue[game[id].difficulty];
 
         // Now that the name is removed, we can remove the ID.
-        game[id].correctUsers.splice(game[id].correctUsers.indexOf(userId), 1);
+        delete game[id].correctUsers[userId];
       }
     }
   }
@@ -511,8 +509,7 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
     "category": typeof game[id]!=="undefined"?game[id].category:category,
 
     "participants": [],
-    "correctUsers": [],
-    "correctNames": {},
+    "correctUsers": {},
 
     "totalParticipants": typeof game[id]!=="undefined"?game[id].totalParticipants:{},
     "scores": typeof game[id]!=="undefined"?game[id].scores:{},
