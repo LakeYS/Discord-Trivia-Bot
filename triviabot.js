@@ -304,7 +304,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
   if(game[id].cancelled) {
     gameEndedMsg = "\n\n*Game ended by admin.*";
   }
-  else if(game[id].participants.length === 0) {
+  else if(Object.keys(game[id].participants).length === 0) {
     // If there were no participants...
     if(game[id].emptyRoundCount+1 >= getConfigVal("rounds-end-after", channel)) {
       doAutoEnd = 1;
@@ -321,15 +321,15 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
   if(gameEndedMsg === "" || getConfigVal("disable-score-display", channel)) {
     // ## Normal Score Display ## //
     if(game[id].correctUsers.length === 0) {
-      if(game[id].participants.length === 1) {
-        correctUsersStr = `Incorrect, ${game[id].participantNames[0]}!`;
+      if(Object.keys(game[id].participants).length === 1) {
+        correctUsersStr = `Incorrect, ${Object.values(game[id].participants)[0]}!`;
       }
       else {
         correctUsersStr = correctUsersStr + "Nobody!";
       }
     }
     else {
-      if(game[id].participants.length === 1) {
+      if(Object.keys(game[id].participants).length === 1) {
         correctUsersStr = `Correct, ${Object.values(game[id].correctNames)[0]}! ${scoreStr}`; // Only one player overall, simply say "Correct!"
       }
       else  {
@@ -400,9 +400,8 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
 
   if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
     // Add to participants if they aren't already on the list
-    if(game[id].inProgress && game[id].participants.includes(userId) === false) {
-      game[id].participants.push(userId);
-      game[id].participantNames.push(username);
+    if(game[id].inProgress && typeof game[id].participants[userId] === "undefined") {
+      game[id].participants[userId] = username;
 
       game[id].totalParticipants[userId] = username;
     }
@@ -512,7 +511,6 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
     "category": typeof game[id]!=="undefined"?game[id].category:category,
 
     "participants": [],
-    "participantNames": [],
     "correctUsers": [],
     "correctNames": {},
 
@@ -944,7 +942,7 @@ function triviaResumeGame(json, id) {
     }, timeout);
   }
   else {
-    if(json.participants.length !== 0) {
+    if(Object.keys(json.participants).length !== 0) {
       // Since date doesn't update between rounds, we'll have to add both the round's length and timeout
       date.setMilliseconds(date.getMilliseconds()+getConfigVal("round-timeout", channel)+getConfigVal("round-length", channel));
       timeout = date-new Date();
