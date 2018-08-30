@@ -235,7 +235,7 @@ function doExit() {
 }
 if(config["allow-eval"] === true) {
   process.stdin.on("data", (text) => {
-    if(text.startsWith("stop") || text.startsWith("exit")) {
+    if(text.toString() === "stop\r\n" || text.toString() === "exit\r\n" || text.toString() === "stop\n" || text.toString() === "exit\n") {
       doExit();
     }
     else {

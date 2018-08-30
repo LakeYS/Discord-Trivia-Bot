@@ -187,6 +187,15 @@ if(config["allow-eval"] === true) {
         console.error(err);
       });
     }
+    else if(text.toString() === "shutdown\r\n" || text.toString() === "shutdown\n") {
+      global.client.shard.broadcastEval("global.Trivia.doMaintenanceShutdown();")
+      .catch((err) => {
+        console.error(err);
+      })
+      .then(() => {
+        console.log("MAINTENANCE SHUTDOWN - All active games cleared. Type \"Exit\" to complete the shutdown.");
+      });
+    }
     else {
       var id = process.pid;
       if(global.client.shard !== null) {

@@ -736,6 +736,39 @@ async function doTriviaCategories(msg) {
   });
 }
 
+function doTriviaStop(channel) {
+  // These are defined beforehand so we can refer to them after the game is deleted.
+  let id = channel.id;
+  let timeout = game[id].timeout;
+  let inRound = game[id].inRound;
+  let finalScoreStr = fetchFinalScores(id);
+
+  game[id].cancelled = 1;
+
+  if(typeof timeout !== "undefined") {
+    var onTimeout = timeout._onTimeout;
+    clearTimeout(timeout);
+
+    // If a round is in progress, display the answers before cancelling the game.
+    // The game will detect "cancelled" and display the proper message.
+    if(game[id].inRound && typeof timeout !== "undefined") {
+      onTimeout();
+    }
+  }
+  // If there's still a game, clear it.
+  if(typeof game[id] !== "undefined") {
+    triviaEndGame(id);
+  }
+
+  // Display a message if between rounds
+  if(!inRound) {
+    triviaSend(channel, void 0, {embed: {
+      color: embedCol,
+      description: `Game ended by admin.${finalScoreStr!==""?"\n\n**Final scores:**\n":""}${finalScoreStr}`
+    }});
+  }
+}
+
 function parseCommand(msg, cmd) {
   var id = msg.channel.id;
 
@@ -746,34 +779,7 @@ function parseCommand(msg, cmd) {
   if(cmd === "STOP" || cmd === "CANCEL" || cmd === "ADMIN STOP" || cmd === "ADMIN CANCEL") {
     if(typeof game[id] !== "undefined" && game[id].inProgress) {
       if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm") && getConfigVal("disable-admin-commands", msg.channel) !== true) {
-        // These are defined beforehand so we can refer to them after the game is deleted.
-        let timeout = game[id].timeout;
-        let inRound = game[id].inRound;
-        let finalScoreStr = fetchFinalScores(id);
-
-        game[id].cancelled = 1;
-
-        if(typeof timeout !== "undefined") {
-          var onTimeout = timeout._onTimeout;
-          clearTimeout(timeout);
-
-          // If a round is in progress, display the answers before cancelling the game.
-          if(game[id].inRound && typeof timeout !== "undefined") {
-            onTimeout();
-          }
-        }
-        // If there's still a game, clear it.
-        if(typeof game[id] !== "undefined") {
-          triviaEndGame(id);
-        }
-
-        // Display a message if between rounds
-        if(!inRound) {
-          triviaSend(msg.channel, void 0, {embed: {
-            color: embedCol,
-            description: `Game ended by admin.${finalScoreStr!==""?"\n\n**Final scores:**\n":""}${finalScoreStr}`
-          }});
-        }
+        doTriviaStop(msg.channel);
       }
       else {
         triviaSend(msg.channel, void 0, `Trivia games will end automatically if the game is inactive for more than ${getConfigVal("rounds-end-after", msg.channel)-1} round${getConfigVal("rounds-end-after", msg.channel)-1===1?"":"s"}. Only users with the "Manage Server" permission can force-end a game.`);      }
@@ -1068,6 +1074,24 @@ Trivia.importGame = (input, unlink) => {
     }
   });
 };
+
+// # Maintenance Shutdown Command #
+Trivia.doMaintenanceShutdown = () => {
+  console.log(`Clearing ${Object.keys(game).length} games on shard ${global.client.shard.id}`);
+
+  Object.keys(game).forEach((key) => {
+    var channel = game[key].message.channel;
+    doTriviaStop(game[key].message.channel, 1);
+
+    triviaSend(channel, void 0, {embed: {
+      color: embedCol,
+      description: "TriviaBot is being temporarily shut down for maintenance. Please try again in a few minutes."
+    }});
+  });
+
+  return;
+};
+
 
 // # Console Commands #
 if(getConfigVal("allow-eval") === true) {
