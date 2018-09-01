@@ -756,7 +756,11 @@ async function doTriviaCategories(msg) {
   });
 }
 
-function doTriviaStop(channel) {
+function doTriviaStop(channel, auto) {
+  if(auto !== 1) {
+    global.client.shard.send({stats: { commandStopCount: 1 }});
+  }
+
   // These are defined beforehand so we can refer to them after the game is deleted.
   let id = channel.id;
   let timeout = game[id].timeout;
