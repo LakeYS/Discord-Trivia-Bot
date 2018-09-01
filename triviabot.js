@@ -412,15 +412,33 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
       if(typeof game[id].correctUsers[userId] === "undefined") {
         game[id].correctUsers[userId] = username;
 
+        // If their score doesn't exist, intialize it.
         game[id].scores[userId] = game[id].scores[userId] || 0;
 
+        if(getConfigVal("debug-log")) {
+          console.log(`Updating score of user ${game[id].participants[userId]} (Current value: ${game[id].scores[userId]}) by ${scoreValue[game[id].difficulty]}.`);
+        }
+
         game[id].scores[userId] += scoreValue[game[id].difficulty];
+
+        if(getConfigVal("debug-log")) {
+          console.log(`New score for user ${game[id].participants[userId]}: ${game[id].scores[userId]}`);
+        }
       }
     }
     else {
       // If the answer is wrong, remove them from correctUsers if necessary
       if(typeof game[id].correctUsers[userId] !== "undefined") {
+
+        if(getConfigVal("debug-log")) {
+          console.log(`User ${game[id].participants[userId]} changed answers, reducing score (Current value: ${game[id].scores[userId]}) by ${scoreValue[game[id].difficulty]}.`);
+        }
+        
         game[id].scores[userId] -= scoreValue[game[id].difficulty];
+
+        if(getConfigVal("debug-log")) {
+          console.log(`New score for user ${game[id].participants[userId]}: ${game[id].scores[userId]}`);
+        }
 
         // Now that the name is removed, we can remove the ID.
         delete game[id].correctUsers[userId];

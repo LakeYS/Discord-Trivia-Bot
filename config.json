@@ -20,7 +20,6 @@
   "score-value": { "easy": 100, "medium": 200, "hard": 300 },
 
   "allow-eval": false,
-  "debug-mode": false,
   "shard-count": "auto",
   "disable-version-check": false,
   "allow-bots": false,
@@ -34,6 +33,8 @@
   "additional-packages-shard": [],
   "beta-mode": false,
   "beta-require-external-function": false,
+  "debug-mode": false,
+  "debug-log": false,
   "fallback-mode": false,
   "fallback-silent": false,
   "fallback-exceptions": []
