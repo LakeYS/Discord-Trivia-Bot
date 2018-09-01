@@ -398,7 +398,9 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
 // Str: Letter answer -- id: channel identifier
 // scoreValue: Score value from the config file.
 function parseTriviaAnswer(str, id, userId, username, scoreValue) {
-  // inProgress is always true when a game is active, even between rounds.
+  if(!game[id].inRound) {
+    return;
+  }
 
   if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
     // Add to participants if they aren't already on the list
@@ -433,7 +435,7 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
         if(getConfigVal("debug-log")) {
           console.log(`User ${game[id].participants[userId]} changed answers, reducing score (Current value: ${game[id].scores[userId]}) by ${scoreValue[game[id].difficulty]}.`);
         }
-        
+
         game[id].scores[userId] -= scoreValue[game[id].difficulty];
 
         if(getConfigVal("debug-log")) {
