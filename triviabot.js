@@ -609,9 +609,15 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
           // Stat: Rounds played - custom
           global.client.shard.send({stats: { roundsPlayedCustom: 1 }});
 
+          // Stat: Rounds played - this category
+          global.client.shard.send( JSON.parse(`{"stats": { "roundsPlayedCat${game[id].category}": 1 }}`) );
+
           if(!scheduled) {
             // Stat: Games played - custom
             global.client.shard.send({stats: { gamesPlayedCustom: 1 }});
+
+            // Stat: Games played - this category
+            global.client.shard.send( JSON.parse(`{"stats": { "gamesPlayedCat${game[id].category}": 1 }}`) );
           }
         }
         else {
