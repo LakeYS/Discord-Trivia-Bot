@@ -4,11 +4,8 @@ const JSON = require("circular-json");
 
 var config = require("./lib/config.js")(process.argv[2]);
 
-const infoFooter = "([Support TriviaBot on Patreon](https://www.patreon.com/LakeYS)) ([Contribute questions to the database](http://lakeys.net/triviabot/contribute))";
-
-const footerString = `Commands: \`${config.prefix}play <category>\`, \`${config.prefix}help\`, \`${config.prefix}categories\`, \`${config.prefix}stop\`, \`${config.prefix}ping\`
-*Bot by [Lake Y](http://lakeys.net). Powered by discord.js ${require("./package.json").dependencies["discord.js"].replace("^","")}\
-${config.databaseURL==="https://opentdb.com"?" and the [Open Trivia Database](https://opentdb.com/)*":"*"}.\n*${infoFooter}*`;
+var commands = {};
+commands.triviaHelp = require("./lib/cmd_help.js")(config);
 
 var Trivia = exports;
 
@@ -662,44 +659,6 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
   });
 };
 
-async function doTriviaHelp(msg) {
-  var res = "Let's play trivia! Type 'trivia play' to start a game.";
-
-  global.client.shard.send({stats: { commandHelpCount: 1 }});
-
-  // Question count
-  var apiCountGlobal;
-  try {
-    var json = await Database.getGlobalCounts();
-    apiCountGlobal = json.overall.total_num_of_verified_questions;
-  }
-  catch(err) {
-    console.log(`Error while parsing help cmd apiCountGlobal: ${err.message}`);
-    apiCountGlobal = "*(unknown)*";
-  }
-  res = res + `\nThere are ${apiCountGlobal.toLocaleString()} total questions.`;
-
-  // Guild count
-  var guildCount;
-  try {
-    var guildCountArray = await global.client.shard.fetchClientValues("guilds.size");
-    guildCount = guildCountArray.reduce((prev, val) => prev + val, 0);
-  }
-  catch(err) {
-    console.log(`Error while parsing help cmd guildCount: ${err.message}`);
-    guildCount = "*(unknown)*";
-  }
-  res = res + ` Currently in ${guildCount.toLocaleString()} guild${guildCount!==1?"s":""}.`;
-
-  // Commands and links
-  res = `${res}\n\n${footerString}`;
-
-  return triviaSend(msg.channel, msg.author, {embed: {
-    color: embedCol,
-    description: res
-  }});
-}
-
 function doTriviaPing(msg) {
   var tBefore = Date.now();
 
@@ -906,7 +865,14 @@ Trivia.parse = (str, msg) => {
 
   // ## Help Command Parser ##
   if(str === prefix + "HELP" || str.includes(`<@${global.client.user.id}>`)) {
-    doTriviaHelp(msg);
+    commands.triviaHelp(msg, Database)
+    .then((res) => {
+
+      triviaSend(msg.channel, msg.author, {embed: {
+        color: embedCol,
+        description: res
+      }});
+    });
   }
 
   // ## Normal Commands ##
