@@ -471,6 +471,7 @@ async function addAnswerReactions(msg, id) {
 }
 
 // # doTriviaGame #
+// TODO: Refactor and convert to an async function
 // - id: The unique identifier for the channel that the game is in.
 // - channel: The channel object that correlates with the game.
 // - author: The user that started the game. Can be left 'undefined'
@@ -591,6 +592,13 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
       }
 
       infoString = `${infoString}The answer will be revealed in ${getConfigVal("round-length", channel)/1000} seconds.`;
+    }
+
+    if(getConfigVal("debug-mode")) {
+      Database.getTokenByIdentifier(id)
+      .then((token) => {
+        triviaSend(channel, void 0, `*${token}*`);
+      });
     }
 
     triviaSend(channel, author, {embed: {
