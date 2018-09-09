@@ -479,7 +479,7 @@ async function addAnswerReactions(msg, id) {
 // - scheduled: Set to true if starting a game scheduled by the bot.
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
-doTriviaGame = (id, channel, author, scheduled, category) => {
+doTriviaGame = async function(id, channel, author, scheduled, category) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   // Checks are excepted for games that are being resumed from cache or file.
   if(typeof game[id] !== "undefined" && !game[id].resuming) {
@@ -537,126 +537,10 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
     "emptyRoundCount": typeof game[id]!=="undefined"?game[id].emptyRoundCount:null
   };
 
-  getTriviaQuestion(0, game[id].category, scheduled?void 0:channel)
-  .then((question) => {
-    // Make sure the game wasn't cancelled while querying the database.
-    if(!game[id]) {
-      return;
-    }
-
-    var answers = [];
-    answers[0] = question.correct_answer;
-    answers = answers.concat(question.incorrect_answers);
-
-    if(question.incorrect_answers.length === 1) {
-      game[id].isTrueFalse = 1;
-    }
-
-    var color = embedCol;
-    if(getConfigVal("hide-difficulty", channel) !== true) {
-      switch(question.difficulty) {
-        case "easy":
-          color = 4249664;
-          break;
-        case "medium":
-          color = 12632064;
-          break;
-        case "hard":
-          color = 14164000;
-          break;
-      }
-    }
-    game[id].color = color;
-
-    // Sort the answers in reverse alphabetical order.
-    answers.sort();
-    answers.reverse();
-
-    var answerString = "";
-    for(var i = 0; i <= answers.length-1; i++) {
-      if(answers[i] === question.correct_answer) {
-        game[id].correctId = i;
-      }
-
-      answerString = `${answerString}**${letters[i]}:** ${entities.decode(answers[i])}${getConfigVal("debug-mode")&&i===game[id].correctId?" *(Answer)*":""}\n`;
-    }
-
-    var categoryString = entities.decode(question.category);
-
-    var infoString = "";
-    if(!scheduled) {
-      infoString = "\n";
-
-      if(!useReactions) {
-        infoString = `${infoString}Type a letter to answer! `;
-      }
-
-      infoString = `${infoString}The answer will be revealed in ${getConfigVal("round-length", channel)/1000} seconds.`;
-    }
-
-    if(getConfigVal("debug-mode")) {
-      Database.getTokenByIdentifier(id)
-      .then((token) => {
-        triviaSend(channel, void 0, `*${token}*`);
-      });
-    }
-
-    triviaSend(channel, author, {embed: {
-      color: game[id].color,
-      description: `*${categoryString}*\n**${entities.decode(question.question)}**\n${answerString}${infoString}`
-    }}, (msg, err) => {
-      if(err) {
-        game[id].timeout = void 0;
-        triviaEndGame(id);
-      }
-      else if(typeof msg !== "undefined" && typeof game[id] !== "undefined") {
-
-        if(game[id].category) {
-          // Stat: Rounds played - custom
-          global.client.shard.send({stats: { roundsPlayedCustom: 1 }});
-
-          // Stat: Rounds played - this category
-          global.client.shard.send( JSON.parse(`{"stats": { "roundsPlayedCat${game[id].category}": 1 }}`) );
-
-          if(!scheduled) {
-            // Stat: Games played - custom
-            global.client.shard.send({stats: { gamesPlayedCustom: 1 }});
-
-            // Stat: Games played - this category
-            global.client.shard.send( JSON.parse(`{"stats": { "gamesPlayedCat${game[id].category}": 1 }}`) );
-          }
-        }
-        else {
-          // Stat: Rounds played - normal
-          global.client.shard.send({stats: { roundsPlayedNormal: 1 }});
-
-          if(!scheduled) {
-            // Stat: Games played - normal
-            global.client.shard.send({stats: { gamesPlayedNormal: 1 }});
-          }
-        }
-
-        game[id].message = msg;
-
-        // Add reaction emojis if configured to do so.
-        if(useReactions) {
-          addAnswerReactions(msg, id);
-        }
-
-        if(typeof game[id] !== "undefined") {
-          game[id].difficulty = question.difficulty;
-          game[id].answer = question.correct_answer;
-          game[id].date = new Date();
-
-          // Reveal the answer after the time is up
-          game[id].timeout = setTimeout(() => {
-             triviaRevealAnswer(id, channel, question.correct_answer);
-          }, getConfigVal("round-length", channel));
-        }
-      }
-    }, 1);
-  })
-  .catch((err) => {
+  var question;
+  try {
+    question = await getTriviaQuestion(0, game[id].category, scheduled?void 0:channel);
+  } catch(err) {
     triviaSend(channel, author, {embed: {
       color: 14164000,
       description: `An error occurred while attempting to query the trivia database:\n*${err.message}*`
@@ -665,7 +549,124 @@ doTriviaGame = (id, channel, author, scheduled, category) => {
     console.log(`Database query error: ${err.message}`);
 
     triviaEndGame(id);
-  });
+  }
+
+  // Make sure the game wasn't cancelled while querying the database.
+  if(!game[id]) {
+    return;
+  }
+
+  var answers = [];
+  answers[0] = question.correct_answer;
+  answers = answers.concat(question.incorrect_answers);
+
+  if(question.incorrect_answers.length === 1) {
+    game[id].isTrueFalse = 1;
+  }
+
+  var color = embedCol;
+  if(getConfigVal("hide-difficulty", channel) !== true) {
+    switch(question.difficulty) {
+      case "easy":
+        color = 4249664;
+        break;
+      case "medium":
+        color = 12632064;
+        break;
+      case "hard":
+        color = 14164000;
+        break;
+    }
+  }
+  game[id].color = color;
+
+  // Sort the answers in reverse alphabetical order.
+  answers.sort();
+  answers.reverse();
+
+  var answerString = "";
+  for(var i = 0; i <= answers.length-1; i++) {
+    if(answers[i] === question.correct_answer) {
+      game[id].correctId = i;
+    }
+
+    answerString = `${answerString}**${letters[i]}:** ${entities.decode(answers[i])}${getConfigVal("debug-mode")&&i===game[id].correctId?" *(Answer)*":""}\n`;
+  }
+
+  var categoryString = entities.decode(question.category);
+
+  var infoString = "";
+  if(!scheduled) {
+    infoString = "\n";
+
+    if(!useReactions) {
+      infoString = `${infoString}Type a letter to answer! `;
+    }
+
+    infoString = `${infoString}The answer will be revealed in ${getConfigVal("round-length", channel)/1000} seconds.`;
+  }
+
+  if(getConfigVal("debug-mode")) {
+    Database.getTokenByIdentifier(id)
+    .then((token) => {
+      triviaSend(channel, void 0, `*${token}*`);
+    });
+  }
+
+  triviaSend(channel, author, {embed: {
+    color: game[id].color,
+    description: `*${categoryString}*\n**${entities.decode(question.question)}**\n${answerString}${infoString}`
+  }}, (msg, err) => {
+    if(err) {
+      game[id].timeout = void 0;
+      triviaEndGame(id);
+    }
+    else if(typeof msg !== "undefined" && typeof game[id] !== "undefined") {
+
+      if(game[id].category) {
+        // Stat: Rounds played - custom
+        global.client.shard.send({stats: { roundsPlayedCustom: 1 }});
+
+        // Stat: Rounds played - this category
+        global.client.shard.send( JSON.parse(`{"stats": { "roundsPlayedCat${game[id].category}": 1 }}`) );
+
+        if(!scheduled) {
+          // Stat: Games played - custom
+          global.client.shard.send({stats: { gamesPlayedCustom: 1 }});
+
+          // Stat: Games played - this category
+          global.client.shard.send( JSON.parse(`{"stats": { "gamesPlayedCat${game[id].category}": 1 }}`) );
+        }
+      }
+      else {
+        // Stat: Rounds played - normal
+        global.client.shard.send({stats: { roundsPlayedNormal: 1 }});
+
+        if(!scheduled) {
+          // Stat: Games played - normal
+          global.client.shard.send({stats: { gamesPlayedNormal: 1 }});
+        }
+      }
+
+      game[id].message = msg;
+
+      // Add reaction emojis if configured to do so.
+      if(useReactions) {
+        addAnswerReactions(msg, id);
+      }
+
+      if(typeof game[id] !== "undefined") {
+        game[id].difficulty = question.difficulty;
+        game[id].answer = question.correct_answer;
+        game[id].date = new Date();
+
+        // Reveal the answer after the time is up
+        game[id].timeout = setTimeout(() => {
+           triviaRevealAnswer(id, channel, question.correct_answer);
+        }, getConfigVal("round-length", channel));
+      }
+    }
+  }, 1);
 };
 
 function doTriviaPing(msg) {
