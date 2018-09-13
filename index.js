@@ -11,6 +11,7 @@ for(var i = 0; i <= process.argv.length; i++) {
 
 var config = require("./lib/config.js")(configFile, true);
 
+// # Art Display # //
 // process.stdout.columns returns "undefined" in certain situations
 var strArray = [ `\x1b[7m TriviaBot ${config["beta-mode"]?"Beta":"Version"} ${pjson.version} `,
                  "\x1b[7m Copyright (c) 2018 Lake Y \x1b[0m",
@@ -29,6 +30,8 @@ else {
   strBottom = `\n${strArray[0]}\n${strArray[1]}\n${strArray[2]}`;
 }
 
+// See here for an example of how this looks when the application is running:
+// http://lakeys.net/triviabot/console.png
 console.log(`\
                  ########
             ##################
