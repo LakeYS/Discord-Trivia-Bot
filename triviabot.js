@@ -703,6 +703,7 @@ function doTriviaStop(channel, auto) {
   let timeout = game[id].timeout;
   let inRound = game[id].inRound;
   let finalScoreStr = fetchFinalScores(id);
+  let totalParticipantCount = Object.keys(game[id].totalParticipants).length;
 
   game[id].cancelled = 1;
 
@@ -723,9 +724,11 @@ function doTriviaStop(channel, auto) {
 
   // Display a message if between rounds
   if(!inRound) {
+    var headerStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
+
     triviaSend(channel, void 0, {embed: {
       color: embedCol,
-      description: `Game ended by admin.${finalScoreStr!==""?"\n\n**Final scores:**\n":""}${finalScoreStr}`
+      description: `Game ended by admin.${finalScoreStr!==""?`\n\n${headerStr}\n`:""}${finalScoreStr}`
     }});
   }
 }
