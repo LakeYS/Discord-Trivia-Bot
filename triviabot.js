@@ -1063,20 +1063,6 @@ Trivia.doMaintenanceShutdown = () => {
   return;
 };
 
-
-// # Console Commands #
-if(getConfigVal("allow-eval") === true) {
-  process.stdin.on("data", (text) => {
-    if(text.toString() === "export\r\n") {
-      Trivia.exportGame();
-    }
-
-    if(text.toString() === "import\r\n") {
-      Trivia.importGame(`"./game.${global.client.shard.id}.json.bak`);
-    }
-  });
-}
-
 // # Fallback Mode Functionality #
 if(getConfigVal("fallback-mode") && !getConfigVal("fallback-silent")) {
   global.client.on("message", (msg) => {
