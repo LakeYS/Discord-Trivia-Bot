@@ -316,7 +316,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     doAutoEnd = 0;
   }
 
-  if(gameEndedMsg === "" || getConfigVal("disable-score-display", channel)) {
+  if((gameEndedMsg === "" || getConfigVal("disable-score-display", channel)) && !getConfigVal("full-score-display", channel) ) {
     // ## Normal Score Display ## //
     if(Object.keys(game[id].correctUsers).length === 0) {
       if(Object.keys(game[id].participants).length === 1) {
@@ -356,7 +356,11 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     // ## Game-Over Score Display ## //
     var totalParticipantCount = Object.keys(game[id].totalParticipants).length;
 
-    correctUsersStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
+    if(gameEndedMsg === "") {
+      correctUsersStr = `**Score${totalParticipantCount!==1?"s":""}:**`;
+    } else {
+      correctUsersStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
+    }
 
     if(totalParticipantCount === 0) {
       correctUsersStr = `${correctUsersStr}\nNone`;
