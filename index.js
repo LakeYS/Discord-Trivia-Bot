@@ -236,43 +236,71 @@ function doExit() {
     process.exit();
   });
 }
+
+var evalCmds = {};
+
+evalCmds.exit = () => {
+  doExit();
+};
+
+evalCmds.stop = () => {
+  doExit();
+};
+
+evalCmds.exportall = () => {
+  console.log("Exporting game for all processes...");
+  manager.broadcastEval("global.Trivia.exportGame();")
+  .catch((err) => {
+    console.error(err);
+  });
+};
+
+evalCmds.importall = () => {
+  console.log("Importing game for all processes...");
+  manager.broadcastEval("global.Trivia.importGame(\"./game.\" + global.client.shard.id + \".json.bak\");")
+  .catch((err) => {
+    console.error(err);
+  });
+};
+
+evalCmds.exportexit = () => {
+  console.log("Exporting game for all processes...");
+  manager.broadcastEval("global.Trivia.exportGame();")
+  .catch((err) => {
+    console.error(err);
+  })
+  .then(() => {
+    doExit();
+  });
+};
+
+evalCmds.exportexit = () => {
+  console.log("Exporting game for all processes...");
+  manager.broadcastEval("global.Trivia.exportGame();")
+  .catch((err) => {
+    console.error(err);
+  })
+  .then(() => {
+    doExit();
+  });
+};
+
+evalCmds.shutdown = () => {
+  manager.broadcastEval("global.Trivia.doMaintenanceShutdown();")
+  .catch((err) => {
+    console.error(err);
+  })
+  .then(() => {
+    console.log("MAINTENANCE SHUTDOWN - All active games cleared. Type \"Exit\" to complete the shutdown.");
+  });
+};
+
 if(config["allow-eval"] === true) {
   process.stdin.on("data", (text) => {
-    if(text.toString() === "stop\r\n" || text.toString() === "exit\r\n" || text.toString() === "stop\n" || text.toString() === "exit\n") {
-      doExit();
-    }
-    else if(text.toString() === "exportall\r\n" || text.toString() === "exportall\n") {
-      console.log("Exporting game for all processes...");
-      manager.broadcastEval("global.Trivia.exportGame();")
-      .catch((err) => {
-        console.error(err);
-      });
-    }
-    else if(text.toString() === "importall\r\n" || text.toString() === "importall\n") {
-      console.log("Importing game for all processes...");
-      manager.broadcastEval("global.Trivia.importGame(\"./game.\" + global.client.shard.id + \".json.bak\");")
-      .catch((err) => {
-        console.error(err);
-      });
-    }
-    else if(text.toString() === "exportexit\r\n" || text.toString() === "exportexit\n") {
-      console.log("Exporting game for all processes...");
-      manager.broadcastEval("global.Trivia.exportGame();")
-      .catch((err) => {
-        console.error(err);
-      })
-      .then(() => {
-        doExit();
-      });
-    }
-    else if(text.toString() === "shutdown\r\n" || text.toString() === "shutdown\n") {
-      manager.broadcastEval("global.Trivia.doMaintenanceShutdown();")
-      .catch((err) => {
-        console.error(err);
-      })
-      .then(() => {
-        console.log("MAINTENANCE SHUTDOWN - All active games cleared. Type \"Exit\" to complete the shutdown.");
-      });
+    var cmd = text.replace("\r","").replace("\n","");
+
+    if(typeof evalCmds[cmd] === "function") {
+      evalCmds[cmd]();
     }
     else {
       console.log("Eval:");
