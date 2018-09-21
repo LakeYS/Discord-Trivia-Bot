@@ -249,6 +249,17 @@ function fetchFinalScores(id) {
     return scoreB - scoreA;
   });
 
+  // TEMPORARY: Cap the user count at 48 to prevent character overflow.
+  // This will later be fixed so the bot splits the list instead of truncating it.
+  var scoreArrayFull;
+  var scoreArrayTruncate = 0;
+  if(scoreArray.length > 48) {
+    scoreArrayFull = scoreArray;
+    scoreArray = scoreArray.slice(0,48);
+
+    scoreArrayTruncate = 1;
+  }
+
   scoreArray.forEach((userB) => {
     var score;
     if(typeof game[id].scores[userB] === "undefined") {
@@ -260,6 +271,10 @@ function fetchFinalScores(id) {
 
     finalStr = `${finalStr}${finalStr!==""?"\n":""}${game[id].totalParticipants[userB]}: ${score}`;
   });
+
+  if(scoreArrayTruncate) {
+    finalStr = `${finalStr}\n*+ ${scoreArrayFull.length-48} more*`;
+  }
 
   return finalStr;
 }
@@ -321,6 +336,12 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
   }
 
   if((gameEndedMsg === "" || getConfigVal("disable-score-display", channel)) && !getConfigVal("full-score-display", channel) ) {
+    var truncateList = 0;
+
+    if(Object.keys(game[id].correctUsers).length > 32) {
+      truncateList = 1;
+    }
+
     // ## Normal Score Display ## //
     if(Object.keys(game[id].correctUsers).length === 0) {
       if(Object.keys(game[id].participants).length === 1) {
@@ -339,6 +360,12 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
         var comma = ", ";
         var correctCount = Object.keys(game[id].correctUsers).length;
 
+        // Only show the first 32 scores if there are a lot of players.
+        // This prevents the bot from potentially overflowing the embed character limit.
+        if(truncateList) {
+          correctCount = 32;
+        }
+
         for(var i = 0; i <= correctCount-1; i++) {
           if(i === correctCount-1) {
             comma = "";
@@ -348,10 +375,15 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
           }
 
           if(!getConfigVal("disable-score-display", channel)) {
-            scoreStr = `(${game[id].scores[ Object.keys(game[id].correctUsers)[i] ]} points)`;
+            scoreStr = ` (${game[id].scores[ Object.keys(game[id].correctUsers)[i] ]} pts)`;
           }
 
-          correctUsersStr = `${correctUsersStr}${Object.values(game[id].correctUsers)[i]} ${scoreStr}${comma}`;
+          correctUsersStr = `${correctUsersStr}${Object.values(game[id].correctUsers)[i]}${scoreStr}${comma}`;
+        }
+
+        if(truncateList) {
+          var truncateCount = Object.keys(game[id].correctUsers).length-32;
+          correctUsersStr = `${correctUsersStr}\n*+ ${truncateCount} more*`;
         }
       }
     }
