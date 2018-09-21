@@ -4,10 +4,6 @@ const JSON = require("circular-json");
 
 var config = require("./lib/config.js")(process.argv[2]);
 
-var commands = {};
-commands.triviaHelp = require("./lib/cmd_help.js")(config);
-commands.triviaCategories = require("./lib/cmd_categories.js")(config);
-
 var Trivia = exports;
 
 // getConfigValue(value, channel, guild)
@@ -93,6 +89,14 @@ var triviaSend = function(channel, author, msg, callback, noDelete) {
     }
   });
 };
+
+var commands = {};
+
+var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(getConfigVal, triviaSend, game, Database, embedCol);
+var parseAdv = cmdPlayAdv.parseAdv;
+commands.triviaHelp = require("./lib/cmd_help.js")(config);
+commands.triviaCategories = require("./lib/cmd_categories.js")(config);
+commands.triviaPlayAdvanced = cmdPlayAdv.triviaPlayAdvanced;
 
 function isFallbackMode(channel) {
   if(getConfigVal("fallback-mode")) {
@@ -449,6 +453,9 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
       }
     }
   }
+  else {
+    return -1;
+  }
 }
 
 async function addAnswerReactions(msg, id) {
@@ -750,6 +757,15 @@ function parseCommand(msg, cmd) {
     }
   }
 
+  if(cmd.startsWith("PLAY ADVANCED")) {
+    if(typeof game[id] !== "undefined" && game[id].inProgress) {
+      return;
+    }
+
+    commands.triviaPlayAdvanced(msg.channel.id, msg.channel, msg.author);
+    return;
+  }
+
   if(cmd.startsWith("PLAY ") || cmd === "PLAY") {
     if(typeof game[id] !== "undefined" && game[id].inProgress) {
       return;
@@ -822,6 +838,7 @@ Trivia.parse = (str, msg) => {
 
   // Str is always uppercase
   var id = msg.channel.id;
+  var gameExists = typeof game[id] !== "undefined";
 
   // Other bots can't use commands
   if(msg.author.bot === true && getConfigVal("allow-bots") !== true) {
@@ -832,10 +849,23 @@ Trivia.parse = (str, msg) => {
 
   // ## Answers ##
   // Check for letters if not using reactions
-  if(typeof game[id] !== "undefined" && !game[id].useReactions) {
+  if(gameExists && !game[id].useReactions) {
     var name = msg.member !== null?msg.member.displayName:msg.author.username;
+    var parsed = parseTriviaAnswer(str, id, msg.author.id, name, getConfigVal("score-value", msg.channel));
 
-    parseTriviaAnswer(str, id, msg.author.id, name, getConfigVal("score-value", msg.channel));
+    if(parsed !== -1) {
+      return;
+    }
+  }
+
+  // # Advanced Game Args ##
+  // Override all except "trivia categories" and "trivia help" if we're awaiting input in this channel.
+  if(str !== prefix + "CATEGORIES") {
+    var parsedAdv = parseAdv(id, msg);
+
+    if(parsedAdv !== -1) {
+      return;
+    }
   }
 
   // ## Help Command Parser ##
@@ -848,6 +878,7 @@ Trivia.parse = (str, msg) => {
         description: res
       }});
     });
+    return;
   }
 
   // ## Normal Commands ##
