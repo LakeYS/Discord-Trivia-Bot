@@ -437,7 +437,8 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
 // scoreValue: Score value from the config file.
 function parseTriviaAnswer(str, id, userId, username, scoreValue) {
   if(!game[id].inRound) {
-    return;
+    // Return -1 since there is no game.
+    return -1;
   }
 
   if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
@@ -486,6 +487,7 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
     }
   }
   else {
+    // Return -1 to indicate that the input is NOT a valid answer
     return -1;
   }
 }
