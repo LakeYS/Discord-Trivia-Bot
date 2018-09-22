@@ -142,6 +142,7 @@ global.client.on("disconnect", (event) => {
 global.client.on("error", (err) => {
   console.log("Discord client error: " + err.message);
 
+  global.Trivia.exportGame();
   process.exit();
 });
 
