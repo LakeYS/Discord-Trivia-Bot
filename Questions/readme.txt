@@ -1,0 +1,1 @@
+This folder contains a sample question database. By default, the bot will use the online database instead.
