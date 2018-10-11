@@ -29,3 +29,4 @@ If you'd like to install and host TriviaBot yourself, you can find out how to do
 - `trivia play <category>` - The command to start a trivia game.
 - `trivia help` - Shows information about the bot.
 - `trivia categories` - Sends you a list of categories via DM.
+- `trivia stop`
