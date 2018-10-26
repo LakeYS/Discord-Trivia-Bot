@@ -1,0 +1,6 @@
+{ "trivia_categories":
+  [
+    { "id":0, "name":"Science" },
+    { "id":1, "name":"Entertainment: Video Games" }
+  ]
+}

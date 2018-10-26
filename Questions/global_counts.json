@@ -1,0 +1,25 @@
+{
+  "overall":
+  {
+    "total_num_of_questions":4,
+    "total_num_of_pending_questions": 0,
+    "total_num_of_verified_questions": 4,
+    "total_num_of_rejected_questions": 0
+  },
+
+  "categories": {
+  "0": {
+    "total_num_of_questions": 2,
+    "total_num_of_pending_questions": 0,
+    "total_num_of_verified_questions": 2,
+    "total_num_of_rejected_questions": 0
+    },
+
+  "1": {
+    "total_num_of_questions": 2,
+    "total_num_of_pending_questions": 0,
+    "total_num_of_verified_questions": 2,
+    "total_num_of_rejected_questions": 0
+    }
+  }
+}
