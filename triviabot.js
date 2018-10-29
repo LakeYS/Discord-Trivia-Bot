@@ -654,7 +654,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
   if(getConfigVal("debug-mode")) {
     Database.getTokenByIdentifier(id)
     .then((token) => {
-      triviaSend(channel, void 0, `*${token}*`);
+      triviaSend(channel, void 0, `*Token: ${token}*`);
     });
   }
 
