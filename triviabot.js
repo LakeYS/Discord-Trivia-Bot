@@ -655,6 +655,9 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
     Database.getTokenByIdentifier(id)
     .then((token) => {
       triviaSend(channel, void 0, `*Token: ${token}*`);
+    })
+    .catch((err) => {
+      console.log(`(debug msg) Failed to fetch token with error "${err.message}"`);
     });
   }
 
