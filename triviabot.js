@@ -137,6 +137,10 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
     if(typeof tokenChannel !== "undefined") {
       try {
         token = await Database.getTokenByIdentifier(tokenChannel.id);
+
+        if(getConfigVal("debug-mode")) {
+          triviaSend(tokenChannel, void 0, `*Token: ${token}*`);
+        }
       } catch(error) {
         // Something went wrong. We'll display a warning but we won't cancel the game.
         console.log(error);
@@ -649,16 +653,6 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
     }
 
     infoString = `${infoString}The answer will be revealed in ${getConfigVal("round-length", channel)/1000} seconds.`;
-  }
-
-  if(getConfigVal("debug-mode")) {
-    Database.getTokenByIdentifier(id)
-    .then((token) => {
-      triviaSend(channel, void 0, `*Token: ${token}*`);
-    })
-    .catch((err) => {
-      console.log(`(debug msg) Failed to fetch token with error "${err.message}"`);
-    });
   }
 
   triviaSend(channel, author, {embed: {
