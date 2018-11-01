@@ -123,10 +123,10 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
   if(typeof length === "undefined" || length < 2 || typeof category !== "undefined") {
     // We need a new question, either due to an empty cache or because we need a specific category.
     var options = {};
+    options.category = category; // Pass through the category, even if it's undefined.
 
-    if(typeof category !== "undefined") {
+    if(typeof category !== "undefined" || config.databaseURL.startsWith("file://")) {
       options.amount = 1;
-      options.category = category;
     }
     else {
       options.amount = getConfigVal("database-cache-size");
@@ -143,11 +143,10 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
         }
       } catch(error) {
         // Something went wrong. We'll display a warning but we won't cancel the game.
-        console.log(error);
         console.log(`Failed to generate token for channel ${tokenChannel.id}: ${error.message}`);
         triviaSend(tokenChannel, void 0, {embed: {
           color: 14164000,
-          description: `Error: Failed to generate a session token for this channel. You may see repeating questions.\n(${error.message})`
+          description: `Error: Failed to generate a session token for this channel. You may see repeating questions. (${error.message})`
         }});
       }
 
@@ -217,10 +216,12 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
 }
 
 // Initialize the question cache
-getTriviaQuestion(1)
-.catch((err) => {
-  console.log(`An error occurred while attempting to initialize the question cache:\n ${err}`);
-});
+if(!config.databaseURL.startsWith("file://")) {
+  getTriviaQuestion(1)
+  .catch((err) => {
+    console.log(`An error occurred while attempting to initialize the question cache:\n ${err}`);
+  });
+}
 
 // Function to end trivia games
 function triviaEndGame(id) {
@@ -588,7 +589,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
 
   var question;
   try {
-    question = await getTriviaQuestion(0, game[id].category, scheduled?void 0:channel);
+    question = await getTriviaQuestion(0, game[id].category, channel);
   } catch(err) {
     triviaSend(channel, author, {embed: {
       color: 14164000,
