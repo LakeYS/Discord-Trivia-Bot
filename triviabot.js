@@ -191,7 +191,7 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
         }
 
         // Author is passed through; triviaSend will handle it if author is undefined.
-        throw new Error(`Failed to query the trivia database with error code ${json.response_code} (${Database.responses[json.response_code]})`);
+        throw new Error(`Failed to query the trivia database with error code ${json.response_code} (${Database.responses[json.response_code]}; ${error.message})`);
       }
     }
     finally {
