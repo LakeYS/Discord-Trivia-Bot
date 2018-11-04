@@ -1,0 +1,16 @@
+{
+  "questions": [
+    {
+      "difficulty":"easy",
+      "question":"Panic! At The Disco has currently released how many studio albums?",
+      "correct_answer":"6",
+      "incorrect_answers": ["7", "5", "2"]
+    },
+    {
+      "difficulty":"medium",
+      "question":"Vic Fuentes is the lead singer of Pierce The Veil.",
+      "correct_answer":"True",
+      "incorrect_answers": ["False"]
+    }
+  ]
+}
