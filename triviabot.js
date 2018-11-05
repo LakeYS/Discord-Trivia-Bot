@@ -150,7 +150,7 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
         }});
       }
 
-      if(typeof token !== "undefined" && typeof category !== "undefined") {
+      if(typeof token !== "undefined" && (typeof category !== "undefined" || config.databaseURL.startsWith("file://")) ) {
         // Set the token and continue.
         options.token = token;
       }
