@@ -30,6 +30,7 @@ function getConfigVal(value, channel, guild) {
 
 Trivia.getConfigVal = getConfigVal;
 
+// TODO: Use String.fromCharCode(65+letter) instead of this array?
 const letters = ["A", "B", "C", "D"];
 const embedCol = getConfigVal("beta-mode")?8609529:27903;
 
