@@ -1,15 +1,15 @@
 {
   "questions": [
     {
-      "difficulty":"medium",
       "question":"What is the force of gravity on the moon?",
+      "difficulty":"medium",
       "correct_answer":"About one sixth of earth's",
       "incorrect_answers":["About one half of earth's", "About one eighth of earth's", "About the same"]
     },
 
     {
-      "difficulty":"medium",
       "question":"Buzz Aldrin was the first man to step on the moon.",
+      "difficulty":"medium",
       "correct_answer":"False",
       "incorrect_answers":["True"]
     }
