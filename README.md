@@ -25,6 +25,8 @@ For support, questions, and comments, you can join the Discord server or contact
 # How to Install
 If you'd like to install and host TriviaBot yourself, you can find out how to do so [here](http://lakeys.net/triviabot/install.html).
 
+Support for custom questions is coming soon.
+
 # Commands
 - `trivia play <category>` - The command to start a trivia game.
 - `trivia help` - Shows information about the bot.
