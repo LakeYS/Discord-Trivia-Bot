@@ -12,4 +12,5 @@ cp run_silent.sh TriviaBot
 cp profile.png TriviaBot
 cp README.md TriviaBot
 cp lib TriviaBot/lib -r
+cp Questions TriviaBot/Questions -r
 tar -zcvf triviabot.tar.gz TriviaBot

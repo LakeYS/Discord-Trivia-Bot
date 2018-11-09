@@ -13,3 +13,4 @@ cp profile.png TriviaBot
 cp README.md TriviaBot
 cp run_silent.vbs TriviaBot
 cp lib TriviaBot/lib -r
+cp Questions TriviaBot/Questions -r
