@@ -4,7 +4,8 @@
   "description": "A trivia bot for Discord powered by discord.js and OpenTDB. Categories include Film, Television, Anime & Manga, Sports, Science & Nature, and more.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
