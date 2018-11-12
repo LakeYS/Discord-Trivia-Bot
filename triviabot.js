@@ -618,7 +618,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
   }
 
   var answers = [];
-  answers[0] = question.correct_answer;
+  answers[0] = question.correct_answer.toString();
   answers = answers.concat(question.incorrect_answers);
 
   if(question.incorrect_answers.length === 1) {
@@ -627,7 +627,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
 
   var color = embedCol;
   if(getConfigVal("hide-difficulty", channel) !== true) {
-    switch(question.difficulty) {
+    switch(question.difficulty.toString()) {
       case "easy":
         color = 4249664;
         break;
@@ -647,7 +647,9 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
 
   var answerString = "";
   for(var i = 0; i <= answers.length-1; i++) {
-    if(answers[i] === question.correct_answer) {
+    answers[i] = answers[i].toString();
+
+    if(answers[i] === question.correct_answer.toString()) {
       game[id].correctId = i;
     }
 
