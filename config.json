@@ -15,6 +15,7 @@
   "auto-delete-msgs": false,
   "round-length": 20000,
   "round-timeout": 5500,
+  "round-end-warnings-disabled": false,
   "rounds-end-after": 2,
   "disable-score-display": false,
   "score-value": { "easy": 100, "medium": 200, "hard": 300 },

@@ -297,7 +297,7 @@ function fetchFinalScores(id) {
 
 // # triviaRevealAnswer #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
-// TODO: Refactor
+// TODO: Refactor (clean up and fix gameEndedMsg being relied on as a boolean check)
 triviaRevealAnswer = (id, channel, answer, importOverride) => {
   if(typeof game[id] === "undefined" || !game[id].inProgress) {
     return;
@@ -332,7 +332,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     }
   }
 
-  var gameEndedMsg = "";
+  var gameEndedMsg = "", gameFooter = "";
   var doAutoEnd = 0;
   if(game[id].cancelled) {
     gameEndedMsg = "\n\n*Game ended by admin.*";
@@ -344,6 +344,12 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
       gameEndedMsg = "\n\n*Game ended.*";
     } else {
       game[id].emptyRoundCount++;
+
+      // Round end warning after we're halfway through the inactive round cap.
+      if(!getConfigVal("round-end-warnings-disabled", channel) && game[id].emptyRoundCount >= Math.ceil(getConfigVal("rounds-end-after", channel)/2)) {
+        var roundEndCount = getConfigVal("rounds-end-after")-game[id].emptyRoundCount;
+        gameFooter += `Game will end in ${roundEndCount} round${roundEndCount===1?"":"s"} if nobody participates.`;
+      }
     }
   } else {
     // If there are participants and the game wasn't force-cancelled...
@@ -422,9 +428,13 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     }
   }
 
+  if(gameFooter != "") {
+    gameFooter = "\n\n" + gameFooter;
+  }
+
   triviaSend(channel, void 0, {embed: {
     color: game[id].color,
-    description: `**${letters[game[id].correctId]}:** ${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}`
+    description: `**${letters[game[id].correctId]}:** ${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}`
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
       // NOTE: Participants check is repeated below in doTriviaGame
@@ -667,6 +677,11 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
     }
 
     infoString = `${infoString}The answer will be revealed in ${getConfigVal("round-length", channel)/1000} seconds.`;
+
+    // Add an extra initial message to let users know the game will insta-end with no answers.
+    if(!getConfigVal("round-end-warnings-disabled", channel) && getConfigVal("rounds-end-after", channel) === 1) {
+      infoString += "\nThe game will end automatically if nobody participates.";
+    }
   }
 
   triviaSend(channel, author, {embed: {
