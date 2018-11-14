@@ -52,15 +52,29 @@ var doTriviaGame, triviaRevealAnswer;
 // This is to avoid repeating the same error catchers throughout the script.
 //    channel: Channel ID -- author: Author ID -- msg: Message Object -- callback: Callback Function
 //    noDelete: If enabled, message will not auto-delete even if configured to
-var triviaSend = function(channel, author, msg, callback, noDelete) {
+// TODO: Convert to async? May be a cleaner solution.
+var triviaSend = function(channel, author, msg, callback, noDelete, embedOverride) {
+  var isEmbed = typeof msg.embed !== undefined;
+
   channel.send(msg)
   .catch((err) => {
+    var str = "";
+
+    if(err.message.includes("Missing Permissions")) {
+      if(isEmbed && !embedOverride) {
+        // If sending with an embed fails, retry using the embed description.
+        // Note that this creates a noticeable slowdown in response time.
+        triviaSend(channel, author, msg.embed.description, callback, noDelete, 1);
+        return;
+      }
+
+      // If the embed override fails or isn't applicable, continue with this message.
+      str = "\n\nThis bot requires the \"Send Messages\" permission in order to work.";
+    }
+
+
     if(typeof author !== "undefined") {
       if(channel.type !== "dm") {
-        var str = "";
-        if(err.message.includes("Missing Permissions")) {
-          str = "\n\nThis bot requires the \"Send Messages\" and \"Embed Links\" permissions in order to work.";
-        }
 
         author.send({embed: {
           color: 14164000,
