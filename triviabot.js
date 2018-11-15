@@ -34,7 +34,14 @@ Trivia.getConfigVal = getConfigVal;
 const letters = ["A", "B", "C", "D"];
 const embedCol = getConfigVal("beta-mode")?8609529:27903;
 
-const Database = config.databaseURL.startsWith("file://")?require("./lib/database/filedb.js")(config):require("./lib/database/opentdb.js")(config);
+var Database = "";
+if(getConfigVal("database-merge-enabled")) {
+  Database = require("./lib/database/mergerdb.js")(config);
+}
+else {
+  Database = config.databaseURL.startsWith("file://")?require("./lib/database/filedb.js")(config):require("./lib/database/opentdb.js")(config);
+}
+
 if(typeof Database === "undefined" || Database.error) {
   console.error("Failed to load the database.");
   global.client.shard.send({evalStr: "process.exit();"});

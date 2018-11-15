@@ -25,6 +25,7 @@
   "disable-version-check": false,
   "allow-bots": false,
   "databaseURL": "https://opentdb.com",
+  "database-merge-enabled": false,
   "database-cache-size": 32,
   "stat-file": "./stats.json",
 
