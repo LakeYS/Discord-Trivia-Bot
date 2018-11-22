@@ -1,3 +1,5 @@
+# Categories #
+# If using OpenTDB (database-merge-enabled), make sure to SKIP the ID nummbers 9-50.
 ---
 trivia_categories:
 - id: 0
