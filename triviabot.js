@@ -939,6 +939,13 @@ Trivia.parse = (str, msg) => {
     }
   }
 
+  // Check for command whitelist permissions before proceeding.
+  var cmdWhitelist = getConfigVal("command-whitelist", msg.channel);
+  if(typeof cmdWhitelist !== "undefined" && cmdWhitelist.length !== 0 && cmdWhitelist.indexOf(msg.author.tag)) {
+    return;
+  }
+
+
   // # Advanced Game Args ##
   // Override all except "trivia categories" and "trivia help" if we're awaiting input in this channel.
   if(str !== prefix + "CATEGORIES") {
