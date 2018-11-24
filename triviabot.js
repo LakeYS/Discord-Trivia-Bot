@@ -36,6 +36,13 @@ const embedCol = getConfigVal("beta-mode")?8609529:27903;
 
 var Database = "";
 if(getConfigVal("database-merge-enabled")) {
+  // TODO: Rather than killing the base process, the manager should
+  // do this automatically when an initial error is thrown.
+  if(!config.databaseURL.startsWith("file://")) {
+    console.error("A file path starting with 'file://' must be specified when the database merger is enabled.");
+    global.client.shard.send({evalStr: "process.exit();"});
+  }
+
   Database = require("./lib/database/mergerdb.js")(config);
 }
 else {
