@@ -1,6 +1,6 @@
 {
   "name": "discord-trivia-bot",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "A trivia bot for Discord powered by discord.js and OpenTDB. Categories include Film, Television, Anime & Manga, Sports, Science & Nature, and more.",
   "main": "index.js",
   "scripts": {
