@@ -631,16 +631,22 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
     "emptyRoundCount": typeof game[id]!=="undefined"?game[id].emptyRoundCount:null
   };
 
-  var question;
+  var question, answers = [], difficulty, correct_answer;
   try {
     question = await getTriviaQuestion(0, game[id].category, channel);
+
+    // Stringify the answers in the try loop so we catch it if anything is wrong.
+    answers[0] = question.correct_answer.toString();
+    answers = answers.concat(question.incorrect_answers);
+    difficulty = question.difficulty.toString();
+    correct_answer = question.correct_answer.toString();
   } catch(err) {
     console.log("Database query error:");
     console.log(err);
     
     triviaSend(channel, author, {embed: {
       color: 14164000,
-      description: `An error occurred while attempting to query the trivia database:\n*${err.message}*`
+      description: `An error occurred while querying the trivia database:\n*${err.message}*`
     }});
 
     triviaEndGame(id);
@@ -651,17 +657,13 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
     return;
   }
 
-  var answers = [];
-  answers[0] = question.correct_answer.toString();
-  answers = answers.concat(question.incorrect_answers);
-
   if(question.incorrect_answers.length === 1) {
     game[id].isTrueFalse = 1;
   }
 
   var color = embedCol;
   if(getConfigVal("hide-difficulty", channel) !== true) {
-    switch(question.difficulty.toString()) {
+    switch(difficulty) {
       case "easy":
         color = 4249664;
         break;
@@ -683,7 +685,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
   for(var i = 0; i <= answers.length-1; i++) {
     answers[i] = answers[i].toString();
 
-    if(answers[i] === question.correct_answer.toString()) {
+    if(answers[i] === correct_answer) {
       game[id].correctId = i;
     }
 
