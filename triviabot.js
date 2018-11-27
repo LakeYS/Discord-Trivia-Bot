@@ -35,7 +35,7 @@ const letters = ["A", "B", "C", "D"];
 const embedCol = getConfigVal("beta-mode")?8609529:27903;
 
 var Database = "";
-if(getConfigVal("database-merge-enabled")) {
+if(getConfigVal("database-merge")) {
   // TODO: Rather than killing the base process, the manager should
   // do this automatically when an initial error is thrown.
   if(!config.databaseURL.startsWith("file://")) {
