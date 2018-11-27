@@ -635,12 +635,13 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
   try {
     question = await getTriviaQuestion(0, game[id].category, channel);
   } catch(err) {
+    console.log("Database query error:");
+    console.log(err);
+    
     triviaSend(channel, author, {embed: {
       color: 14164000,
       description: `An error occurred while attempting to query the trivia database:\n*${err.message}*`
     }});
-
-    console.log(`Database query error: ${err.message}`);
 
     triviaEndGame(id);
   }
