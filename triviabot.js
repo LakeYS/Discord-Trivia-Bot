@@ -496,11 +496,20 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
         // If their score doesn't exist, intialize it.
         game[id].scores[userId] = game[id].scores[userId] || 0;
 
-        if(getConfigVal("debug-log")) {
-          console.log(`Updating score of user ${game[id].participants[userId]} (Current value: ${game[id].scores[userId]}) by ${scoreValue[game[id].difficulty]}.`);
+        var scoreChange = 0;
+        if(typeof scoreValue[game[id].difficulty] === "number") {
+          scoreChange = scoreValue[game[id].difficulty];
+        }
+        else {
+          // Leave the score change at 0, display a warning.
+          console.warn(`WARNING: Invalid difficulty value '${game[id].difficulty}' for the current question. User will not be scored.`);
         }
 
-        game[id].scores[userId] += scoreValue[game[id].difficulty];
+        if(getConfigVal("debug-log")) {
+          console.log(`Updating score of user ${game[id].participants[userId]} (Current value: ${game[id].scores[userId]}) + ${scoreChange}.`);
+        }
+
+        game[id].scores[userId] += scoreChange;
 
         if(getConfigVal("debug-log")) {
           console.log(`New score for user ${game[id].participants[userId]}: ${game[id].scores[userId]}`);
