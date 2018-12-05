@@ -54,8 +54,8 @@ function postBotStats() {
       };
 
       for(var site in listings) {
-        console.log(`Posting guild count to ${site}`);
         if(config[`${site}-token`] && config[`${site}-token`] !== "optionaltokenhere") {
+          console.log(`Posting guild count to ${site}`);
           var data = listings[site].data || { server_count: guildCount };
 
           snekfetch.post(listings[site].url)
