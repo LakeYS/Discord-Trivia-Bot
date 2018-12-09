@@ -25,9 +25,6 @@ function postBotStats() {
 
       var listings = {
         // If 'data' not specified, assume it is this: { server_count: guildCount }
-        "bots.discord.pw": {
-          url: `https://bots.discord.pw/api/bots/${id}/stats`
-        },
         "discordbots.org": {
           url: `https://discordbots.org/api/bots/${id}/stats`
         },
