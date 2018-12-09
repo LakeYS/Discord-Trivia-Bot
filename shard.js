@@ -43,10 +43,6 @@ function postBotStats() {
         },
         "discordbot.world": {
           url: `https://discordbot.world/api/bot/${id}/stats`
-        },
-        "listcord.com": {
-          url: `https://listcord.com/api/bot/${id}/guilds`,
-          data: { guilds: guildCount }
         }
       };
 
