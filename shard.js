@@ -52,14 +52,18 @@ function postBotStats() {
 
       for(var site in listings) {
         if(config[`${site}-token`] && config[`${site}-token`] !== "optionaltokenhere") {
-          console.log(`Posting guild count to ${site}`);
           var data = listings[site].data || { server_count: guildCount };
 
           snekfetch.post(listings[site].url)
           .set("Authorization", config[`${site}-token`])
           .send(data)
           .catch((err) => {
-            console.log(`Error occurred while posting to ${site} on shard ${global.client.shard.id}:\n${err}`);
+            console.log(`Error occurred while posting to ${err.request.connection.servername} on shard ${global.client.shard.id}:\n${err}`);
+          })
+          .then((res) => {
+            if(typeof res !== "undefined") {
+              console.log(`Posted to site ${res.request.connection.servername}, received response: ${res.text}`);
+            }
           });
         }
       }
