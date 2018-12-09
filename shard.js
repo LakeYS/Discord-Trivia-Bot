@@ -38,6 +38,10 @@ function postBotStats() {
           url: `https://discordbots.group/api/bot/${id}`,
           data: { count: guildCount }
         },
+        "discord.bots.gg": {
+          url: `https://discord.bots.gg/api/v1/bots/${id}/stats`,
+          data: { guildCount: guildCount }
+        },
         "discordbots.org": {
           url: `https://discordbots.org/api/bots/${id}/stats`
         },
