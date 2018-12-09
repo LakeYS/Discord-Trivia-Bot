@@ -25,8 +25,8 @@ function postBotStats() {
 
       var listings = {
         // If 'data' not specified, assume it is this: { server_count: guildCount }
-        "discordbots.org": {
-          url: `https://discordbots.org/api/bots/${id}/stats`
+        "botsfordiscord.com": {
+          url: `https://botsfordiscord.com/api/v1/bots/${id}/`
         },
         "botlist.space": {
           url: `https://botlist.space/api/bots/${id}/`
@@ -34,8 +34,12 @@ function postBotStats() {
         "discordbots.co.uk": {
           url: `https://discordbots.co.uk/api/v1/bots/${id}/`
         },
-        "botsfordiscord.com": {
-          url: `https://botsfordiscord.com/api/v1/bots/${id}/`
+        "discordbots.group": {
+          url: `https://discordbots.group/api/bot/${id}`,
+          data: { count: guildCount }
+        },
+        "discordbots.org": {
+          url: `https://discordbots.org/api/bots/${id}/stats`
         },
         "discordbot.world": {
           url: `https://discordbot.world/api/bot/${id}/stats`
@@ -43,10 +47,6 @@ function postBotStats() {
         "listcord.com": {
           url: `https://listcord.com/api/bot/${id}/guilds`,
           data: { guilds: guildCount }
-        },
-        "discordbots.group": {
-          url: `https://discordbots.group/api/bot/${id}`,
-          data: { count: guildCount }
         }
       };
 
