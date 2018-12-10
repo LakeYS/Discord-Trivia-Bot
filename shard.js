@@ -59,6 +59,10 @@ function postBotStats() {
           .send(data)
           .catch((err) => {
             console.log(`Error occurred while posting to ${err.request.connection.servername} on shard ${global.client.shard.id}:\n${err}`);
+
+            if(typeof err.text !== "undefined") {
+              console.log("Response included with the error: " + err.text);
+            }
           })
           .then((res) => {
             if(typeof res !== "undefined") {
