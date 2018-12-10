@@ -31,8 +31,6 @@ function postBotStats() {
         "botlist.space": {
           url: `https://botlist.space/api/bots/${id}/`
         },
-        "discordbots.co.uk": {
-        },
         "discordbots.group": {
           url: `https://discordbots.group/api/bot/${id}`,
           data: { count: guildCount }
