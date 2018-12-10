@@ -32,7 +32,6 @@ function postBotStats() {
           url: `https://botlist.space/api/bots/${id}/`
         },
         "discordbots.co.uk": {
-          url: `https://discordbots.co.uk/api/v1/bots/${id}/`
         },
         "discordbots.group": {
           url: `https://discordbots.group/api/bot/${id}`,
