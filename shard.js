@@ -26,7 +26,7 @@ function postBotStats() {
       var listings = {
         // If 'data' not specified, assume it is this: { server_count: guildCount }
         "botsfordiscord.com": {
-          url: `https://botsfordiscord.com/api/v1/bots/${id}/`
+          url: `https://botsfordiscord.com/api/bot/${id}/`
         },
         "botlist.space": {
           url: `https://botlist.space/api/bots/${id}/`
