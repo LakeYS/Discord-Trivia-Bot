@@ -20,7 +20,7 @@ function postBotStats() {
   if(global.client.shard.id === global.client.shard.count-1) {
     global.client.shard.fetchClientValues("guilds.size")
     .then((countArray) => {
-      var guildCount = countArray.reduce((prev, val) => prev + val, 0);
+      var guildCountVal = countArray.reduce((prev, val) => prev + val, 0);
       var id = global.client.user.id;
 
       var listings = {
@@ -33,11 +33,11 @@ function postBotStats() {
         },
         "discordbots.group": {
           url: `https://discordbots.group/api/bot/${id}`,
-          data: { count: guildCount }
+          data: { count: guildCountVal }
         },
         "discord.bots.gg": {
           url: `https://discord.bots.gg/api/v1/bots/${id}/stats`,
-          data: { guildCount: guildCount }
+          data: { guildCount: guildCountVal }
         },
         "discordbots.org": {
           url: `https://discordbots.org/api/bots/${id}/stats`
@@ -49,7 +49,7 @@ function postBotStats() {
 
       for(var site in listings) {
         if(config[`${site}-token`] && config[`${site}-token`] !== "optionaltokenhere") {
-          var data = listings[site].data || { server_count: guildCount };
+          var data = listings[site].data || { server_count: guildCountVal };
 
           snekfetch.post(listings[site].url)
           .set("Authorization", config[`${site}-token`])
