@@ -442,7 +442,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     }
   }
 
-  if(gameFooter != "") {
+  if(gameFooter !== "") {
     gameFooter = "\n\n" + gameFooter;
   }
 
@@ -546,7 +546,7 @@ async function addAnswerReactions(msg, id) {
     await msg.react("🇦");
     await msg.react("🇧");
 
-    if(typeof game[id] == "undefined" || !game[id].isTrueFalse) {
+    if(typeof game[id] === "undefined" || !game[id].isTrueFalse) {
       await msg.react("🇨");
       await msg.react("🇩");
     }
@@ -643,7 +643,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
   } catch(err) {
     console.log("Database query error:");
     console.log(err);
-    
+
     triviaSend(channel, author, {embed: {
       color: 14164000,
       description: `An error occurred while querying the trivia database:\n*${err.message}*`

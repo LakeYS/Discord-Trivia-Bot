@@ -21,6 +21,10 @@
             "error",
             "always"
         ],
+        "eqeqeq": [
+            "warn",
+            "always"
+        ],
         "no-console": "off",
         "block-scoped-var": [
             "warn"
