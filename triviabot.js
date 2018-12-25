@@ -843,14 +843,14 @@ function parseCommand(msg, cmd) {
     }
   }
 
-  //if(cmd.startsWith("PLAY ADVANCED")) {
-  //  if(typeof game[id] !== "undefined" && game[id].inProgress) {
-  //    return;
-  //  }
+  if(cmd.startsWith("PLAY ADVANCED")) {
+    if(typeof game[id] !== "undefined" && game[id].inProgress) {
+      return;
+    }
 
-  //  commands.triviaPlayAdvanced(msg.channel.id, msg.channel, msg.author);
-  //  return;
-  //}
+    commands.triviaPlayAdvanced(msg.channel.id, msg.channel, msg.author);
+    return;
+  }
 
   if(cmd.startsWith("PLAY ") || cmd === "PLAY") {
     if(typeof game[id] !== "undefined" && game[id].inProgress) {
