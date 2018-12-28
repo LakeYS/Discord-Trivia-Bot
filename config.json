@@ -19,6 +19,7 @@
   "disable-score-display": false,
   "score-value": { "easy": 100, "medium": 200, "hard": 300 },
   "command-whitelist": [],
+  "league-commands": true,
 
   "allow-eval": true,
   "shard-count": "auto",

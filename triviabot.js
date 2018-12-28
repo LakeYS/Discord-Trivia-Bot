@@ -112,10 +112,15 @@ var triviaSend = function(channel, author, msg, callback, noDelete) {
 var commands = {};
 
 var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(getConfigVal, triviaSend, game, Database, embedCol);
+var cmdLeague = require("./lib/cmd_league.js")(getConfigVal, triviaSend, game, Database, embedCol);
 var parseAdv = cmdPlayAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(config);
 commands.triviaCategories = require("./lib/cmd_categories.js")(config);
 commands.triviaPlayAdvanced = cmdPlayAdv.triviaPlayAdvanced;
+
+if(getConfigVal("league-commands")) {
+  commands.triviaLeague = cmdLeague.triviaLeague;
+}
 
 function isFallbackMode(channel) {
   if(getConfigVal("fallback-mode")) {
@@ -908,6 +913,10 @@ function parseCommand(msg, cmd) {
       // No category specified, start a normal game. (The database will pick a random category for us)
       doTriviaGame(msg.channel.id, msg.channel, msg.author, 0);
     }
+  }
+
+  if(getConfigVal("league-commands") && cmd.startsWith("LEAGUE ")) {
+    commands.triviaLeague(msg.channel.id, msg.channel, msg.author);
   }
 
   if(cmd === "CATEGORIES") {
