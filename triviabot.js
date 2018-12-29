@@ -111,17 +111,6 @@ var triviaSend = function(channel, author, msg, callback, noDelete) {
 
 var commands = {};
 
-var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(getConfigVal, triviaSend, game, Database, embedCol);
-var cmdLeague = require("./lib/cmd_league.js")(getConfigVal, triviaSend, game, Database, embedCol);
-var parseAdv = cmdPlayAdv.parseAdv;
-commands.triviaHelp = require("./lib/cmd_help.js")(config);
-commands.triviaCategories = require("./lib/cmd_categories.js")(config);
-commands.triviaPlayAdvanced = cmdPlayAdv.triviaPlayAdvanced;
-
-if(getConfigVal("league-commands")) {
-  commands.triviaLeague = cmdLeague.triviaLeague;
-}
-
 function isFallbackMode(channel) {
   if(getConfigVal("fallback-mode")) {
     if(typeof getConfigVal("fallback-exceptions") !== "undefined" && getConfigVal("fallback-exceptions").indexOf(channel) !== -1) {
@@ -831,6 +820,18 @@ function doTriviaStop(channel, auto) {
   }
 }
 
+
+var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(getConfigVal, triviaSend, game, Database, embedCol);
+var cmdLeague = require("./lib/cmd_league.js")(getConfigVal, triviaSend, game, Database, embedCol, doTriviaGame);
+var parseAdv = cmdPlayAdv.parseAdv;
+commands.triviaHelp = require("./lib/cmd_help.js")(config);
+commands.triviaCategories = require("./lib/cmd_categories.js")(config);
+commands.triviaPlayAdvanced = cmdPlayAdv.triviaPlayAdvanced;
+
+if(getConfigVal("league-commands")) {
+  commands.triviaLeagueParse = cmdLeague.triviaLeagueParse;
+}
+
 function parseCommand(msg, cmd) {
   var id = msg.channel.id;
 
@@ -916,7 +917,7 @@ function parseCommand(msg, cmd) {
   }
 
   if(getConfigVal("league-commands") && cmd.startsWith("LEAGUE ")) {
-    commands.triviaLeague(msg.channel.id, msg.channel, msg.author);
+    commands.triviaLeagueParse(msg.channel.id, msg.channel, msg.author, cmd);
   }
 
   if(cmd === "CATEGORIES") {
