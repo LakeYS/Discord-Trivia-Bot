@@ -950,6 +950,13 @@ Trivia.parse = (str, msg) => {
     var parsed = parseTriviaAnswer(str, id, msg.author.id, name, getConfigVal("score-value", msg.channel));
 
     if(parsed !== -1) {
+      if(getConfigVal("auto-delete-answers"), msg.channel) {
+        msg.delete()
+        .catch((err) => {
+          console.log("Failed to delete player answer: " + err.message);
+        });
+      }
+
       return;
     }
   }
