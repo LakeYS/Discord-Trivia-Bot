@@ -829,7 +829,7 @@ commands.triviaCategories = require("./lib/cmd_categories.js")(config);
 commands.triviaPlayAdvanced = cmdPlayAdv.triviaPlayAdvanced;
 
 if(getConfigVal("league-commands")) {
-  commands.triviaLeagueParse = cmdLeague.triviaLeagueParse;
+  commands.leagueParse = cmdLeague.leagueParse;
 }
 
 function parseCommand(msg, cmd) {
@@ -917,7 +917,7 @@ function parseCommand(msg, cmd) {
   }
 
   if(getConfigVal("league-commands") && cmd.startsWith("LEAGUE ")) {
-    commands.triviaLeagueParse(msg.channel.id, msg.channel, msg.author, msg.member, cmd);
+    commands.leagueParse(msg.channel.id, msg.channel, msg.author, msg.member, cmd);
   }
 
   if(cmd === "CATEGORIES") {
