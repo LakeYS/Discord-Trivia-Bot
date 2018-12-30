@@ -917,7 +917,7 @@ function parseCommand(msg, cmd) {
   }
 
   if(getConfigVal("league-commands") && cmd.startsWith("LEAGUE ")) {
-    commands.triviaLeagueParse(msg.channel.id, msg.channel, msg.author, cmd);
+    commands.triviaLeagueParse(msg.channel.id, msg.channel, msg.author, msg.member, cmd);
   }
 
   if(cmd === "CATEGORIES") {
