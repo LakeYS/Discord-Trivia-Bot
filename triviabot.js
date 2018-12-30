@@ -3,6 +3,7 @@ const fs = require("fs");
 const JSON = require("circular-json");
 
 var config = require("./lib/config.js")(process.argv[2]);
+var leaderboard = require("./lib/leaderboard.js")();
 
 var Trivia = exports;
 
@@ -252,6 +253,8 @@ function triviaEndGame(id) {
   if(typeof game[id].timeout !== "undefined") {
     clearTimeout(game[id].timeout);
   }
+
+  leaderboard.writeScores(game[id]);
 
   delete game[id];
 }
@@ -820,9 +823,8 @@ function doTriviaStop(channel, auto) {
   }
 }
 
-
 var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(getConfigVal, triviaSend, game, Database, embedCol);
-var cmdLeague = require("./lib/cmd_league.js")(getConfigVal, triviaSend, game, Database, embedCol, doTriviaGame);
+var cmdLeague = require("./lib/cmd_league.js")(getConfigVal, triviaSend, game, Database, embedCol, leaderboard, doTriviaGame);
 var parseAdv = cmdPlayAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(config);
 commands.triviaCategories = require("./lib/cmd_categories.js")(config);

@@ -1,7 +1,6 @@
 # Node.js
 node_modules
 node.exe
-Questions_*/*
 update.sh
 game*.json.bak
 config_private*.json
@@ -20,6 +19,10 @@ TriviaBot/*
 triviabot.tar.gz
 TriviaBot.zip
 auth*.json
+
+# TriviaBot Info Directories
+Questions_*/*
+Stats*/*
 
 # Windows image file caches
 Thumbs.db
