@@ -335,7 +335,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     scoreStr = `(${game[id].scores[ Object.keys(game[id].correctUsers)[0] ]} points)`;
 
     if(typeof game[id].scores[ Object.keys(game[id].correctUsers)[0] ] !== "undefined" && isNaN(game[id].scores[ Object.keys(game[id].correctUsers)[0] ])) {
-      console.log("!!!!!!NaN SCORE DETECTED, DUMPING DATA!!!!!!");
+      console.log("WARNING: NaN score detected, dumping game data...");
       console.log(game[id]);
     }
   }
