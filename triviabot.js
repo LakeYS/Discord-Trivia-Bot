@@ -776,7 +776,7 @@ function doTriviaStop(channel, auto) {
   }
 }
 
-var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(getConfigVal, triviaSend, game, Database, embedCol);
+var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(getConfigVal, triviaSend, doTriviaGame, game, Database, embedCol);
 var cmdLeague = require("./lib/cmd_league.js")(getConfigVal, triviaSend, game, Database, embedCol, leaderboard, doTriviaGame);
 var parseAdv = cmdPlayAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(config);
