@@ -102,7 +102,7 @@ var triviaSend = function(channel, author, msg, callback, noDelete) {
       callback(msg);
     }
 
-    if(getConfigVal("auto-delete-msgs", channel) && noDelete !== 1) {
+    if(getConfigVal("auto-delete-msgs", channel) && noDelete !== true) {
       setTimeout(() => {
         msg.delete();
       }, 15000);
@@ -418,7 +418,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
         triviaEndGame(id);
       }
     }
-  }, 1);
+  }, true);
 };
 
 // # parseTriviaAnswer # //
@@ -713,7 +713,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
         }, getConfigVal("round-length", channel));
       }
     }
-  }, 1);
+  }, true);
 };
 
 function doTriviaPing(msg) {
@@ -800,7 +800,8 @@ function parseCommand(msg, cmd) {
         doTriviaStop(msg.channel);
       }
       else {
-        triviaSend(msg.channel, void 0, `Trivia games will end automatically if the game is inactive for more than ${getConfigVal("rounds-end-after", msg.channel)-1} round${getConfigVal("rounds-end-after", msg.channel)-1===1?"":"s"}. Only users with the "Manage Server" permission can force-end a game.`);      }
+        triviaSend(msg.channel, void 0, `Trivia games will end automatically if the game is inactive for more than ${getConfigVal("rounds-end-after", msg.channel)-1} round${getConfigVal("rounds-end-after", msg.channel)-1===1?"":"s"}. Only users with the "Manage Server" permission can force-end a game.`);
+      }
     }
   }
 
