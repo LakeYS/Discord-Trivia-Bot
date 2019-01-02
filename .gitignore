@@ -22,7 +22,7 @@ auth*.json
 
 # TriviaBot Info Directories
 Questions_*/*
-Stats*/*
+Scores*/*
 
 # Windows image file caches
 Thumbs.db
