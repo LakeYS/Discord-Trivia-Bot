@@ -261,17 +261,17 @@ function triviaEndGame(id) {
 
 // # fetchFinalScores # //
 // Returns a string containing a game's complete leaderboard.
-function fetchFinalScores(id) {
+function fetchFinalScores(scores, totalParticipants) {
   var scoreArray = [];
   var finalStr = "";
-  for(var user in game[id].totalParticipants) {
+  for(var user in scores) {
     scoreArray.push(user);
   }
 
   var scoreA, scoreB;
   scoreArray.sort((a, b) => {
-    scoreA = game[id].scores[a] || 0;
-    scoreB = game[id].scores[b] || 0;
+    scoreA = scores[a] || 0;
+    scoreB = scores[b] || 0;
 
     return scoreB - scoreA;
   });
@@ -289,14 +289,14 @@ function fetchFinalScores(id) {
 
   scoreArray.forEach((userB) => {
     var score;
-    if(typeof game[id].scores[userB] === "undefined") {
+    if(typeof scores[userB] === "undefined") {
       score = 0;
     }
     else {
-      score = game[id].scores[userB];
+      score = scores[userB];
     }
 
-    finalStr = `${finalStr}${finalStr!==""?"\n":""}${game[id].totalParticipants[userB]}: ${score}`;
+    finalStr = `${finalStr}${finalStr!==""?"\n":""}${totalParticipants[userB]}: ${score}`;
   });
 
   if(scoreArrayTruncate) {
@@ -435,7 +435,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
       correctUsersStr = `${correctUsersStr}\nNone`;
     }
     else {
-      correctUsersStr = `${correctUsersStr}\n${fetchFinalScores(id)}`;
+      correctUsersStr = `${correctUsersStr}\n${fetchFinalScores(game[id].scores, game[id].totalParticipants)}`;
     }
   }
 
@@ -792,7 +792,7 @@ function doTriviaStop(channel, auto) {
   let id = channel.id;
   let timeout = game[id].timeout;
   let inRound = game[id].inRound;
-  let finalScoreStr = fetchFinalScores(id);
+  let finalScoreStr = fetchFinalScores(game[id].scores, game[id].totalParticipants);
   let totalParticipantCount = Object.keys(game[id].totalParticipants).length;
 
   game[id].cancelled = 1;
