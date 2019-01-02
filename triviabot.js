@@ -259,53 +259,6 @@ function triviaEndGame(id) {
   delete game[id];
 }
 
-// # fetchFinalScores # //
-// Returns a string containing a game's complete leaderboard.
-function fetchFinalScores(scores, totalParticipants) {
-  var scoreArray = [];
-  var finalStr = "";
-  for(var user in scores) {
-    scoreArray.push(user);
-  }
-
-  var scoreA, scoreB;
-  scoreArray.sort((a, b) => {
-    scoreA = scores[a] || 0;
-    scoreB = scores[b] || 0;
-
-    return scoreB - scoreA;
-  });
-
-  // TEMPORARY: Cap the user count at 48 to prevent character overflow.
-  // This will later be fixed so the bot splits the list instead of truncating it.
-  var scoreArrayFull;
-  var scoreArrayTruncate = 0;
-  if(scoreArray.length > 48) {
-    scoreArrayFull = scoreArray;
-    scoreArray = scoreArray.slice(0,48);
-
-    scoreArrayTruncate = 1;
-  }
-
-  scoreArray.forEach((userB) => {
-    var score;
-    if(typeof scores[userB] === "undefined") {
-      score = 0;
-    }
-    else {
-      score = scores[userB];
-    }
-
-    finalStr = `${finalStr}${finalStr!==""?"\n":""}${totalParticipants[userB]}: ${score}`;
-  });
-
-  if(scoreArrayTruncate) {
-    finalStr = `${finalStr}\n*+ ${scoreArrayFull.length-48} more*`;
-  }
-
-  return finalStr;
-}
-
 // # triviaRevealAnswer #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
 // TODO: Refactor (clean up and fix gameEndedMsg being relied on as a boolean check)
@@ -435,7 +388,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
       correctUsersStr = `${correctUsersStr}\nNone`;
     }
     else {
-      correctUsersStr = `${correctUsersStr}\n${fetchFinalScores(game[id].scores, game[id].totalParticipants)}`;
+      correctUsersStr = `${correctUsersStr}\n${leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants)}`;
     }
   }
 
@@ -792,7 +745,7 @@ function doTriviaStop(channel, auto) {
   let id = channel.id;
   let timeout = game[id].timeout;
   let inRound = game[id].inRound;
-  let finalScoreStr = fetchFinalScores(game[id].scores, game[id].totalParticipants);
+  let finalScoreStr = leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants);
   let totalParticipantCount = Object.keys(game[id].totalParticipants).length;
 
   game[id].cancelled = 1;
