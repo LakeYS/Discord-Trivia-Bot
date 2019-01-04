@@ -254,7 +254,9 @@ function triviaEndGame(id) {
     clearTimeout(game[id].timeout);
   }
 
-  leaderboard.writeScores(game[id].scores, game[id].guildId);
+  if(game[id].isLeagueGame) {
+    leaderboard.writeScores(game[id].scores, game[id].guildId);
+  }
 
   delete game[id];
 }
@@ -714,6 +716,8 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
       }
     }
   }, true);
+
+  return game[id];
 };
 
 function doTriviaPing(msg) {
