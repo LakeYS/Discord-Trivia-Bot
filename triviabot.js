@@ -439,12 +439,12 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
       game[id].totalParticipants[userId] = username;
     }
 
+    // If their score doesn't exist, intialize it.
+    game[id].scores[userId] = game[id].scores[userId] || 0;
+
     if(str === letters[game[id].correctId]) {
       if(typeof game[id].correctUsers[userId] === "undefined") {
         game[id].correctUsers[userId] = username;
-
-        // If their score doesn't exist, intialize it.
-        game[id].scores[userId] = game[id].scores[userId] || 0;
 
         var scoreChange = 0;
         if(typeof scoreValue[game[id].difficulty] === "number") {
