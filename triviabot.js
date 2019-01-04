@@ -254,7 +254,7 @@ function triviaEndGame(id) {
     clearTimeout(game[id].timeout);
   }
 
-  leaderboard.writeScores(game[id]);
+  leaderboard.writeScores(game[id].scores, game[id].guildId);
 
   delete game[id];
 }
