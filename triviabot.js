@@ -580,7 +580,9 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
     "scores": typeof game[id]!=="undefined"?game[id].scores:{},
 
     "prevParticipants": typeof game[id]!=="undefined"?game[id].participants:null,
-    "emptyRoundCount": typeof game[id]!=="undefined"?game[id].emptyRoundCount:null
+    "emptyRoundCount": typeof game[id]!=="undefined"?game[id].emptyRoundCount:null,
+
+    "isLeagueGame": typeof game[id]!=="undefined"?game[id].isLeagueGame:false
   };
 
   var question, answers = [], difficulty, correct_answer;
