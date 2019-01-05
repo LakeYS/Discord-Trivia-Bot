@@ -797,6 +797,23 @@ if(getConfigVal("league-commands")) {
   commands.leagueParse = cmdLeague.leagueParse;
 }
 
+// getCategoryFromStr
+// Returns a category based on the string specified. Returns undefined if no category is found.
+Trivia.getCategoryFromStr = async (str) => {
+  var categoryList;
+    // Automatically give "invalid category" if query is shorter than 3 chars.
+    if(str.length < 3) {
+      str = void 0;
+    }
+
+    // Get the category list.
+    categoryList = await Database.getCategories();
+
+    return categoryList.find((el) => {
+      return el.name.toUpperCase().includes(str);
+    });
+};
+
 function parseCommand(msg, cmd) {
   var id = msg.channel.id;
 
@@ -831,31 +848,8 @@ function parseCommand(msg, cmd) {
 
     var categoryInput = cmd.replace("PLAY ","");
     if(categoryInput !== "PLAY") {
-
-      var categoryList;
-      new Promise((resolve, reject) => {
-        // Automatically give "invalid category" if query is shorter than 3 chars.
-        if(categoryInput.length < 3) {
-          categoryInput = void 0;
-        }
-
-        // Get the category list.
-        Database.getCategories()
-        .then((json) => {
-          // Success, we'll continue as normal.
-          categoryList = json;
-          resolve();
-        })
-        .catch((err) => {
-          // Should this fail, the error will be passed to the check below.
-          reject(err);
-        });
-      })
-      .then(() => {
-        var category = categoryList.find((el) => {
-          return el.name.toUpperCase().includes(categoryInput);
-        });
-
+      Trivia.getCategoryFromStr(categoryInput)
+      .then((category) => {
         if(typeof category === "undefined") {
           triviaSend(msg.channel, msg.author, {embed: {
             color: 14164000,
