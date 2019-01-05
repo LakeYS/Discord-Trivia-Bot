@@ -290,11 +290,15 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
 
   // If only one participant, we'll only need the first user's score.
   if(!getConfigVal("disable-score-display", channel)) {
-    scoreStr = `(${game[id].scores[ Object.keys(game[id].correctUsers)[0] ]} points)`;
+    var scoreVal = game[id].scores[Object.keys(game[id].correctUsers)[0]];
 
-    if(typeof game[id].scores[ Object.keys(game[id].correctUsers)[0] ] !== "undefined" && isNaN(game[id].scores[ Object.keys(game[id].correctUsers)[0] ])) {
-      console.log("WARNING: NaN score detected, dumping game data...");
-      console.log(game[id]);
+    if(typeof scoreVal !== "undefined") {
+      if(isNaN(game[id].scores[ Object.keys(game[id].correctUsers)[0] ])) {
+        console.log("WARNING: NaN score detected, dumping game data...");
+        console.log(game[id]);
+      }
+
+      scoreStr = `(${scoreVal.toLocaleString()} points)`;
     }
   }
 
@@ -363,7 +367,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
           }
 
           if(!getConfigVal("disable-score-display", channel)) {
-            scoreStr = ` (${game[id].scores[ Object.keys(game[id].correctUsers)[i] ]} pts)`;
+            scoreStr = ` (${game[id].scores[ Object.keys(game[id].correctUsers)[i] ].toLocaleString()} pts)`;
           }
 
           correctUsersStr = `${correctUsersStr}${Object.values(game[id].correctUsers)[i]}${scoreStr}${comma}`;
