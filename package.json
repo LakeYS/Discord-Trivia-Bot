@@ -23,7 +23,7 @@
     "discord.js": "^11.4.2",
     "html-entities": "^1.2.1",
     "https": "^1.0.0",
-    "js-yaml": "^3.12.0",
+    "js-yaml": "^3.12.1",
     "semver-compare": "^1.0.0",
     "snekfetch": "^3.6.4"
   }
