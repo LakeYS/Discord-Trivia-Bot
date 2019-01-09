@@ -15,7 +15,7 @@ var config = require("./lib/config.js")(configFile, true);
 // process.stdout.columns returns "undefined" in certain situations
 var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version}        `,
                  "\x1b[7m Copyright (c) 2018-2019 Lake Y \x1b[0m",
-                 "\x1b[7m http://lakeys.net              \x1b[0m" ];
+                 "\x1b[7m https://lakeys.net             \x1b[0m" ];
 
 // Adjust length of the first line
 strArray[0] = strArray[0].padEnd(31," ") + "\x1b[0m";
