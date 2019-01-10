@@ -438,6 +438,11 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
     return -1;
   }
 
+  // If they already answered and configured to do so, don't accept subsquent answers.
+  if(getConfigVal("accept-first-answer-only") && typeof game[id].participants[userId] !== "undefined") {
+    return;
+  }
+
   if((str === "A" || str === "B" || game[id].isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
     // Add to participants if they aren't already on the list
     if(game[id].inProgress && typeof game[id].participants[userId] === "undefined") {
