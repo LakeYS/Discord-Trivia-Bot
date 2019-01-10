@@ -20,7 +20,6 @@
   "disable-score-display": false,
   "score-value": { "easy": 100, "medium": 200, "hard": 300 },
   "command-whitelist": [],
-  "league-commands": true,
 
   "allow-eval": true,
   "shard-count": "auto",
@@ -30,6 +29,8 @@
   "database-merge": false,
   "database-cache-size": 32,
   "stat-file": "./stats.json",
+  "embed-color": "006CFF",
+  "league-commands": true,
 
   "additional-config-passthrough": true,
   "additional-manager-passthrough": true,

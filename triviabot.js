@@ -33,7 +33,8 @@ Trivia.getConfigVal = getConfigVal;
 
 // TODO: Use String.fromCharCode(65+letter) instead of this array?
 const letters = ["A", "B", "C", "D"];
-const embedCol = getConfigVal("beta-mode")?8609529:27903;
+// Convert the hex code to decimal so Discord can read it.
+const embedCol = Buffer.from(getConfigVal("embed-color").padStart(8, "0"), "hex").readInt32BE(0);
 
 var Database = "";
 if(getConfigVal("database-merge")) {
