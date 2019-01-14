@@ -3,7 +3,6 @@ const fs = require("fs");
 const JSON = require("circular-json");
 
 var config = require("./lib/config.js")(process.argv[2]);
-var leaderboard = require("./lib/leaderboard.js")();
 
 var Trivia = exports;
 
@@ -792,6 +791,7 @@ function doTriviaStop(channel, auto) {
   }
 }
 
+var leaderboard = require("./lib/leaderboard.js")(getConfigVal);
 var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia, getConfigVal, triviaSend, doTriviaGame, game, Database, embedCol);
 var cmdLeague = require("./lib/cmd_league.js")(Trivia, getConfigVal, triviaSend, Database, embedCol, leaderboard, doTriviaGame);
 var parseAdv = cmdPlayAdv.parseAdv;
