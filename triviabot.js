@@ -128,7 +128,7 @@ function isFallbackMode(channel) {
 // Returns a promise, fetches a random question from the database.
 // If initial is set to true, a question will not be returned. (For initializing the cache)
 // If tokenChannel is specified (must be a discord.js TextChannel object), a token will be generated and used.
-async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
+async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category) {
   var length = global.questions.length;
   var toReturn;
 
@@ -173,6 +173,12 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
     var json = {};
     try {
       json = await Database.fetchQuestions(options);
+
+      if(getConfigVal("debug-token-flush") && !tokenRetry && typeof token !== "undefined") {
+        var err = new Error("Token override");
+        err.code = 4;
+        throw err;
+      }
     } catch(error) {
       if(error.code === 4 && typeof token !== "undefined") {
         // Token empty, reset it and start over.
@@ -192,7 +198,7 @@ async function getTriviaQuestion(initial, category, tokenChannel, tokenRetry) {
           }
 
           // Start over now that we have a token.
-          return await getTriviaQuestion(initial, category, tokenChannel, 1);
+          return await getTriviaQuestion(initial, tokenChannel, 1, category);
         }
         else {
           // This shouldn't ever happen.
@@ -596,7 +602,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
 
   var question, answers = [], difficulty, correct_answer;
   try {
-    question = await getTriviaQuestion(0, game[id].category, channel);
+    question = await getTriviaQuestion(0, channel, 0, game[id].category);
 
     // Stringify the answers in the try loop so we catch it if anything is wrong.
     answers[0] = question.correct_answer.toString();

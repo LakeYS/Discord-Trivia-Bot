@@ -43,6 +43,7 @@
   "beta-require-external-function": false,
   "debug-mode": false,
   "debug-log": false,
+  "debug-token-flush": false,
   "fallback-mode": false,
   "fallback-silent": false,
   "fallback-exceptions": []
