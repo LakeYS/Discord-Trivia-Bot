@@ -816,7 +816,7 @@ Trivia.getCategoryFromStr = async (str) => {
     categoryList = await Database.getCategories();
 
     return categoryList.find((el) => {
-      return el.name.toUpperCase().includes(str);
+      return el.name.toUpperCase().includes(str.toUpperCase());
     });
 };
 
@@ -933,15 +933,15 @@ Trivia.parse = (str, msg) => {
     return;
   }
 
-
   // # Advanced Game Args ##
   // Override all except "trivia categories" and "trivia help" if we're awaiting input in this channel.
   if(str !== prefix + "CATEGORIES") {
-    var parsedAdv = parseAdv(id, msg);
-
-    if(parsedAdv !== -1) {
-      return;
-    }
+    var parsedAdv = parseAdv(id, msg)
+    .then(() => {
+      if(parsedAdv !== -1) {
+        return;
+      }
+    });
   }
 
   // ## Help Command Parser ##
