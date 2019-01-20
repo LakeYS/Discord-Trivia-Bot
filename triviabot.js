@@ -128,7 +128,7 @@ function isFallbackMode(channel) {
 // Returns a promise, fetches a random question from the database.
 // If initial is set to true, a question will not be returned. (For initializing the cache)
 // If tokenChannel is specified (must be a discord.js TextChannel object), a token will be generated and used.
-async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category) {
+async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category, type) {
   var length = global.questions.length;
   var toReturn;
 
@@ -145,6 +145,8 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category) {
     else {
       options.amount = getConfigVal("database-cache-size");
     }
+
+    options.type = type;
 
     // Get a token if one is requested.
     var token;
@@ -540,7 +542,7 @@ async function addAnswerReactions(msg, id) {
 // - scheduled: Set to true if starting a game scheduled by the bot.
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
-doTriviaGame = async function(id, channel, author, scheduled, category) {
+doTriviaGame = async function(id, channel, author, scheduled, category, type) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   // Checks are excepted for games that are being resumed from cache or file.
   if(typeof game[id] !== "undefined" && !game[id].resuming) {
@@ -587,6 +589,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
 
     useReactions,
     "category": typeof game[id]!=="undefined"?game[id].category:category,
+    "type": typeof game[id]!=="undefined"?game[id].type:type,
 
     "participants": [],
     "correctUsers": {},
@@ -602,7 +605,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category) {
 
   var question, answers = [], difficulty, correct_answer;
   try {
-    question = await getTriviaQuestion(0, channel, 0, game[id].category);
+    question = await getTriviaQuestion(0, channel, 0, game[id].category, game[id].type);
 
     // Stringify the answers in the try loop so we catch it if anything is wrong.
     answers[0] = question.correct_answer.toString();
