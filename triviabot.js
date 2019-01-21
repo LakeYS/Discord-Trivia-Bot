@@ -132,14 +132,20 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category, ty
   var length = global.questions.length;
   var toReturn;
 
+  // Check if there are custom arguments
+  var isCustom = false;
+  if(typeof category !== "undefined" || typeof type !== "undefined") {
+    isCustom = true;
+  }
+
   // To keep the question response quick, the bot always stays one question ahead.
   // This way, we're never waiting for the database to respond.
-  if(typeof length === "undefined" || length < 2 || typeof category !== "undefined") {
+  if(typeof length === "undefined" || length < 2 || isCustom) {
     // We need a new question, either due to an empty cache or because we need a specific category.
     var options = {};
     options.category = category; // Pass through the category, even if it's undefined.
 
-    if(typeof category !== "undefined" || config.databaseURL.startsWith("file://")) {
+    if(isCustom || config.databaseURL.startsWith("file://")) {
       options.amount = 1;
     }
     else {
@@ -166,7 +172,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category, ty
         }});
       }
 
-      if(typeof token !== "undefined" && (typeof category !== "undefined" || config.databaseURL.startsWith("file://")) ) {
+      if(typeof token !== "undefined" && (isCustom || config.databaseURL.startsWith("file://")) ) {
         // Set the token and continue.
         options.token = token;
       }
@@ -200,7 +206,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category, ty
           }
 
           // Start over now that we have a token.
-          return await getTriviaQuestion(initial, tokenChannel, 1, category);
+          return await getTriviaQuestion(initial, tokenChannel, 1, category, type);
         }
         else {
           // This shouldn't ever happen.
