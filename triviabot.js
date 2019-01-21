@@ -128,13 +128,13 @@ function isFallbackMode(channel) {
 // Returns a promise, fetches a random question from the database.
 // If initial is set to true, a question will not be returned. (For initializing the cache)
 // If tokenChannel is specified (must be a discord.js TextChannel object), a token will be generated and used.
-async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category, type) {
+async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category, type, difficulty) {
   var length = global.questions.length;
   var toReturn;
 
   // Check if there are custom arguments
   var isCustom = false;
-  if(typeof category !== "undefined" || typeof type !== "undefined") {
+  if(typeof category !== "undefined" || typeof type !== "undefined" || typeof difficulty !== "undefined") {
     isCustom = true;
   }
 
@@ -153,6 +153,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category, ty
     }
 
     options.type = type;
+    options.difficulty = difficulty;
 
     // Get a token if one is requested.
     var token;
@@ -206,7 +207,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category, ty
           }
 
           // Start over now that we have a token.
-          return await getTriviaQuestion(initial, tokenChannel, 1, category, type);
+          return await getTriviaQuestion(initial, tokenChannel, 1, category, type, difficulty);
         }
         else {
           // This shouldn't ever happen.
@@ -548,7 +549,7 @@ async function addAnswerReactions(msg, id) {
 // - scheduled: Set to true if starting a game scheduled by the bot.
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
-doTriviaGame = async function(id, channel, author, scheduled, category, type) {
+doTriviaGame = async function(id, channel, author, scheduled, category, type, difficultyInput) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   // Checks are excepted for games that are being resumed from cache or file.
   if(typeof game[id] !== "undefined" && !game[id].resuming) {
@@ -596,6 +597,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category, type) {
     useReactions,
     "category": typeof game[id]!=="undefined"?game[id].category:category,
     "type": typeof game[id]!=="undefined"?game[id].type:type,
+    "difficulty": typeof game[id]!=="undefined"?game[id].difficulty:difficultyInput,
 
     "participants": [],
     "correctUsers": {},
@@ -609,14 +611,14 @@ doTriviaGame = async function(id, channel, author, scheduled, category, type) {
     "isLeagueGame": typeof game[id]!=="undefined"?game[id].isLeagueGame:false
   };
 
-  var question, answers = [], difficulty, correct_answer;
+  var question, answers = [], difficultyReceived, correct_answer;
   try {
-    question = await getTriviaQuestion(0, channel, 0, game[id].category, game[id].type);
+    question = await getTriviaQuestion(0, channel, 0, game[id].category, game[id].type, game[id].difficulty);
 
     // Stringify the answers in the try loop so we catch it if anything is wrong.
     answers[0] = question.correct_answer.toString();
     answers = answers.concat(question.incorrect_answers);
-    difficulty = question.difficulty.toString();
+    difficultyReceived = question.difficulty.toString();
     correct_answer = question.correct_answer.toString();
   } catch(err) {
     console.log("Database query error:");
@@ -641,7 +643,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category, type) {
 
   var color = embedCol;
   if(getConfigVal("hide-difficulty", channel) !== true) {
-    switch(difficulty) {
+    switch(difficultyReceived) {
       case "easy":
         color = 4249664;
         break;
