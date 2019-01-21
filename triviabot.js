@@ -824,14 +824,15 @@ Trivia.getCategoryFromStr = async (str) => {
   var categoryList;
     // Automatically give "invalid category" if query is shorter than 3 chars.
     if(str.length < 3) {
-      str = void 0;
+      return void 0;
     }
 
     // Get the category list.
     categoryList = await Database.getCategories();
 
+    var strCheck = str.toUpperCase();
     return categoryList.find((el) => {
-      return el.name.toUpperCase().includes(str.toUpperCase());
+      return el.name.toUpperCase().includes(strCheck);
     });
 };
 
