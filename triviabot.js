@@ -128,7 +128,7 @@ function isFallbackMode(channel) {
 // Returns a promise, fetches a random question from the database.
 // If initial is set to true, a question will not be returned. (For initializing the cache)
 // If tokenChannel is specified (must be a discord.js TextChannel object), a token will be generated and used.
-async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category, type, difficulty) {
+async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuestion, category, type, difficulty) {
   var length = global.questions.length;
   var toReturn;
 
@@ -180,11 +180,12 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category, ty
     }
 
     var json = {};
+    var err;
     try {
       json = await Database.fetchQuestions(options);
 
       if(getConfigVal("debug-token-flush") && !tokenRetry && typeof token !== "undefined") {
-        var err = new Error("Token override");
+        err = new Error("Token override");
         err.code = 4;
         throw err;
       }
@@ -199,7 +200,12 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category, ty
             throw new Error(`Failed to reset token - ${error.message}`);
           }
 
-          if(typeof category === "undefined") {
+          if(isFirstQuestion) {
+            err = new Error("There are no questions available under the current configuration.");
+            err.code = -1;
+            throw err;
+          }
+          else if(typeof category === "undefined") {
             triviaSend(tokenChannel, void 0, "You've played all of the available questions! Questions will start to repeat.");
           }
           else {
@@ -207,7 +213,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, category, ty
           }
 
           // Start over now that we have a token.
-          return await getTriviaQuestion(initial, tokenChannel, 1, category, type, difficulty);
+          return await getTriviaQuestion(initial, tokenChannel, 1, isFirstQuestion, category, type, difficulty);
         }
         else {
           // This shouldn't ever happen.
@@ -584,6 +590,8 @@ doTriviaGame = async function(id, channel, author, scheduled, category, type, di
     }
   }
 
+  var isFirstQuestion = typeof game[id] === "undefined";
+
   // ## Game ##
   // Define the variables for the new game.
   // NOTE: This is run between rounds, plan accordingly.
@@ -613,7 +621,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category, type, di
 
   var question, answers = [], difficultyReceived, correct_answer;
   try {
-    question = await getTriviaQuestion(0, channel, 0, game[id].category, game[id].type, game[id].difficulty);
+    question = await getTriviaQuestion(0, channel, 0, isFirstQuestion, game[id].category, game[id].type, game[id].difficulty);
 
     // Stringify the answers in the try loop so we catch it if anything is wrong.
     answers[0] = question.correct_answer.toString();
@@ -621,8 +629,10 @@ doTriviaGame = async function(id, channel, author, scheduled, category, type, di
     difficultyReceived = question.difficulty.toString();
     correct_answer = question.correct_answer.toString();
   } catch(err) {
-    console.log("Database query error:");
-    console.log(err);
+    if(err.code !== -1) {
+      console.log("Database query error:");
+      console.log(err);
+    }
 
     triviaSend(channel, author, {embed: {
       color: 14164000,
