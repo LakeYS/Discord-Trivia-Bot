@@ -822,18 +822,18 @@ if(getConfigVal("league-commands")) {
 // Returns a category based on the string specified. Returns undefined if no category is found.
 Trivia.getCategoryFromStr = async (str) => {
   var categoryList;
-    // Automatically give "invalid category" if query is shorter than 3 chars.
-    if(str.length < 3) {
-      return void 0;
-    }
+  // Automatically give "invalid category" if query is shorter than 3 chars.
+  if(str.length < 3) {
+    return void 0;
+  }
 
-    // Get the category list.
-    categoryList = await Database.getCategories();
+  // Get the category list.
+  categoryList = await Database.getCategories();
 
-    var strCheck = str.toUpperCase();
-    return categoryList.find((el) => {
-      return el.name.toUpperCase().includes(strCheck);
-    });
+  var strCheck = str.toUpperCase();
+  return categoryList.find((el) => {
+    return el.name.toUpperCase().includes(strCheck);
+  });
 };
 
 function parseCommand(msg, cmd) {
