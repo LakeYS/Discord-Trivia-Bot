@@ -856,8 +856,17 @@ function parseCommand(msg, cmd) {
   }
 
   if(cmd === "STOP" || cmd === "CANCEL" || cmd === "ADMIN STOP" || cmd === "ADMIN CANCEL") {
-    if(typeof game[id] !== "undefined" && game[id].inProgress) {
-      if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm") && getConfigVal("disable-admin-commands", msg.channel) !== true) {
+    var isAdmin;
+    if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm") && getConfigVal("disable-admin-commands", msg.channel) !== true) {
+      isAdmin = true;
+    }
+
+    if(cmdPlayAdv.advGameExists(id)) {
+      cmdPlayAdv.cancelAdvGame(id);
+      triviaSend(msg.channel, void 0, "Game cancelled.");
+    }
+    else if(typeof game[id] !== "undefined" && game[id].inProgress) {
+      if(isAdmin) {
         doTriviaStop(msg.channel);
       }
       else {
@@ -963,7 +972,8 @@ Trivia.parse = (str, msg) => {
 
   // # Advanced Game Args ##
   // Override all except "trivia categories" and "trivia help" if we're awaiting input in this channel.
-  if(str !== prefix + "CATEGORIES") {
+  // TODO: Fix non-override commands still working, move these overrides to cmd_play_advanced.js
+  if(str !== prefix + "CATEGORIES" && str !== prefix + "STOP") {
     var parsedAdv = parseAdv(id, msg)
     .then(() => {
       if(parsedAdv !== -1) {
