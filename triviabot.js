@@ -1000,9 +1000,9 @@ Trivia.parse = (str, msg) => {
   // Override all except "trivia categories" and "trivia help" if we're awaiting input in this channel.
   // TODO: Fix non-override commands still working, move these overrides to cmd_play_advanced.js
   if(str !== prefix + "CATEGORIES" && str !== prefix + "STOP") {
-    var parsedAdv = parseAdv(id, msg)
-    .then(() => {
-      if(parsedAdv !== -1) {
+    parseAdv(id, msg)
+    .then((result) => {
+      if(result !== -1) {
         return;
       }
     });
