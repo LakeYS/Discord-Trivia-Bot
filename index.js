@@ -1,16 +1,6 @@
 const pjson = require("./package.json");
 process.title = `TriviaBot ${pjson.version}`;
 
-// # Initialize Config Args # //
-var configFile;
-for(var i = 0; i <= process.argv.length; i++) {
-  if(typeof process.argv[i] !== "undefined" && process.argv[i].startsWith("--configfile=")) {
-    configFile = process.argv[i].replace("--configfile=", "");
-  }
-}
-
-var config = require("./lib/config.js")(configFile, true);
-
 // # Art Display # //
 // process.stdout.columns returns "undefined" in certain situations
 var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version}        `,
@@ -52,6 +42,16 @@ console.log(`\
           #####    ####    #####
                ############
                   ######${strBottom}`);
+
+// # Initialize Config Args # //
+var configFile;
+for(var i = 0; i <= process.argv.length; i++) {
+  if(typeof process.argv[i] !== "undefined" && process.argv[i].startsWith("--configfile=")) {
+    configFile = process.argv[i].replace("--configfile=", "");
+  }
+}
+
+var config = require("./lib/config.js")(configFile, true);
 
 // # Requirements/Init # //
 const configPrivate = {
