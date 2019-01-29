@@ -76,7 +76,7 @@ const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: conf
 // # Custom Package Loading # //
 if(typeof config["additional-packages"] !== "undefined") {
   config["additional-packages"].forEach((key) => {
-    require(key)(config["additional-config-passthrough"]?config:void 0, config["additional-manager-passthrough"]?manager:void 0);
+    require(key)(config, manager);
   });
 }
 

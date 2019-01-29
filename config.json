@@ -36,8 +36,6 @@
   "board-monthly-reset-day": 1,
   "board-weekly-reset-day": 0,
 
-  "additional-config-passthrough": true,
-  "additional-manager-passthrough": true,
   "additional-packages": [],
   "additional-packages-shard": [],
   "beta-mode": false,

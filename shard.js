@@ -75,7 +75,7 @@ function postBotStats() {
 // # Custom Package Loading # //
 if(typeof config["additional-packages-shard"] !== "undefined") {
   config["additional-packages-shard"].forEach((key) => {
-    require(key)(config["additional-config-passthrough"]?config:void 0);
+    require(key)(config);
   });
 }
 
