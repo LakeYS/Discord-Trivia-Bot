@@ -107,7 +107,7 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
   });
 };
 
-var commands = {};
+Trivia.commands = {};
 
 function isFallbackMode(channel) {
   if(getConfigVal("fallback-mode")) {
@@ -819,12 +819,12 @@ Trivia.leaderboard = require("./lib/leaderboard.js")(getConfigVal);
 var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia);
 var cmdLeague = require("./lib/cmd_league.js")(Trivia);
 var parseAdv = cmdPlayAdv.parseAdv;
-commands.triviaHelp = require("./lib/cmd_help.js")(config);
-commands.triviaCategories = require("./lib/cmd_categories.js")(config);
-commands.triviaPlayAdvanced = cmdPlayAdv.triviaPlayAdvanced;
+Trivia.commands.triviaHelp = require("./lib/cmd_help.js")(config);
+Trivia.commands.triviaCategories = require("./lib/cmd_categories.js")(config);
+Trivia.commands.triviaPlayAdvanced = cmdPlayAdv.triviaPlayAdvanced;
 
 if(getConfigVal("league-commands")) {
-  commands.leagueParse = cmdLeague.leagueParse;
+  Trivia.commands.leagueParse = cmdLeague.leagueParse;
 }
 
 // getCategoryFromStr
@@ -903,7 +903,7 @@ function parseCommand(msg, cmd) {
       return;
     }
 
-    commands.triviaPlayAdvanced(msg.channel.id, msg.channel, msg.author);
+    Trivia.commands.triviaPlayAdvanced(msg.channel.id, msg.channel, msg.author);
     return;
   }
 
@@ -943,11 +943,11 @@ function parseCommand(msg, cmd) {
   }
 
   if(getConfigVal("league-commands") && cmd.startsWith("LEAGUE ")) {
-    commands.leagueParse(msg.channel.id, msg.channel, msg.author, msg.member, cmd);
+    Trivia.commands.leagueParse(msg.channel.id, msg.channel, msg.author, msg.member, cmd);
   }
 
   if(cmd === "CATEGORIES") {
-    commands.triviaCategories(msg, Trivia); // TODO: Refactor
+    Trivia.commands.triviaCategories(msg, Trivia); // TODO: Refactor
   }
 }
 
@@ -1011,9 +1011,8 @@ Trivia.parse = (str, msg) => {
 
   // ## Help Command Parser ##
   if(str === prefix + "HELP" || str.includes(`<@${global.client.user.id}>`)) {
-    commands.triviaHelp(msg, Database)
+    Trivia.commands.triviaHelp(msg, Database)
     .then((res) => {
-
       Trivia.send(msg.channel, msg.author, {embed: {
         color: Trivia.embedCol,
         description: res
