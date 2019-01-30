@@ -108,6 +108,7 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
 };
 
 Trivia.commands = {};
+var commands = Trivia.commands;
 
 function isFallbackMode(channel) {
   if(getConfigVal("fallback-mode")) {
@@ -816,15 +817,15 @@ function doTriviaStop(channel, auto) {
 }
 
 Trivia.leaderboard = require("./lib/leaderboard.js")(getConfigVal);
-var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia);
-var cmdLeague = require("./lib/cmd_league.js")(Trivia);
-var parseAdv = cmdPlayAdv.parseAdv;
-Trivia.commands.triviaHelp = require("./lib/cmd_help.js")(config);
-Trivia.commands.triviaCategories = require("./lib/cmd_categories.js")(config);
-Trivia.commands.triviaPlayAdvanced = cmdPlayAdv.triviaPlayAdvanced;
+commands.playAdv = require("./lib/cmd_play_advanced.js")(Trivia);
+commands.league = require("./lib/cmd_league.js")(Trivia);
+var parseAdv = commands.playAdv.parseAdv;
+commands.triviaHelp = require("./lib/cmd_help.js")(config);
+commands.triviaCategories = require("./lib/cmd_categories.js")(config);
+commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
 
 if(getConfigVal("league-commands")) {
-  Trivia.commands.leagueParse = cmdLeague.leagueParse;
+  commands.leagueParse = commands.league.leagueParse;
 }
 
 // getCategoryFromStr
@@ -879,8 +880,8 @@ function parseCommand(msg, cmd) {
       }
     }
 
-    if(cmdPlayAdv.advGameExists(id)) {
-      cmdPlayAdv.cancelAdvGame(id);
+    if(commands.playAdv.advGameExists(id)) {
+      commands.playAdv.cancelAdvGame(id);
       Trivia.send(stopChannel, void 0, "Game cancelled.");
 
       return;
@@ -903,7 +904,7 @@ function parseCommand(msg, cmd) {
       return;
     }
 
-    Trivia.commands.triviaPlayAdvanced(msg.channel.id, msg.channel, msg.author);
+    commands.triviaPlayAdvanced(msg.channel.id, msg.channel, msg.author);
     return;
   }
 
@@ -943,11 +944,11 @@ function parseCommand(msg, cmd) {
   }
 
   if(getConfigVal("league-commands") && cmd.startsWith("LEAGUE ")) {
-    Trivia.commands.leagueParse(msg.channel.id, msg.channel, msg.author, msg.member, cmd);
+    commands.leagueParse(msg.channel.id, msg.channel, msg.author, msg.member, cmd);
   }
 
   if(cmd === "CATEGORIES") {
-    Trivia.commands.triviaCategories(msg, Trivia); // TODO: Refactor
+    commands.triviaCategories(msg, Trivia); // TODO: Refactor
   }
 }
 
@@ -1011,8 +1012,9 @@ Trivia.parse = (str, msg) => {
 
   // ## Help Command Parser ##
   if(str === prefix + "HELP" || str.includes(`<@${global.client.user.id}>`)) {
-    Trivia.commands.triviaHelp(msg, Database)
+    commands.triviaHelp(msg, Database)
     .then((res) => {
+
       Trivia.send(msg.channel, msg.author, {embed: {
         color: Trivia.embedCol,
         description: res
