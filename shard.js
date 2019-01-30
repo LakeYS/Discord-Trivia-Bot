@@ -75,7 +75,7 @@ function postBotStats() {
 // # Custom Package Loading # //
 if(typeof config["additional-packages"] !== "undefined") {
   config["additional-packages"].forEach((key) => {
-    require(key)(config);
+    require(key)(global.Trivia);
   });
 }
 
