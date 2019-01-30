@@ -33,7 +33,6 @@
   "database-cache-size": 32,
   "stat-file": "./stats.json",
   "embed-color": "006CFF",
-  "league-commands": true,
   "board-monthly-reset-day": 1,
   "board-weekly-reset-day": 0,
 
