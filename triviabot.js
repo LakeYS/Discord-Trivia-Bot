@@ -818,15 +818,10 @@ function doTriviaStop(channel, auto) {
 
 Trivia.leaderboard = require("./lib/leaderboard.js")(getConfigVal);
 commands.playAdv = require("./lib/cmd_play_advanced.js")(Trivia);
-commands.league = require("./lib/cmd_league.js")(Trivia);
 var parseAdv = commands.playAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(config);
 commands.triviaCategories = require("./lib/cmd_categories.js")(config);
 commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
-
-if(getConfigVal("league-commands")) {
-  commands.leagueParse = commands.league.leagueParse;
-}
 
 // getCategoryFromStr
 // Returns a category based on the string specified. Returns undefined if no category is found.
@@ -943,7 +938,7 @@ function parseCommand(msg, cmd) {
     }
   }
 
-  if(getConfigVal("league-commands") && cmd.startsWith("LEAGUE ")) {
+  if(typeof commands.leagueParse !== "undefined" && cmd.startsWith("LEAGUE ")) {
     commands.leagueParse(msg.channel.id, msg.channel, msg.author, msg.member, cmd);
   }
 
