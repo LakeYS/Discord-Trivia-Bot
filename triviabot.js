@@ -819,8 +819,8 @@ function doTriviaStop(channel, auto) {
 }
 
 var leaderboard = require("./lib/leaderboard.js")(getConfigVal);
-var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia, getConfigVal, triviaSend, doTriviaGame, game, Database, embedCol);
-var cmdLeague = require("./lib/cmd_league.js")(Trivia, getConfigVal, triviaSend, Database, embedCol, leaderboard, doTriviaGame);
+var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia, triviaSend, doTriviaGame, game, Database, embedCol);
+var cmdLeague = require("./lib/cmd_league.js")(Trivia, triviaSend, Database, embedCol, leaderboard, doTriviaGame);
 var parseAdv = cmdPlayAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(config);
 commands.triviaCategories = require("./lib/cmd_categories.js")(config);
