@@ -819,8 +819,8 @@ function doTriviaStop(channel, auto) {
 }
 
 var leaderboard = require("./lib/leaderboard.js")(getConfigVal);
-var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia, doTriviaGame, game, Database);
-var cmdLeague = require("./lib/cmd_league.js")(Trivia, Database, leaderboard, doTriviaGame);
+var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia, doTriviaGame);
+var cmdLeague = require("./lib/cmd_league.js")(Trivia, leaderboard, doTriviaGame);
 var parseAdv = cmdPlayAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(config);
 commands.triviaCategories = require("./lib/cmd_categories.js")(config);
@@ -950,7 +950,7 @@ function parseCommand(msg, cmd) {
   }
 
   if(cmd === "CATEGORIES") {
-    commands.triviaCategories(msg, Database, Trivia); // TODO: Refactor
+    commands.triviaCategories(msg, Trivia); // TODO: Refactor
   }
 }
 
