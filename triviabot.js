@@ -980,10 +980,14 @@ Trivia.parse = (str, msg) => {
 
     if(parsed !== -1) {
       if(getConfigVal("auto-delete-answers", msg.channel)) {
-        msg.delete()
-        .catch((err) => {
-          console.log("Failed to delete player answer: " + err.message);
-        });
+        setTimeout(() => {
+          msg.delete()
+          .catch((err) => {
+            if(err.message !== "Missing Permissions") {
+              console.log("Failed to delete player answer: " + err.message);
+            }
+          });
+        }, getConfigVal("auto-delete-answers-timer", msg.channel));
       }
 
       return;
