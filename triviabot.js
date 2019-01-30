@@ -67,7 +67,7 @@ var doTriviaGame, triviaRevealAnswer;
 // This is to avoid repeating the same error catchers throughout the script.
 //    channel: Channel ID -- author: Author ID -- msg: Message Object -- callback: Callback Function
 //    noDelete: If enabled, message will not auto-delete even if configured to
-var triviaSend = function(channel, author, msg, callback, noDelete) {
+Trivia.send = function(channel, author, msg, callback, noDelete) {
   channel.send(msg)
   .catch((err) => {
     if(typeof author !== "undefined") {
@@ -162,12 +162,12 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
         token = await Database.getTokenByIdentifier(tokenChannel.id);
 
         if(getConfigVal("debug-mode")) {
-          triviaSend(tokenChannel, void 0, `*Token: ${token}*`);
+          Trivia.send(tokenChannel, void 0, `*Token: ${token}*`);
         }
       } catch(error) {
         // Something went wrong. We'll display a warning but we won't cancel the game.
         console.log(`Failed to generate token for channel ${tokenChannel.id}: ${error.message}`);
-        triviaSend(tokenChannel, void 0, {embed: {
+        Trivia.send(tokenChannel, void 0, {embed: {
           color: 14164000,
           description: `Error: Failed to generate a session token for this channel. You may see repeating questions. (${error.message})`
         }});
@@ -206,10 +206,10 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
             throw err;
           }
           else if(typeof category === "undefined") {
-            triviaSend(tokenChannel, void 0, "You've played all of the available questions! Questions will start to repeat.");
+            Trivia.send(tokenChannel, void 0, "You've played all of the available questions! Questions will start to repeat.");
           }
           else {
-            triviaSend(tokenChannel, void 0, "You've played all of the questions in this category! Questions will start to repeat.");
+            Trivia.send(tokenChannel, void 0, "You've played all of the questions in this category! Questions will start to repeat.");
           }
 
           // Start over now that we have a token.
@@ -231,7 +231,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
           delete Database.tokens[tokenChannel.id];
         }
 
-        // Author is passed through; triviaSend will handle it if author is undefined.
+        // Author is passed through; Trivia.send will handle it if author is undefined.
         throw new Error(`Failed to query the trivia database with error code ${json.response_code} (${Database.responses[json.response_code]}; ${error.message})`);
       }
     }
@@ -423,7 +423,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     gameFooter = "\n\n" + gameFooter;
   }
 
-  triviaSend(channel, void 0, {embed: {
+  Trivia.send(channel, void 0, {embed: {
     color: game[id].color,
     description: `**${letters[game[id].correctId]}:** ${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}`
   }}, (msg, err) => {
@@ -535,7 +535,7 @@ async function addAnswerReactions(msg, id) {
   } catch (error) {
     console.log(`Failed to add reaction: ${error}`);
 
-    triviaSend(msg.channel, void 0, {embed: {
+    Trivia.send(msg.channel, void 0, {embed: {
       color: 14164000,
       description: "Error: Failed to add reaction. This may be due to the channel's configuration.\n\nMake sure that the bot has the \"Use Reactions\" and \"Read Message History\" permissions or disable reaction mode to play."
     }});
@@ -634,7 +634,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category, type, di
       console.log(err);
     }
 
-    triviaSend(channel, author, {embed: {
+    Trivia.send(channel, author, {embed: {
       color: 14164000,
       description: `An error occurred while querying the trivia database:\n*${err.message}*`
     }});
@@ -700,7 +700,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category, type, di
     }
   }
 
-  triviaSend(channel, author, {embed: {
+  Trivia.send(channel, author, {embed: {
     color: game[id].color,
     description: `*${categoryString}*\n**${entities.decode(question.question)}**\n${answerString}${infoString}`
   }}, (msg, err) => {
@@ -763,7 +763,7 @@ function doTriviaPing(msg) {
 
   global.client.shard.send({stats: { commandPingCount: 1 }});
 
-  triviaSend(msg.channel, msg.author, {embed: {
+  Trivia.send(msg.channel, msg.author, {embed: {
     color: embedCol,
     title: "Pong!",
     description: "Measuring how long that took..."
@@ -811,7 +811,7 @@ function doTriviaStop(channel, auto) {
   if(!inRound) {
     var headerStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
 
-    triviaSend(channel, void 0, {embed: {
+    Trivia.send(channel, void 0, {embed: {
       color: embedCol,
       description: `Game ended by admin.${finalScoreStr!==""?`\n\n${headerStr}\n`:""}${finalScoreStr}`
     }});
@@ -819,8 +819,8 @@ function doTriviaStop(channel, auto) {
 }
 
 var leaderboard = require("./lib/leaderboard.js")(getConfigVal);
-var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia, triviaSend, doTriviaGame, game, Database, embedCol);
-var cmdLeague = require("./lib/cmd_league.js")(Trivia, triviaSend, Database, embedCol, leaderboard, doTriviaGame);
+var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia, doTriviaGame, game, Database, embedCol);
+var cmdLeague = require("./lib/cmd_league.js")(Trivia, Database, embedCol, leaderboard, doTriviaGame);
 var parseAdv = cmdPlayAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(config);
 commands.triviaCategories = require("./lib/cmd_categories.js")(config);
@@ -869,22 +869,22 @@ function parseCommand(msg, cmd) {
         stopChannel = msg.guild.channels.find((obj) => (obj.id === idInput));
 
         if(stopChannel === null) {
-          triviaSend(msg.channel, msg.author, `Could not find that channel. Check input and try again. (Example: <#${msg.channel.id}>)`);
+          Trivia.send(msg.channel, msg.author, `Could not find that channel. Check input and try again. (Example: <#${msg.channel.id}>)`);
           return;
         }
         else if(typeof game[stopChannel.id] === "undefined") {
-          triviaSend(msg.channel, msg.author, "There is no game running in that channel.");
+          Trivia.send(msg.channel, msg.author, "There is no game running in that channel.");
           return;
         }
         else {
-          triviaSend(msg.channel, msg.author, `Stopping game in channel <#${stopChannel.id}>`);
+          Trivia.send(msg.channel, msg.author, `Stopping game in channel <#${stopChannel.id}>`);
         }
       }
     }
 
     if(cmdPlayAdv.advGameExists(id)) {
       cmdPlayAdv.cancelAdvGame(id);
-      triviaSend(stopChannel, void 0, "Game cancelled.");
+      Trivia.send(stopChannel, void 0, "Game cancelled.");
 
       return;
     }
@@ -894,7 +894,7 @@ function parseCommand(msg, cmd) {
         doTriviaStop(stopChannel);
       }
       else {
-        triviaSend(msg.channel, void 0, `Trivia games will end automatically if the game is inactive for more than ${getConfigVal("rounds-end-after", msg.channel)-1} round${getConfigVal("rounds-end-after", msg.channel)-1===1?"":"s"}. Only users with the "Manage Server" permission can force-end a game.`);
+        Trivia.send(msg.channel, void 0, `Trivia games will end automatically if the game is inactive for more than ${getConfigVal("rounds-end-after", msg.channel)-1} round${getConfigVal("rounds-end-after", msg.channel)-1===1?"":"s"}. Only users with the "Manage Server" permission can force-end a game.`);
       }
 
       return;
@@ -920,7 +920,7 @@ function parseCommand(msg, cmd) {
       Trivia.getCategoryFromStr(categoryInput)
       .then((category) => {
         if(typeof category === "undefined") {
-          triviaSend(msg.channel, msg.author, {embed: {
+          Trivia.send(msg.channel, msg.author, {embed: {
             color: 14164000,
             description: "Unable to find the category you specified.\nType `trivia play` to play in random categories, or type `trivia categories` to see a list of categories."
           }});
@@ -931,7 +931,7 @@ function parseCommand(msg, cmd) {
         }
       })
       .catch((err) => {
-        triviaSend(msg.channel, msg.author, {embed: {
+        Trivia.send(msg.channel, msg.author, {embed: {
           color: 14164000,
           description: `Failed to retrieve the category list:\n${err}`
         }});
@@ -950,7 +950,7 @@ function parseCommand(msg, cmd) {
   }
 
   if(cmd === "CATEGORIES") {
-    commands.triviaCategories(msg, Database, triviaSend);
+    commands.triviaCategories(msg, Database, Trivia); // TODO: Refactor
   }
 }
 
@@ -1017,7 +1017,7 @@ Trivia.parse = (str, msg) => {
     commands.triviaHelp(msg, Database)
     .then((res) => {
 
-      triviaSend(msg.channel, msg.author, {embed: {
+      Trivia.send(msg.channel, msg.author, {embed: {
         color: embedCol,
         description: res
       }});
@@ -1229,7 +1229,7 @@ Trivia.doMaintenanceShutdown = () => {
     var channel = game[key].message.channel;
     doTriviaStop(game[key].message.channel, 1);
 
-    triviaSend(channel, void 0, {embed: {
+    Trivia.send(channel, void 0, {embed: {
       color: embedCol,
       description: "TriviaBot is being temporarily shut down for maintenance. Please try again in a few minutes."
     }});
