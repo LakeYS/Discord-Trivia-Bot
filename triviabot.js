@@ -33,7 +33,7 @@ Trivia.getConfigVal = getConfigVal;
 // TODO: Use String.fromCharCode(65+letter) instead of this array?
 const letters = ["A", "B", "C", "D"];
 // Convert the hex code to decimal so Discord can read it.
-const embedCol = Buffer.from(getConfigVal("embed-color").padStart(8, "0"), "hex").readInt32BE(0);
+Trivia.embedCol = Buffer.from(getConfigVal("embed-color").padStart(8, "0"), "hex").readInt32BE(0);
 
 var Database = "";
 if(getConfigVal("database-merge")) {
@@ -651,7 +651,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category, type, di
     game[id].isTrueFalse = 1;
   }
 
-  var color = embedCol;
+  var color = Trivia.embedCol;
   if(getConfigVal("hide-difficulty", channel) !== true) {
     switch(difficultyReceived) {
       case "easy":
@@ -764,14 +764,14 @@ function doTriviaPing(msg) {
   global.client.shard.send({stats: { commandPingCount: 1 }});
 
   Trivia.send(msg.channel, msg.author, {embed: {
-    color: embedCol,
+    color: Trivia.embedCol,
     title: "Pong!",
     description: "Measuring how long that took..."
   }}, (sent) => {
     var tAfter = Date.now();
 
     sent.edit({embed: {
-      color: embedCol,
+      color: Trivia.embedCol,
       title: "Pong!",
       description: `That took ${tAfter-tBefore}ms.\nAverage client heartbeat: ${Math.round(global.client.ping)}ms\n${!config.databaseURL.startsWith("file://")?`Last database response: ${Database.pingLatest}ms\n`:""}Shard ${global.client.shard.id} of ${global.client.shard.count-1}`
     }});
@@ -812,15 +812,15 @@ function doTriviaStop(channel, auto) {
     var headerStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
 
     Trivia.send(channel, void 0, {embed: {
-      color: embedCol,
+      color: Trivia.embedCol,
       description: `Game ended by admin.${finalScoreStr!==""?`\n\n${headerStr}\n`:""}${finalScoreStr}`
     }});
   }
 }
 
 var leaderboard = require("./lib/leaderboard.js")(getConfigVal);
-var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia, doTriviaGame, game, Database, embedCol);
-var cmdLeague = require("./lib/cmd_league.js")(Trivia, Database, embedCol, leaderboard, doTriviaGame);
+var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia, doTriviaGame, game, Database);
+var cmdLeague = require("./lib/cmd_league.js")(Trivia, Database, leaderboard, doTriviaGame);
 var parseAdv = cmdPlayAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(config);
 commands.triviaCategories = require("./lib/cmd_categories.js")(config);
@@ -1018,7 +1018,7 @@ Trivia.parse = (str, msg) => {
     .then((res) => {
 
       Trivia.send(msg.channel, msg.author, {embed: {
-        color: embedCol,
+        color: Trivia.embedCol,
         description: res
       }});
     });
@@ -1230,7 +1230,7 @@ Trivia.doMaintenanceShutdown = () => {
     doTriviaStop(game[key].message.channel, 1);
 
     Trivia.send(channel, void 0, {embed: {
-      color: embedCol,
+      color: Trivia.embedCol,
       description: "TriviaBot is being temporarily shut down for maintenance. Please try again in a few minutes."
     }});
   });
