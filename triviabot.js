@@ -273,7 +273,7 @@ function triviaEndGame(id) {
   }
 
   if(game[id].isLeagueGame) {
-    leaderboard.writeScores(game[id].scores, game[id].guildId, ["Monthly", "Weekly"], game[id].leagueName);
+    Trivia.leaderboard.writeScores(game[id].scores, game[id].guildId, ["Monthly", "Weekly"], game[id].leagueName);
   }
 
   delete game[id];
@@ -412,7 +412,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
       correctUsersStr = `${correctUsersStr}\nNone`;
     }
     else {
-      correctUsersStr = `${correctUsersStr}\n${leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants)}`;
+      correctUsersStr = `${correctUsersStr}\n${Trivia.leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants)}`;
     }
   }
 
@@ -784,7 +784,7 @@ function doTriviaStop(channel, auto) {
   let id = channel.id;
   let timeout = game[id].timeout;
   let inRound = game[id].inRound;
-  let finalScoreStr = leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants);
+  let finalScoreStr = Trivia.leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants);
   let totalParticipantCount = Object.keys(game[id].totalParticipants).length;
 
   game[id].cancelled = 1;
@@ -815,9 +815,9 @@ function doTriviaStop(channel, auto) {
   }
 }
 
-var leaderboard = require("./lib/leaderboard.js")(getConfigVal);
+Trivia.leaderboard = require("./lib/leaderboard.js")(getConfigVal);
 var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia);
-var cmdLeague = require("./lib/cmd_league.js")(Trivia, leaderboard);
+var cmdLeague = require("./lib/cmd_league.js")(Trivia);
 var parseAdv = cmdPlayAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(config);
 commands.triviaCategories = require("./lib/cmd_categories.js")(config);
