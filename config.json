@@ -38,7 +38,7 @@
   "board-weekly-reset-day": 0,
 
   "additional-packages": [],
-  "additional-packages-shard": [],
+  "additional-packages-root": [],
   "beta-mode": false,
   "beta-require-external-function": false,
   "debug-mode": false,

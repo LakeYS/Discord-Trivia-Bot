@@ -73,8 +73,8 @@ function postBotStats() {
 }
 
 // # Custom Package Loading # //
-if(typeof config["additional-packages-shard"] !== "undefined") {
-  config["additional-packages-shard"].forEach((key) => {
+if(typeof config["additional-packages"] !== "undefined") {
+  config["additional-packages"].forEach((key) => {
     require(key)(config);
   });
 }

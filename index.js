@@ -74,8 +74,8 @@ var token = config.token;
 const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: config["shard-count"], token, shardArgs: [configFile] });
 
 // # Custom Package Loading # //
-if(typeof config["additional-packages"] !== "undefined") {
-  config["additional-packages"].forEach((key) => {
+if(typeof config["additional-packages-root"] !== "undefined") {
+  config["additional-packages-root"].forEach((key) => {
     require(key)(config, manager);
   });
 }
