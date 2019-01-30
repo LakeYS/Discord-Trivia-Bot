@@ -60,9 +60,6 @@ Trivia.database = Database;
 var game = {};
 global.questions = [];
 
-// These two functions rely on each other, so we'll initialize them ahead of time.
-var doTriviaGame, triviaRevealAnswer;
-
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
 //    channel: Channel ID -- author: Author ID -- msg: Message Object -- callback: Callback Function
@@ -282,10 +279,10 @@ function triviaEndGame(id) {
   delete game[id];
 }
 
-// # triviaRevealAnswer #
+// # Trivia.doAnswerReveal #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
 // TODO: Refactor (clean up and fix gameEndedMsg being relied on as a boolean check)
-triviaRevealAnswer = (id, channel, answer, importOverride) => {
+Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
   if(typeof game[id] === "undefined" || !game[id].inProgress) {
     return;
   }
@@ -428,7 +425,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
     description: `**${letters[game[id].correctId]}:** ${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}`
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
-      // NOTE: Participants check is repeated below in doTriviaGame
+      // NOTE: Participants check is repeated below in Trivia.doGame
       if(!err && !doAutoEnd) {
         game[id].timeout = setTimeout(() => {
           if(getConfigVal("auto-delete-msgs", channel)) {
@@ -437,7 +434,7 @@ triviaRevealAnswer = (id, channel, answer, importOverride) => {
               console.log(`Failed to delete message - ${err.message}`);
             });
           }
-          doTriviaGame(id, channel, void 0, 1);
+          Trivia.doGame(id, channel, void 0, 1);
         }, getConfigVal("round-timeout", channel));
       }
       else {
@@ -546,7 +543,7 @@ async function addAnswerReactions(msg, id) {
   }
 }
 
-// # doTriviaGame #
+// # Trivia.doGame #
 // TODO: Refactor and convert to an async function
 // - id: The unique identifier for the channel that the game is in.
 // - channel: The channel object that correlates with the game.
@@ -555,7 +552,7 @@ async function addAnswerReactions(msg, id) {
 // - scheduled: Set to true if starting a game scheduled by the bot.
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
-doTriviaGame = async function(id, channel, author, scheduled, category, type, difficultyInput) {
+Trivia.doGame = async function(id, channel, author, scheduled, category, type, difficultyInput) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   // Checks are excepted for games that are being resumed from cache or file.
   if(typeof game[id] !== "undefined" && !game[id].resuming) {
@@ -749,7 +746,7 @@ doTriviaGame = async function(id, channel, author, scheduled, category, type, di
 
         // Reveal the answer after the time is up
         game[id].timeout = setTimeout(() => {
-           triviaRevealAnswer(id, channel, question.correct_answer);
+           Trivia.doAnswerReveal(id, channel, question.correct_answer);
         }, getConfigVal("round-length", channel));
       }
     }
@@ -819,8 +816,8 @@ function doTriviaStop(channel, auto) {
 }
 
 var leaderboard = require("./lib/leaderboard.js")(getConfigVal);
-var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia, doTriviaGame);
-var cmdLeague = require("./lib/cmd_league.js")(Trivia, leaderboard, doTriviaGame);
+var cmdPlayAdv = require("./lib/cmd_play_advanced.js")(Trivia);
+var cmdLeague = require("./lib/cmd_league.js")(Trivia, leaderboard);
 var parseAdv = cmdPlayAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(config);
 commands.triviaCategories = require("./lib/cmd_categories.js")(config);
@@ -927,7 +924,7 @@ function parseCommand(msg, cmd) {
           return;
         }
         else {
-          doTriviaGame(msg.channel.id, msg.channel, msg.author, 0, category.id);
+          Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, category.id);
         }
       })
       .catch((err) => {
@@ -941,7 +938,7 @@ function parseCommand(msg, cmd) {
     }
     else {
       // No category specified, start a normal game. (The database will pick a random category for us)
-      doTriviaGame(msg.channel.id, msg.channel, msg.author, 0);
+      Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0);
     }
   }
 
@@ -1087,7 +1084,7 @@ function triviaResumeGame(json, id) {
     timeout = date-new Date();
 
     game[id].timeout = setTimeout(() => {
-      triviaRevealAnswer(id, channel, void 0, 1);
+      Trivia.doAnswerReveal(id, channel, void 0, 1);
     }, timeout);
   }
   else {
@@ -1097,7 +1094,7 @@ function triviaResumeGame(json, id) {
       timeout = date-new Date();
 
       game[id].timeout = setTimeout(() => {
-        doTriviaGame(id, channel, void 0, 0, json.category);
+        Trivia.doGame(id, channel, void 0, 0, json.category);
       }, timeout);
     }
   }
