@@ -846,6 +846,7 @@ function parseCommand(msg, cmd) {
 
   if(cmd === "PING") {
     doTriviaPing(msg);
+    return;
   }
 
   if(cmd.startsWith("STOP")) {
@@ -871,6 +872,7 @@ function parseCommand(msg, cmd) {
         }
         else {
           Trivia.send(msg.channel, msg.author, `Stopping game in channel <#${stopChannel.id}>`);
+          return;
         }
       }
     }
@@ -921,6 +923,7 @@ function parseCommand(msg, cmd) {
         }
         else {
           Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, category.id);
+          return;
         }
       })
       .catch((err) => {
@@ -935,15 +938,18 @@ function parseCommand(msg, cmd) {
     else {
       // No category specified, start a normal game. (The database will pick a random category for us)
       Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0);
+      return;
     }
   }
 
   if(typeof commands.leagueParse !== "undefined" && cmd.startsWith("LEAGUE ")) {
     commands.leagueParse(msg.channel.id, msg.channel, msg.author, msg.member, cmd);
+    return;
   }
 
   if(cmd === "CATEGORIES") {
     commands.triviaCategories(msg, Trivia); // TODO: Refactor
+    return;
   }
 }
 
