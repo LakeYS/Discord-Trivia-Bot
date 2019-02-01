@@ -901,7 +901,7 @@ function parseCommand(msg, cmd) {
       return;
     }
 
-    commands.triviaPlayAdvanced(msg.channel.id, msg.channel, msg.author);
+    commands.triviaPlayAdvanced(void 0, msg.channel.id, msg.channel, msg.author);
     return;
   }
 
