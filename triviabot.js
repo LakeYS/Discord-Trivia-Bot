@@ -579,6 +579,10 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, type, d
     }
   }
 
+  if(commands.playAdv.advGameExists(id)) {
+    return;
+  }
+
   // ## Permission Checks ##
   var useReactions = 0;
 
