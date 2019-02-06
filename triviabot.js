@@ -39,6 +39,10 @@ function setConfigVal(value, newValue, isGlobal) {
     return;
   }
 
+  if(value.toLowerCase().includes("token")) {
+    return;
+  }
+
   config[value.toLowerCase()] = newValue;
 
   // Make a copy of the config data and strip the "configFile" parameter.
