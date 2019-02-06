@@ -34,7 +34,7 @@ function getConfigVal(value, channel, guild) {
 Trivia.getConfigVal = getConfigVal;
 
 function setConfigVal(value, newValue, isGlobal) {
-  if(isGlobal !== true || !getConfigVal("enable-config-commands")) {
+  if(isGlobal !== true || !getConfigVal("config-commands-enabled")) {
     // TEMPORARY: This is an extra failsafe to make sure this only runs when intended.
     return;
   }
@@ -953,7 +953,7 @@ function parseCommand(msg, cmd) {
   }
 
   if(cmd.startsWith("CONFIG")) {
-    if(isAdmin && getConfigVal("enable-config-commands")) {
+    if(isAdmin && getConfigVal("config-commands-enabled")) {
       var cmdInput = cmd.replace("CONFIG ","");
 
       if(cmdInput === "LIST") {
