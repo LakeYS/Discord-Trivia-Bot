@@ -901,7 +901,7 @@ function parseCommand(msg, cmd) {
         }
         else {
           Trivia.send(msg.channel, msg.author, `Stopping game in channel <#${stopChannel.id}>`);
-          return;
+          // No return here, need to actually stop the game below.
         }
       }
     }
