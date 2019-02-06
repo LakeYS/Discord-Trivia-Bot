@@ -207,7 +207,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
     try {
       json = await Database.fetchQuestions(options);
 
-      if(getConfigVal("debug-token-flush") && !tokenRetry && typeof token !== "undefined") {
+      if(getConfigVal("debug-database-flush") && !tokenRetry && typeof token !== "undefined") {
         err = new Error("Token override");
         err.code = 4;
         throw err;
