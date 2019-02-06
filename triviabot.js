@@ -32,22 +32,22 @@ Trivia.getConfigVal = getConfigVal;
 global.client.on("ready", () => {
   // Initialize restricted channels
   var restrictedChannelsInput = getConfigVal("channel-whitelist");
-  var restrictedChannels = [];
+  Trivia.restrictedChannels = [];
   if(typeof restrictedChannelsInput !== "undefined" && restrictedChannelsInput.length !== 0) {
     // Can't use for..in here because is isn't supported by Map objects.
     global.client.channels.forEach((channel) => {
       for(var i in restrictedChannelsInput) {
         var channelInput = restrictedChannelsInput[i];
 
-        if(restrictedChannels.length === restrictedChannelsInput.length) {
+        if(Trivia.restrictedChannels.length === restrictedChannelsInput.length) {
           break;
         }
 
         if(channelInput === channel.id.toString()) {
-          restrictedChannels.push(channel.id);
+          Trivia.restrictedChannels.push(channel.id);
         }
         else if(channelInput.toString().replace("#", "").toLowerCase() === channel.name) {
-          restrictedChannels.push(channel.id);
+          Trivia.restrictedChannels.push(channel.id);
         }
       }
 
@@ -1026,6 +1026,14 @@ Trivia.parse = (str, msg) => {
   var cmdWhitelist = getConfigVal("command-whitelist", msg.channel);
   if(typeof cmdWhitelist !== "undefined" && cmdWhitelist.length !== 0 && cmdWhitelist.indexOf(msg.author.tag)) {
     return;
+  }
+
+  // Check the channel whitelist before proceeding.
+  if(Trivia.restrictedChannels.length !== 0) {
+    // Cancel if the channel isn't on the whitelist.
+    if(Trivia.restrictedChannels.indexOf(msg.channel.id) === -1) {
+      return;
+    }
   }
 
   // ## Advanced Game Args ##

@@ -33,6 +33,7 @@
   "database-cache-size": 32,
   "stat-file": "./stats.json",
   "embed-color": "006CFF",
+  "channel-whitelist": [],
 
   "additional-packages": [],
   "additional-packages-root": [],
