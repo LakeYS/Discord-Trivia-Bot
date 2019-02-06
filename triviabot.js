@@ -25,6 +25,10 @@ function getConfigVal(value, channel, guild) {
 
   channel, guild;
 
+  if(value.toLowerCase().includes("token")) {
+    throw new Error("Attempting to retrieve a token through getConfigVal. This may indicate a bad module or other security risk.");
+  }
+
   return config[value];
 }
 
