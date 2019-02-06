@@ -231,6 +231,7 @@ manager.on("message", (shard, input) => {
 
 // # Console Functions # //
 const evalCmds = require("./lib/evalCmds.js")(manager);
+manager.eCmds = evalCmds;
 
 if(config["allow-eval"] === true) {
   process.stdin.on("data", (text) => {

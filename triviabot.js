@@ -1037,6 +1037,12 @@ function parseCommand(msg, cmd) {
     }
   }
 
+  if(cmd.startsWith("RESET")) {
+    if(isAdmin && getConfigVal("config-commands-enabled")) {
+      global.client.shard.send({evalStr: "manager.eCmds.exportexit(1);"});
+    }
+  }
+
   if(cmd.startsWith("PLAY ADVANCED")) {
     if(typeof game[id] !== "undefined" && game[id].inProgress) {
       return;
