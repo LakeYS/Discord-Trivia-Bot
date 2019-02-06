@@ -31,7 +31,7 @@ function getConfigVal(value, channel, guild) {
 Trivia.getConfigVal = getConfigVal;
 global.client.on("ready", () => {
   // Initialize restricted channels
-  var restrictedChannelsInput = getConfigVal("restricted-channels");
+  var restrictedChannelsInput = getConfigVal("channel-whitelist");
   var restrictedChannels = [];
   if(typeof restrictedChannelsInput !== "undefined" && restrictedChannelsInput.length !== 0) {
     // Can't use for..in here because is isn't supported by Map objects.
