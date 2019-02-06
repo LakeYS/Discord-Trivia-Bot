@@ -31,8 +31,29 @@ function getConfigVal(value, channel, guild) {
 
   return config[value];
 }
-
 Trivia.getConfigVal = getConfigVal;
+
+function setConfigVal(value, newValue, isGlobal) {
+  if(isGlobal !== true || !getConfigVal("enable-config-commands")) {
+    // TEMPORARY: This is an extra failsafe to make sure this only runs when intended.
+    return;
+  }
+
+  config[value.toLowerCase()] = newValue;
+
+  // Make a copy of the config data and strip the "configFile" parameter.
+  var configToWrite = JSON.parse(JSON.stringify(config));
+  delete configToWrite.configFile;
+
+  fs.writeFile(config.configFile, JSON.stringify(configToWrite, null, "\t"), "utf8", (err) => {
+    if(err) {
+      throw err;
+    }
+  });
+}
+
+Trivia.setConfigVal = setConfigVal;
+
 global.client.on("ready", () => {
   // Initialize restricted channels
   var restrictedChannelsInput = getConfigVal("channel-whitelist");
@@ -958,6 +979,31 @@ function parseCommand(msg, cmd) {
         }
 
         Trivia.send(msg.channel, void 0, `${configStr}`);
+      }
+      else {
+        var configSplit = cmd.split(" ");
+        var configKey = configSplit[1];
+        var configVal = cmd.replace(`CONFIG ${configKey} `, "");
+
+        if(configVal === "TRUE") {
+          configVal = true;
+        }
+        else if(configVal === "FALSE") {
+          configVal = false;
+        }
+        else if(!isNaN(configVal)) {
+          configVal = parseFloat(configVal);
+        }
+        else {
+          configVal = configVal.toString().toLowerCase();
+
+          if(configVal.startsWith("\"") && configVal.lastIndexOf("\"") === configVal.length-1) {
+            configVal = configVal.substr(1, configVal.length-2);
+          }
+        }
+
+        setConfigVal(configKey, configVal, true);
+        Trivia.send(msg.channel, void 0, `Set option ${configKey} to "${configVal}" successfully.`);
       }
     }
   }
