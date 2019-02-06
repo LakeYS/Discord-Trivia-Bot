@@ -989,6 +989,7 @@ function parseCommand(msg, cmd) {
         var configKey = configSplit[1];
         var configVal = cmd.replace(`CONFIG ${configKey} `, "");
 
+        var echo = configVal.toLowerCase();
         if(configVal === "TRUE") {
           configVal = true;
         }
@@ -997,6 +998,16 @@ function parseCommand(msg, cmd) {
         }
         else if(!isNaN(configVal)) {
           configVal = parseFloat(configVal);
+        }
+        else if(configVal.startsWith("[") || configVal.startsWith("{")) {
+          try {
+            configVal = JSON.parse(configVal.toLowerCase());
+          } catch(err) {
+            Trivia.send(msg.channel, void 0, `The config value specified has failed to parse with the following error:\n${err}`);
+            return;
+          }
+
+          echo = `\`${JSON.stringify(configVal)}\``;
         }
         else {
           configVal = configVal.toString().toLowerCase();
