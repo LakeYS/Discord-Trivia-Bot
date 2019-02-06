@@ -931,6 +931,37 @@ function parseCommand(msg, cmd) {
     }
   }
 
+  if(cmd.startsWith("CONFIG")) {
+    if(isAdmin && getConfigVal("enable-config-commands")) {
+      var cmdInput = cmd.replace("CONFIG ","");
+
+      if(cmdInput === "LIST") {
+        var configStr = "**Config Options**";
+        for(var i in config) {
+          if(i.toString().includes("token") || i.toString().includes("comment") || i.includes("configFile")) {
+            continue;
+          }
+          else {
+            // Use getConfigVal for security
+            var value = getConfigVal(i, msg.channel);
+
+            var outputStr = value;
+            if(typeof outputStr === "object") {
+              outputStr = JSON.stringify(outputStr);
+            }
+            else if(outputStr.toString().startsWith("http")) {
+              outputStr = `\`${outputStr}\``; // Surround it with '`' so it doesn't show as a link
+            }
+
+            configStr = `${configStr}\n**${i}**: ${outputStr}`;
+          }
+        }
+
+        Trivia.send(msg.channel, void 0, `${configStr}`);
+      }
+    }
+  }
+
   if(cmd.startsWith("PLAY ADVANCED")) {
     if(typeof game[id] !== "undefined" && game[id].inProgress) {
       return;

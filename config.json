@@ -34,6 +34,7 @@
   "stat-file": "./stats.json",
   "embed-color": "006CFF",
   "channel-whitelist": [],
+  "enable-config-commands": false,
 
   "additional-packages": [],
   "additional-packages-root": [],
