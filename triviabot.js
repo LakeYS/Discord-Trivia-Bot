@@ -1020,13 +1020,18 @@ function parseCommand(msg, cmd) {
           echo = configVal;
         }
 
-        var result = setConfigVal(configKey, configVal, true);
-        if(result === -1) {
-          Trivia.send(msg.channel, void 0, `Unable to modify the option "${configKey}".`);
-
+        if(configVal === getConfigVal(configKey.toLowerCase(), msg.channel)) {
+          Trivia.send(msg.channel, void 0, `Option ${configKey} is already set to "${echo}" (${typeof configVal}).`);
         }
         else {
-          Trivia.send(msg.channel, void 0, `Set option ${configKey} to "${echo}" (${typeof configVal}) successfully.`);
+          var result = setConfigVal(configKey, configVal, true);
+          if(result === -1) {
+            Trivia.send(msg.channel, void 0, `Unable to modify the option "${configKey}".`);
+
+          }
+          else {
+            Trivia.send(msg.channel, void 0, `Set option ${configKey} to "${echo}" (${typeof configVal}) successfully.`);
+          }
         }
       }
     }
