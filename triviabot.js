@@ -1023,7 +1023,7 @@ function parseCommand(msg, cmd) {
 
         }
         else {
-          Trivia.send(msg.channel, void 0, `Set option ${configKey} to "${configVal}" successfully.`);
+          Trivia.send(msg.channel, void 0, `Set option ${configKey} to "${echo}" successfully.`);
         }
       }
     }
