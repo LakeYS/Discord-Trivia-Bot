@@ -40,7 +40,7 @@ function setConfigVal(value, newValue, isGlobal) {
   }
 
   if(value.toLowerCase().includes("token")) {
-    return;
+    return -1;
   }
 
   config[value.toLowerCase()] = newValue;
@@ -1006,8 +1006,14 @@ function parseCommand(msg, cmd) {
           }
         }
 
-        setConfigVal(configKey, configVal, true);
-        Trivia.send(msg.channel, void 0, `Set option ${configKey} to "${configVal}" successfully.`);
+        var result = setConfigVal(configKey, configVal, true);
+        if(result === -1) {
+          Trivia.send(msg.channel, void 0, `Unable to modify the option "${configKey}".`);
+
+        }
+        else {
+          Trivia.send(msg.channel, void 0, `Set option ${configKey} to "${configVal}" successfully.`);
+        }
       }
     }
   }
