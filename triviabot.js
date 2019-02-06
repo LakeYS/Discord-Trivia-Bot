@@ -43,10 +43,10 @@ function setConfigVal(value, newValue, isGlobal) {
     return -1;
   }
 
-  config[value.toLowerCase()] = newValue;
+  var configToWrite = JSON.parse(JSON.stringify(config));
+  configToWrite[value.toLowerCase()] = newValue;
 
   // Make a copy of the config data and strip the "configFile" parameter.
-  var configToWrite = JSON.parse(JSON.stringify(config));
   delete configToWrite.configFile;
 
   fs.writeFile(config.configFile, JSON.stringify(configToWrite, null, "\t"), "utf8", (err) => {
