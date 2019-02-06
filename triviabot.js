@@ -989,6 +989,7 @@ function parseCommand(msg, cmd) {
         var configKey = configSplit[1];
         var configVal = cmd.replace(`CONFIG ${configKey} `, "");
 
+        // echo is the value that will be sent back in the confirmation message
         var echo = configVal.toLowerCase();
         if(configVal === "TRUE") {
           configVal = true;
@@ -1015,6 +1016,8 @@ function parseCommand(msg, cmd) {
           if(configVal.startsWith("\"") && configVal.lastIndexOf("\"") === configVal.length-1) {
             configVal = configVal.substr(1, configVal.length-2);
           }
+
+          echo = configVal;
         }
 
         var result = setConfigVal(configKey, configVal, true);
