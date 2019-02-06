@@ -877,6 +877,11 @@ Trivia.getCategoryFromStr = async (str) => {
 function parseCommand(msg, cmd) {
   var id = msg.channel.id;
 
+  var isAdmin;
+  if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm") && getConfigVal("disable-admin-commands", msg.channel) !== true) {
+    isAdmin = true;
+  }
+
   if(cmd === "PING") {
     doTriviaPing(msg);
     return;
@@ -885,10 +890,7 @@ function parseCommand(msg, cmd) {
   if(cmd.startsWith("STOP")) {
     var stopChannel = msg.channel;
 
-    var isAdmin;
-    if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm") && getConfigVal("disable-admin-commands", msg.channel) !== true) {
-      isAdmin = true;
-
+    if(isAdmin) {
       var channelInput = cmd.replace("STOP ","");
 
       if(channelInput !== "STOP") {
