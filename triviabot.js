@@ -915,6 +915,9 @@ function parseCommand(msg, cmd) {
   if(cmd.startsWith("STOP")) {
     var stopChannel = msg.channel;
 
+    // advGameExists (function)
+    var advGameExists = commands.playAdv.advGameExists;
+
     if(isAdmin) {
       var channelInput = cmd.replace("STOP ","");
 
@@ -926,7 +929,7 @@ function parseCommand(msg, cmd) {
           Trivia.send(msg.channel, msg.author, `Could not find that channel. Check input and try again. (Example: <#${msg.channel.id}>)`);
           return;
         }
-        else if(typeof game[stopChannel.id] === "undefined") {
+        else if(typeof game[stopChannel.id] === "undefined" && !advGameExists(stopChannel.id)) {
           Trivia.send(msg.channel, msg.author, "There is no game running in that channel.");
           return;
         }
@@ -937,8 +940,8 @@ function parseCommand(msg, cmd) {
       }
     }
 
-    if(commands.playAdv.advGameExists(id)) {
-      commands.playAdv.cancelAdvGame(id);
+    if(isAdmin && advGameExists(stopChannel.id)) {
+      commands.playAdv.cancelAdvGame(stopChannel.id);
       Trivia.send(stopChannel, void 0, "Game cancelled.");
 
       return;
