@@ -186,7 +186,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
 
   // Check if there are custom arguments
   var isCustom = false;
-  if(typeof category !== "undefined" || typeof type !== "undefined" || typeof difficultyInput !== "undefined") {
+  if(typeof category !== "undefined" || typeof typeInput !== "undefined" || typeof difficultyInput !== "undefined") {
     isCustom = true;
   }
 
