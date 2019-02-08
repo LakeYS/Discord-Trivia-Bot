@@ -180,7 +180,7 @@ function isFallbackMode(channel) {
 // Returns a promise, fetches a random question from the database.
 // If initial is set to true, a question will not be returned. (For initializing the cache)
 // If tokenChannel is specified (must be a discord.js TextChannel object), a token will be generated and used.
-async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuestion, category, type, difficultyInput) {
+async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuestion, category, typeInput, difficultyInput) {
   var length = global.questions.length;
   var toReturn;
 
@@ -204,7 +204,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
       options.amount = getConfigVal("database-cache-size");
     }
 
-    options.type = type;
+    options.type = typeInput;
     options.difficulty = difficultyInput;
 
     // Get a token if one is requested.
@@ -265,7 +265,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
           }
 
           // Start over now that we have a token.
-          return await getTriviaQuestion(initial, tokenChannel, 1, isFirstQuestion, category, type, difficultyInput);
+          return await getTriviaQuestion(initial, tokenChannel, 1, isFirstQuestion, category, typeInput, difficultyInput);
         }
         else {
           // This shouldn't ever happen.
@@ -607,7 +607,7 @@ async function addAnswerReactions(msg, id) {
 // - scheduled: Set to true if starting a game scheduled by the bot.
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
-Trivia.doGame = async function(id, channel, author, scheduled, category, type, difficultyInput) {
+Trivia.doGame = async function(id, channel, author, scheduled, category, typeInput, difficultyInput) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   // Checks are excepted for games that are being resumed from cache or file.
   if(typeof game[id] !== "undefined" && !game[id].resuming) {
@@ -662,7 +662,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, type, d
     "category": typeof game[id]!=="undefined"?game[id].category:category,
     "difficulty": void 0, // Will be defined later
 
-    "type": typeof game[id]!=="undefined"?game[id].type:type,
+    "typeInput": typeof game[id]!=="undefined"?game[id].typeInput:typeInput,
     "difficultyInput": typeof game[id]!=="undefined"?game[id].difficultyInput:difficultyInput,
 
     "participants": [],
@@ -679,7 +679,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, type, d
 
   var question, answers = [], difficultyReceived, correct_answer;
   try {
-    question = await getTriviaQuestion(0, channel, 0, isFirstQuestion, game[id].category, game[id].type, game[id].difficultyInput);
+    question = await getTriviaQuestion(0, channel, 0, isFirstQuestion, game[id].category, game[id].typeInput, game[id].difficultyInput);
 
     // Stringify the answers in the try loop so we catch it if anything is wrong.
     answers[0] = question.correct_answer.toString();
