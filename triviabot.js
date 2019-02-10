@@ -607,7 +607,7 @@ async function addAnswerReactions(msg, id) {
 // - scheduled: Set to true if starting a game scheduled by the bot.
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
-Trivia.doGame = async function(id, channel, author, scheduled, category, typeInput, difficultyInput) {
+Trivia.doGame = async function(id, channel, author, scheduled, category, typeInput, difficultyInput, modeInput) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   // Checks are excepted for games that are being resumed from cache or file.
   if(typeof game[id] !== "undefined" && !game[id].resuming) {
@@ -640,10 +640,14 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
   // ## Permission Checks ##
   var useReactions = 0;
 
-  if(channel.type !== "dm") {
+  if(channel.type !== "dm" && typeof modeInput === "undefined") {
     if(getConfigVal("use-reactions", channel)) {
       useReactions = 1;
     }
+  }
+
+  if(modeInput === 1) {
+    useReactions = 1;
   }
 
   var isFirstQuestion = typeof game[id] === "undefined";
