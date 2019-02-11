@@ -252,12 +252,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
             throw new Error(`Failed to reset token - ${error.message}`);
           }
 
-          if(isFirstQuestion) {
-            err = new Error("There are no questions available under the current configuration.");
-            err.code = -1;
-            throw err;
-          }
-          else if(typeof category === "undefined") {
+          if(typeof category === "undefined") {
             Trivia.send(tokenChannel, void 0, "You've played all of the available questions! Questions will start to repeat.");
           }
           else {
@@ -268,8 +263,15 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
           return await getTriviaQuestion(initial, tokenChannel, 1, isFirstQuestion, category, typeInput, difficultyInput);
         }
         else {
-          // This shouldn't ever happen.
-          throw new Error("Token reset loop.");
+          if(isFirstQuestion) {
+            err = new Error("There are no questions available under the current configuration.");
+            err.code = -1;
+            throw err;
+          }
+          else {
+            // This shouldn't ever happen.
+            throw new Error("Token reset loop.");
+          }
         }
       }
       else {
