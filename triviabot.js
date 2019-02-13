@@ -252,11 +252,13 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
             throw new Error(`Failed to reset token - ${error.message}`);
           }
 
-          if(typeof category === "undefined") {
-            Trivia.send(tokenChannel, void 0, "You've played all of the available questions! Questions will start to repeat.");
-          }
-          else {
-            Trivia.send(tokenChannel, void 0, "You've played all of the questions in this category! Questions will start to repeat.");
+          if(!isFirstQuestion) {
+            if(typeof category === "undefined") {
+              Trivia.send(tokenChannel, void 0, "You've played all of the available questions! Questions will start to repeat.");
+            }
+            else {
+              Trivia.send(tokenChannel, void 0, "You've played all of the questions in this category! Questions will start to repeat.");
+            }
           }
 
           // Start over now that we have a token.
