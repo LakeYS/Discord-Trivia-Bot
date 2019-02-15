@@ -116,7 +116,10 @@ global.questions = [];
 
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
-//    channel: Channel ID -- author: Author ID -- msg: Message Object -- callback: Callback Function
+//    channel: Channel ID
+//    author: Author ID (Omit to prevent error messages from going to the author's DMs)
+//    msg: Message Object
+//    callback: Callback Function (Can be used to detect error/success and react)
 //    noDelete: If enabled, message will not auto-delete even if configured to
 Trivia.send = function(channel, author, msg, callback, noDelete) {
   channel.send(msg)
