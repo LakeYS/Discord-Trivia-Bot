@@ -831,7 +831,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
   return game[id];
 };
 
-function doTriviaStop(channel, auto) {
+Trivia.stopGame = (channel, auto) => {
   if(auto !== 1) {
     global.client.shard.send({stats: { commandStopCount: 1 }});
   }
@@ -869,7 +869,7 @@ function doTriviaStop(channel, auto) {
       description: `Game ended by admin.${finalScoreStr!==""?`\n\n${headerStr}\n`:""}${finalScoreStr}`
     }});
   }
-}
+};
 
 Trivia.leaderboard = require("./lib/leaderboard.js")(getConfigVal);
 commands.playAdv = require("./lib/cmd_play_advanced.js")(Trivia);
@@ -878,6 +878,7 @@ commands.triviaHelp = require("./lib/cmd_help.js")(config);
 commands.triviaCategories = require("./lib/cmd_categories.js")(config);
 commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
 commands.triviaPing = require("./lib/cmd_ping.js")(config, Trivia, Database);
+commands.triviaStop = require("./lib/cmd_stop.js")(config, Trivia, commands, getConfigVal);
 
 // getCategoryFromStr
 // Returns a category based on the string specified. Returns undefined if no category is found.
@@ -911,50 +912,7 @@ function parseCommand(msg, cmd) {
   }
 
   if(cmd.startsWith("STOP")) {
-    var stopChannel = msg.channel;
-
-    // advGameExists (function)
-    var advGameExists = commands.playAdv.advGameExists;
-
-    if(isAdmin) {
-      var channelInput = cmd.replace("STOP ","");
-
-      if(channelInput !== "STOP") {
-        var idInput = channelInput.replace("<#","").replace(">","");
-        stopChannel = msg.guild.channels.find((obj) => (obj.id === idInput));
-
-        if(stopChannel === null) {
-          Trivia.send(msg.channel, msg.author, `Could not find that channel. Check input and try again. (Example: <#${msg.channel.id}>)`);
-          return;
-        }
-        else if(typeof game[stopChannel.id] === "undefined" && !advGameExists(stopChannel.id)) {
-          Trivia.send(msg.channel, msg.author, "There is no game running in that channel.");
-          return;
-        }
-        else {
-          Trivia.send(msg.channel, msg.author, `Stopping game in channel <#${stopChannel.id}>`);
-          // No return here, need to actually stop the game below.
-        }
-      }
-    }
-
-    if(isAdmin && advGameExists(stopChannel.id)) {
-      commands.playAdv.cancelAdvGame(stopChannel.id);
-      Trivia.send(stopChannel, void 0, "Game cancelled.");
-
-      return;
-    }
-
-    if(typeof game[stopChannel.id] !== "undefined" && game[stopChannel.id].inProgress) {
-      if(isAdmin) {
-        doTriviaStop(stopChannel);
-      }
-      else {
-        Trivia.send(msg.channel, void 0, `Trivia games will end automatically if the game is inactive for more than ${getConfigVal("rounds-end-after", msg.channel)-1} round${getConfigVal("rounds-end-after", msg.channel)-1===1?"":"s"}. Only users with the "Manage Server" permission can force-end a game.`);
-      }
-
-      return;
-    }
+    commands.triviaStop(msg, cmd, isAdmin);
   }
 
   if(cmd.startsWith("CONFIG")) {
@@ -1373,7 +1331,7 @@ Trivia.doMaintenanceShutdown = () => {
 
   Object.keys(game).forEach((key) => {
     var channel = game[key].message.channel;
-    doTriviaStop(game[key].message.channel, 1);
+    Trivia.stopGame(game[key].message.channel, 1);
 
     Trivia.send(channel, void 0, {embed: {
       color: Trivia.embedCol,
