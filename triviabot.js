@@ -831,26 +831,6 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
   return game[id];
 };
 
-function doTriviaPing(msg) {
-  var tBefore = Date.now();
-
-  global.client.shard.send({stats: { commandPingCount: 1 }});
-
-  Trivia.send(msg.channel, msg.author, {embed: {
-    color: Trivia.embedCol,
-    title: "Pong!",
-    description: "Measuring how long that took..."
-  }}, (sent) => {
-    var tAfter = Date.now();
-
-    sent.edit({embed: {
-      color: Trivia.embedCol,
-      title: "Pong!",
-      description: `That took ${tAfter-tBefore}ms.\nAverage client heartbeat: ${Math.round(global.client.ping)}ms\n${!config.databaseURL.startsWith("file://")?`Last database response: ${Database.pingLatest}ms\n`:""}Shard ${global.client.shard.id} of ${global.client.shard.count-1}`
-    }});
-  });
-}
-
 function doTriviaStop(channel, auto) {
   if(auto !== 1) {
     global.client.shard.send({stats: { commandStopCount: 1 }});
@@ -897,6 +877,7 @@ var parseAdv = commands.playAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(config);
 commands.triviaCategories = require("./lib/cmd_categories.js")(config);
 commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
+commands.triviaPing = require("./lib/cmd_ping.js")(config, Trivia, Database);
 
 // getCategoryFromStr
 // Returns a category based on the string specified. Returns undefined if no category is found.
@@ -925,7 +906,7 @@ function parseCommand(msg, cmd) {
   }
 
   if(cmd === "PING") {
-    doTriviaPing(msg);
+    commands.triviaPing(msg);
     return;
   }
 
