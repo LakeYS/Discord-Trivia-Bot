@@ -649,7 +649,11 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
   }
 
   // ## Permission Checks ##
+  // Start with the game value if defined, otherwise default to 0.
   var useReactions = 0;
+  if(typeof game[id] !== "undefined") {
+    useReactions = game[id].useReactions || useReactions;
+  }
 
   if(channel.type !== "dm" && typeof modeInput === "undefined") {
     if(getConfigVal("use-reactions", channel)) {
