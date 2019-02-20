@@ -659,6 +659,9 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
     if(getConfigVal("use-reactions", channel)) {
       gameMode = 1;
     }
+    else if(getConfigVal("hangman-mode", channel)) {
+      gameMode = 2;
+    }
   }
 
   if(modeInput === 1) {
