@@ -650,19 +650,19 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
 
   // ## Permission Checks ##
   // Start with the game value if defined, otherwise default to 0.
-  var useReactions = 0;
+  var gameMode = 0;
   if(typeof game[id] !== "undefined") {
-    useReactions = game[id].useReactions || useReactions;
+    gameMode = game[id].gameMode || gameMode;
   }
 
   if(channel.type !== "dm" && typeof modeInput === "undefined") {
     if(getConfigVal("use-reactions", channel)) {
-      useReactions = 1;
+      gameMode = 1;
     }
   }
 
   if(modeInput === 1) {
-    useReactions = 1;
+    gameMode = 1;
   }
 
   var isFirstQuestion = typeof game[id] === "undefined";
@@ -677,7 +677,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
     "guildId": channel.type==="text"?channel.guild.id:void 0,
     "userId": channel.type!=="dm"?void 0:channel.recipient.id,
 
-    useReactions,
+    gameMode,
     "category": typeof game[id]!=="undefined"?game[id].category:category,
     "difficulty": void 0, // Will be defined later
 
@@ -765,7 +765,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
   if(!scheduled) {
     infoString = "\n";
 
-    if(!useReactions) {
+    if(gameMode !== 1) {
       infoString = `${infoString}Type a letter to answer! `;
     }
 
@@ -815,7 +815,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
       game[id].message = msg;
 
       // Add reaction emojis if configured to do so.
-      if(useReactions) {
+      if(gameMode === 1) {
         addAnswerReactions(msg, id);
       }
 
@@ -1083,7 +1083,7 @@ Trivia.parse = (str, msg) => {
 
   // ## Answers ##
   // Check for letters if not using reactions
-  if(gameExists && !game[id].useReactions) {
+  if(gameExists && game[id].gameMode !== 1) {
     var name = msg.member !== null?msg.member.displayName:msg.author.username;
     var parsed = parseTriviaAnswer(str, id, msg.author.id, name, getConfigVal("score-value", msg.channel));
 
@@ -1222,7 +1222,7 @@ Trivia.reactionAdd = function(reaction, user) {
   var str = reaction.emoji.name;
 
   // If a game is in progress, the reaction is on the right message, the game uses reactions, and the reactor isn't the TriviaBot client...
-  if(typeof game[id] !== "undefined" && typeof game[id].message !== "undefined" && reaction.message.id === game[id].message.id && game[id].useReactions && user !== global.client.user) {
+  if(typeof game[id] !== "undefined" && typeof game[id].message !== "undefined" && reaction.message.id === game[id].message.id && game[id].gameMode === 1 && user !== global.client.user) {
     if(str === "🇦") {
       str = "A";
     }
