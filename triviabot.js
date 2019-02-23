@@ -345,6 +345,9 @@ function triviaEndGame(id) {
   delete game[id];
 }
 
+Trivia.applyBonusMultiplier = (id, channel, i) => {
+};
+
 // # Trivia.doAnswerReveal #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
 // TODO: Refactor (clean up and fix gameEndedMsg being relied on as a boolean check)
@@ -429,7 +432,8 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
     }
     else {
       if(Object.keys(game[id].participants).length === 1) {
-        correctUsersStr = `Correct, ${Object.values(game[id].correctUsers)[0]}! ${scoreStr}`; // Only one player overall, simply say "Correct!"
+        // Only one player overall, simply say "Correct!"
+        correctUsersStr = `Correct, ${Object.values(game[id].correctUsers)[0]}! ${scoreStr}`;
       }
       else  {
         // More than 10 correct players, player names are separated by comma to save space.
