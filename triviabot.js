@@ -345,7 +345,26 @@ function triviaEndGame(id) {
   delete game[id];
 }
 
-Trivia.applyBonusMultiplier = (id, channel, i) => {
+Trivia.applyBonusMultiplier = (id, channel) => {
+  var score = getConfigVal("score-value", channel)[game[id].difficulty];
+  var totalParticipantCount = Object.keys(game[id].totalParticipants).length;
+
+  var multiplier;
+
+  var multiplierBase = getConfigVal("score-multiplier-max", channel);
+  if(multiplierBase !== 1) {
+    var incorrectUserCount = Object.keys(game[id].correctUsers).length-game[id].participants.length;
+
+    // Score multiplier equation
+    multiplier = (multiplierBase-(incorrectUserCount/totalParticipantCount));
+
+    // Don't apply if the number is negative or passive.
+    if(multiplier > 1) {
+      var bonus = Math.floor((score*multiplier)-score);
+
+      return bonus;
+    }
+  }
 };
 
 // # Trivia.doAnswerReveal #
@@ -433,6 +452,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
     else {
       if(Object.keys(game[id].participants).length === 1) {
         // Only one player overall, simply say "Correct!"
+        // Bonus multipliers don't apply for single-player games
         correctUsersStr = `Correct, ${Object.values(game[id].correctUsers)[0]}! ${scoreStr}`;
       }
       else  {
@@ -454,9 +474,24 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
             comma = "\n";
           }
 
-          if(!getConfigVal("disable-score-display", channel)) {
-            scoreStr = ` (${game[id].scores[ Object.keys(game[id].correctUsers)[i] ].toLocaleString()} pts)`;
+          var score = game[id].scores[ Object.keys(game[id].correctUsers)[i] ];
+
+          var bonusStr = "";
+          var bonus = Trivia.applyBonusMultiplier(id, channel);
+
+          if(score !== score+bonus && typeof bonus !== "undefined") {
+            bonusStr = ` + ${bonus} bonus`;
           }
+          else {
+            bonus = 0;
+          }
+
+          if(!getConfigVal("disable-score-display", channel)) {
+            scoreStr = ` (${score.toLocaleString()} pts${bonusStr})`;
+          }
+
+          // Apply bonus after setting the string.
+          game[id].scores[ Object.keys(game[id].correctUsers)[i] ] = score+bonus;
 
           correctUsersStr = `${correctUsersStr}${Object.values(game[id].correctUsers)[i]}${scoreStr}${comma}`;
         }
