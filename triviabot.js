@@ -1053,7 +1053,7 @@ function parseCommand(msg, cmd) {
       return;
     }
 
-    commands.triviaPlayAdvanced(void 0, msg.channel.id, msg.channel, msg.author, cmd.replace("PLAY ADVANCED ",""));
+    commands.triviaPlayAdvanced(void 0, msg.channel.id, msg.channel, msg.author, cmd.replace("PLAY ADVANCED",""));
     return;
   }
 
