@@ -423,7 +423,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
 
       // Round end warning after we're halfway through the inactive round cap.
       if(!getConfigVal("round-end-warnings-disabled", channel) && game[id].emptyRoundCount >= Math.ceil(getConfigVal("rounds-end-after", channel)/2)) {
-        var roundEndCount = getConfigVal("rounds-end-after")-game[id].emptyRoundCount;
+        var roundEndCount = getConfigVal("rounds-end-after", channel.id)-game[id].emptyRoundCount;
         gameFooter += `Game will end in ${roundEndCount} round${roundEndCount===1?"":"s"} if nobody participates.`;
       }
     }
@@ -561,7 +561,7 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
   }
 
   // If they already answered and configured to do so, don't accept subsquent answers.
-  if(getConfigVal("accept-first-answer-only") && typeof game[id].participants[userId] !== "undefined") {
+  if(getConfigVal("accept-first-answer-only", id) && typeof game[id].participants[userId] !== "undefined") {
     return;
   }
 
