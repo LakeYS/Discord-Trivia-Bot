@@ -918,7 +918,7 @@ Trivia.stopGame = (channel, auto) => {
 };
 
 Trivia.leaderboard = require("./lib/leaderboard.js")(getConfigVal);
-commands.playAdv = require("./lib/cmd_play_advanced.js")(Trivia);
+commands.playAdv = require("./lib/cmd_play_advanced.js")(Trivia, global.client);
 var parseAdv = commands.playAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(config);
 commands.triviaCategories = require("./lib/cmd_categories.js")(config);
