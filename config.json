@@ -10,7 +10,6 @@
   "disable-admin-commands": false,
   "use-reactions": false,
   "hangman-mode": false,
-  "prefix": "trivia ",
   "hide-difficulty": false,
   "auto-delete-msgs": false,
   "auto-delete-answers": true,
@@ -25,6 +24,7 @@
   "command-whitelist": [],
   "accept-first-answer-only": false,
 
+  "prefix": "trivia ",
   "allow-eval": true,
   "shard-count": "auto",
   "disable-version-check": false,
