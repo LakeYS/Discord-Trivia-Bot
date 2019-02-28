@@ -24,6 +24,7 @@ function getConfigVal(value, channel, guild) {
     }
   }
 
+  // TODO: Cache this so it doesn't need to re-read on each check
   var file = `./Options/config_${channel}.json`;
   if(fs.existsSync(file)) {
     if(ConfigData.localOptions.includes(value)) {
@@ -63,7 +64,12 @@ function setConfigVal(value, newValue, isGlobal) {
   }
 
   var configToWrite = JSON.parse(JSON.stringify(Config));
-  configToWrite[value.toLowerCase()] = newValue;
+  if(newValue === null) {
+    delete configToWrite[value.toLowerCase()];
+  }
+  else {
+    configToWrite[value.toLowerCase()] = newValue;
+  }
 
   fs.writeFile(ConfigData.configFile, JSON.stringify(configToWrite, null, "\t"), "utf8", (err) => {
     if(err) {
@@ -71,7 +77,6 @@ function setConfigVal(value, newValue, isGlobal) {
     }
   });
 }
-
 Trivia.setConfigVal = setConfigVal;
 
 global.client.on("ready", () => {
@@ -1050,10 +1055,17 @@ function parseCommand(msg, cmd) {
           Trivia.send(msg.channel, void 0, `Option ${configKey} is already set to "${echo}" (${typeof configVal}).`);
         }
         else {
+          if(configVal === "null") {
+            configVal = null;
+          }
+
           var result = setConfigVal(configKey, configVal, true);
           if(result === -1) {
             Trivia.send(msg.channel, void 0, `Unable to modify the option "${configKey}".`);
 
+          }
+          else if(configVal === null) {
+            Trivia.send(msg.channel, void 0, `Removed option ${configKey} successfully.`);
           }
           else {
             Trivia.send(msg.channel, void 0, `Set option ${configKey} to "${echo}" (${typeof configVal}) successfully.`);
