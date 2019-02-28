@@ -24,7 +24,25 @@ function getConfigVal(value, channel, guild) {
     }
   }
 
-  channel, guild;
+  var file = `./Options/config_${channel}.json`;
+  if(fs.existsSync(file)) {
+    if(ConfigData.localOptions.includes(value)) {
+      var currentConfig;
+      try {
+        currentConfig = fs.readFileSync(file).toString();
+
+        currentConfig = JSON.parse(currentConfig);
+
+        return currentConfig[value];
+      } catch(error) {
+        // If this fails, fall back to default config and drop an error in the console.
+        console.log(`Failed to retrieve config option "${value}". Default option will be used instead.`);
+        console.log(error.stack);
+      }
+    }
+  }
+
+  guild;
 
   if(value.toLowerCase().includes("token")) {
     throw new Error("Attempting to retrieve a token through getConfigVal. This may indicate a bad module or other security risk.");
@@ -989,7 +1007,7 @@ function parseCommand(msg, cmd) {
         if(msg.channel.type !== "dm") {
           Trivia.send(msg.channel, void 0, "Config has been sent to you via DM.");
         }
-        
+
         Trivia.send(msg.author, void 0, `${configStr}`);
       }
       else {
