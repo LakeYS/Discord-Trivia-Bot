@@ -964,8 +964,8 @@ function parseCommand(msg, cmd) {
       var cmdInput = cmd.replace("CONFIG ","");
 
       if(cmdInput === "LIST") {
-        var configStr = "**Config Options**";
         for(var i in config) {
+        var configStr = "**__Config Options__**";
           if(i.toString().includes("token") || i.toString().includes("comment") || i.includes("configFile")) {
             continue;
           }
@@ -985,7 +985,12 @@ function parseCommand(msg, cmd) {
           }
         }
 
-        Trivia.send(msg.channel, void 0, `${configStr}`);
+
+        if(msg.channel.type !== "dm") {
+          Trivia.send(msg.channel, void 0, "Config has been sent to you via DM.");
+        }
+        
+        Trivia.send(msg.author, void 0, `${configStr}`);
       }
       else {
         var configSplit = cmd.split(" ");
