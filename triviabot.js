@@ -2,8 +2,8 @@ const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
 
-var configData = require("./lib/config.js")(process.argv[2]);
-var config = configData.config;
+var ConfigData = require("./lib/config.js")(process.argv[2]);
+var Config = ConfigData.config;
 
 var Trivia = exports;
 
@@ -30,7 +30,7 @@ function getConfigVal(value, channel, guild) {
     throw new Error("Attempting to retrieve a token through getConfigVal. This may indicate a bad module or other security risk.");
   }
 
-  return config[value];
+  return Config[value];
 }
 Trivia.getConfigVal = getConfigVal;
 
@@ -44,10 +44,10 @@ function setConfigVal(value, newValue, isGlobal) {
     return -1;
   }
 
-  var configToWrite = JSON.parse(JSON.stringify(config));
+  var configToWrite = JSON.parse(JSON.stringify(Config));
   configToWrite[value.toLowerCase()] = newValue;
 
-  fs.writeFile(configData.configFile, JSON.stringify(configToWrite, null, "\t"), "utf8", (err) => {
+  fs.writeFile(ConfigData.configFile, JSON.stringify(configToWrite, null, "\t"), "utf8", (err) => {
     if(err) {
       throw err;
     }
@@ -91,15 +91,15 @@ var Database = "";
 if(getConfigVal("database-merge")) {
   // TODO: Rather than killing the base process, the manager should
   // do this automatically when an initial error is thrown.
-  if(!config.databaseURL.startsWith("file://")) {
+  if(!Config.databaseURL.startsWith("file://")) {
     console.error("A file path starting with 'file://' must be specified when the database merger is enabled.");
     global.client.shard.send({evalStr: "process.exit();"});
   }
 
-  Database = require("./lib/database/mergerdb.js")(config);
+  Database = require("./lib/database/mergerdb.js")(Config);
 }
 else {
-  Database = config.databaseURL.startsWith("file://")?require("./lib/database/filedb.js")(config):require("./lib/database/opentdb.js")(config);
+  Database = Config.databaseURL.startsWith("file://")?require("./lib/database/filedb.js")(Config):require("./lib/database/opentdb.js")(Config);
 }
 
 if(typeof Database === "undefined" || Database.error) {
@@ -202,7 +202,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
     var options = {};
     options.category = category; // Pass through the category, even if it's undefined.
 
-    if(isCustom || config.databaseURL.startsWith("file://")) {
+    if(isCustom || Config.databaseURL.startsWith("file://")) {
       options.amount = 1;
     }
     else {
@@ -230,7 +230,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
         }});
       }
 
-      if(typeof token !== "undefined" && (isCustom || config.databaseURL.startsWith("file://")) ) {
+      if(typeof token !== "undefined" && (isCustom || Config.databaseURL.startsWith("file://")) ) {
         // Set the token and continue.
         options.token = token;
       }
@@ -318,7 +318,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
 }
 
 // Initialize the question cache
-if(!config.databaseURL.startsWith("file://")) {
+if(!Config.databaseURL.startsWith("file://")) {
   getTriviaQuestion(1)
   .catch((err) => {
     console.log(`An error occurred while attempting to initialize the question cache:\n ${err}`);
@@ -918,11 +918,11 @@ Trivia.stopGame = (channel, auto) => {
 Trivia.leaderboard = require("./lib/leaderboard.js")(getConfigVal);
 commands.playAdv = require("./lib/cmd_play_advanced.js")(Trivia, global.client);
 var parseAdv = commands.playAdv.parseAdv;
-commands.triviaHelp = require("./lib/cmd_help.js")(config);
-commands.triviaCategories = require("./lib/cmd_categories.js")(config);
+commands.triviaHelp = require("./lib/cmd_help.js")(Config);
+commands.triviaCategories = require("./lib/cmd_categories.js")(Config);
 commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
-commands.triviaPing = require("./lib/cmd_ping.js")(config, Trivia, Database);
-commands.triviaStop = require("./lib/cmd_stop.js")(config, Trivia, commands, getConfigVal);
+commands.triviaPing = require("./lib/cmd_ping.js")(Config, Trivia, Database);
+commands.triviaStop = require("./lib/cmd_stop.js")(Config, Trivia, commands, getConfigVal);
 
 // getCategoryFromStr
 // Returns a category based on the string specified. Returns undefined if no category is found.
@@ -964,8 +964,8 @@ function parseCommand(msg, cmd) {
       var cmdInput = cmd.replace("CONFIG ","");
 
       if(cmdInput === "LIST") {
-        for(var i in config) {
         var configStr = "**__Config Options__**";
+        for(var i in Config) {
           if(i.toString().includes("token") || i.toString().includes("comment") || i.includes("configFile")) {
             continue;
           }

@@ -51,7 +51,7 @@ for(var i = 0; i <= process.argv.length; i++) {
   }
 }
 
-var config = require("./lib/config.js")(configFile, true).config;
+var Config = require("./lib/config.js")(configFile, true).config;
 
 // # Requirements/Init # //
 const configPrivate = {
@@ -59,9 +59,9 @@ const configPrivate = {
   githubName: "Discord-Trivia-Bot"
 };
 
-require("./lib/init.js")(pjson, config, configPrivate);
+require("./lib/init.js")(pjson, Config, configPrivate);
 
-if(config["allow-eval"] === true) {
+if(Config["allow-eval"] === true) {
   process.stdin.resume();
   process.stdin.setEncoding("utf8");
 }
@@ -70,29 +70,29 @@ const fs = require("fs");
 
 // # Discord # //
 const { ShardingManager } = require("discord.js");
-var token = config.token;
-const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: config["shard-count"], token, shardArgs: [configFile] });
+var token = Config.token;
+const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: Config["shard-count"], token, shardArgs: [configFile] });
 
 // # Custom Package Loading # //
-if(typeof config["additional-packages-root"] !== "undefined") {
-  config["additional-packages-root"].forEach((key) => {
-    require(key)(config, manager);
+if(typeof Config["additional-packages-root"] !== "undefined") {
+  Config["additional-packages-root"].forEach((key) => {
+    require(key)(Config, manager);
   });
 }
 
 // # Stats # //
 var stats;
 try {
-  stats = JSON.parse(fs.readFileSync(config["stat-file"]));
+  stats = JSON.parse(fs.readFileSync(Config["stat-file"]));
 } catch(error) {
   if(typeof error.code !== "undefined" && error.code === "ENOENT") {
     console.warn("No stats file found; one will be created.");
   }
   else {
     // If an error occurs, don't overwrite the old stats.
-    config["stat-file"] = config["stat-file"] + ".1";
+    Config["stat-file"] = Config["stat-file"] + ".1";
     stats = {};
-    console.log(`Failed to load stats file, stats will be saved to ${config["stat-file"]}. Received error:\n${error}`);
+    console.log(`Failed to load stats file, stats will be saved to ${Config["stat-file"]}. Received error:\n${error}`);
   }
 }
 
@@ -206,7 +206,7 @@ manager.on("message", (shard, input) => {
   else if(typeof input.stats !== "undefined") {
     // Update stats
     // Example: client.shard.send({stats: { test: 123 }});
-    if(config["fallback-mode"] !== true) {
+    if(Config["fallback-mode"] !== true) {
       Object.keys(input.stats).forEach((stat) => {
         stats = stats || {};
 
@@ -220,7 +220,7 @@ manager.on("message", (shard, input) => {
         }
       });
 
-      fs.writeFile(config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
+      fs.writeFile(Config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
         if(err) {
           console.error(`Failed to save stats.json with the following err:\n${err}\nMake sure stats.json is not read-only or missing.`);
         }
@@ -233,7 +233,7 @@ manager.on("message", (shard, input) => {
 const evalCmds = require("./lib/evalCmds.js")(manager);
 manager.eCmds = evalCmds;
 
-if(config["allow-eval"] === true) {
+if(Config["allow-eval"] === true) {
   process.stdin.on("data", (text) => {
     var cmd = text.replace("\r","").replace("\n","");
 

@@ -3,12 +3,12 @@ global.client = new Discord.Client();
 global.Trivia = require("./triviabot.js");
 const snekfetch = require("snekfetch");
 
-var config = require("./lib/config.js")(process.argv[2]).config;
+var Config = require("./lib/config.js")(process.argv[2]).config;
 
-if(config["fallback-mode"] && config["debug-mode"]) {
-  require("./lib/failover_client.js")(config);
+if(Config["fallback-mode"] && Config["debug-mode"]) {
+  require("./lib/failover_client.js")(Config);
 }
-else if(config["debug-mode"]) {
+else if(Config["debug-mode"]) {
   require("./lib/failover_server.js");
 }
 
@@ -48,11 +48,11 @@ function postBotStats() {
       };
 
       for(var site in listings) {
-        if(config[`${site}-token`] && config[`${site}-token`] !== "optionaltokenhere") {
+        if(Config[`${site}-token`] && Config[`${site}-token`] !== "optionaltokenhere") {
           var data = listings[site].data || { server_count: guildCountVal };
 
           snekfetch.post(listings[site].url)
-          .set("Authorization", config[`${site}-token`])
+          .set("Authorization", Config[`${site}-token`])
           .send(data)
           .catch((err) => {
             console.log(`Error occurred while posting to ${err.request.connection.servername} on shard ${global.client.shard.id}:\n${err}`);
@@ -73,8 +73,8 @@ function postBotStats() {
 }
 
 // # Custom Package Loading # //
-if(typeof config["additional-packages"] !== "undefined") {
-  config["additional-packages"].forEach((key) => {
+if(typeof Config["additional-packages"] !== "undefined") {
+  Config["additional-packages"].forEach((key) => {
     require(key)(global.Trivia);
   });
 }
@@ -82,14 +82,14 @@ if(typeof config["additional-packages"] !== "undefined") {
 // # Beta/Private Mode # //
 // NOTE: Not compatible with multiple shards if using external authentication.
 async function guildBetaCheck(guild, skipRefresh) {
-  if(typeof config.betaAuthorizedRefresh === "function") {
+  if(typeof Config.betaAuthorizedRefresh === "function") {
     // If initializing, we only need to refresh once.
     if(!skipRefresh) {
-      await config.betaAuthorizedRefresh();
+      await Config.betaAuthorizedRefresh();
     }
-    config.guildBetaCheck(guild);
+    Config.guildBetaCheck(guild);
   }
-  else if(config["beta-require-external-function"]) {
+  else if(Config["beta-require-external-function"]) {
     console.error("ERROR: Unable to refresh beta authorized list. Skipping auth process.");
 
     // Auto-reject guilds that were just added in the last 60s.
@@ -101,7 +101,7 @@ async function guildBetaCheck(guild, skipRefresh) {
   }
 }
 
-if(config["beta-mode"]) {
+if(Config["beta-mode"]) {
   global.client.on("guildCreate", (guild) => {
     setTimeout(() => {
       guildBetaCheck(guild);
@@ -122,9 +122,9 @@ global.client.on("ready", () => {
     global.client.user.setAvatar("./profile.png");
   }
 
-  global.client.user.setPresence({ game: { name: "Trivia! Type '" + config.prefix + "help' to get started.", type: 0 } });
+  global.client.user.setPresence({ game: { name: "Trivia! Type '" + Config.prefix + "help' to get started.", type: 0 } });
 
-  if(config["beta-mode"]) {
+  if(Config["beta-mode"]) {
     var skip = false;
     global.client.guilds.forEach((guild) => {
       guildBetaCheck(guild, skip);
