@@ -3,7 +3,7 @@ global.client = new Discord.Client();
 global.Trivia = require("./triviabot.js");
 const snekfetch = require("snekfetch");
 
-var config = require("./lib/config.js")(process.argv[2]);
+var config = require("./lib/config.js")(process.argv[2]).config;
 
 if(config["fallback-mode"] && config["debug-mode"]) {
   require("./lib/failover_client.js")(config);

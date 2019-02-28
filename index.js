@@ -51,7 +51,7 @@ for(var i = 0; i <= process.argv.length; i++) {
   }
 }
 
-var config = require("./lib/config.js")(configFile, true);
+var config = require("./lib/config.js")(configFile, true).config;
 
 // # Requirements/Init # //
 const configPrivate = {

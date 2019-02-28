@@ -2,7 +2,8 @@ const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
 
-var config = require("./lib/config.js")(process.argv[2]);
+var configData = require("./lib/config.js")(process.argv[2]);
+var config = configData.config;
 
 var Trivia = exports;
 
@@ -46,10 +47,7 @@ function setConfigVal(value, newValue, isGlobal) {
   var configToWrite = JSON.parse(JSON.stringify(config));
   configToWrite[value.toLowerCase()] = newValue;
 
-  // Make a copy of the config data and strip the "configFile" parameter.
-  delete configToWrite.configFile;
-
-  fs.writeFile(config.configFile, JSON.stringify(configToWrite, null, "\t"), "utf8", (err) => {
+  fs.writeFile(configData.configFile, JSON.stringify(configToWrite, null, "\t"), "utf8", (err) => {
     if(err) {
       throw err;
     }
