@@ -15,11 +15,11 @@ var Trivia = exports;
 function getConfigVal(value, channel, guild) {
   if(typeof channel !== "undefined") {
     // discord.js class auto-detection
-    if(channel.type === "TextChannel") {
+    if(channel.type === "text") {
       guild = channel.guild.id;
       channel = channel.id;
     }
-    else if(channel.type === "DMChannel") {
+    else if(channel.type === "dm") {
       channel = channel.id;
     }
   }
