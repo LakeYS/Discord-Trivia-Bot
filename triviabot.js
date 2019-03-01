@@ -53,8 +53,9 @@ function getConfigVal(value, channel, guild) {
 }
 Trivia.getConfigVal = getConfigVal;
 
-function setConfigVal(value, newValue, isGlobal) {
-  if(isGlobal !== true || !getConfigVal("config-commands-enabled")) {
+function setConfigVal(value, newValue, skipOverride, localID) {
+  var isLocal = typeof localID !== "undefined";
+  if(skipOverride !== true || !getConfigVal("config-commands-enabled")) {
     // TEMPORARY: This is an extra failsafe to make sure this only runs when intended.
     return;
   }
@@ -63,7 +64,22 @@ function setConfigVal(value, newValue, isGlobal) {
     return -1;
   }
 
+  var file = ConfigData.configFile;
   var configToWrite = JSON.parse(JSON.stringify(Config));
+
+  if(isLocal) {
+    if(isLocal) {
+      file = `./Options/config_${localID}.json`;
+    }
+
+    if(fs.existsSync(file)) {
+      configToWrite = fs.readFileSync(file).toString();
+
+      configToWrite = JSON.parse(configToWrite);
+    }
+    // If the file doesn't exist, use the global config.
+  }
+
   if(newValue === null) {
     delete configToWrite[value.toLowerCase()];
   }
@@ -71,7 +87,18 @@ function setConfigVal(value, newValue, isGlobal) {
     configToWrite[value.toLowerCase()] = newValue;
   }
 
-  fs.writeFile(ConfigData.configFile, JSON.stringify(configToWrite, null, "\t"), "utf8", (err) => {
+  if(isLocal) {
+    file = `./Options/config_${localID}.json`;
+
+    // Filter out the options that are not global values.
+    for(var key in configToWrite) {
+      if(!ConfigData.localOptions.includes(key)) {
+        delete configToWrite[key];
+      }
+    }
+  }
+
+  fs.writeFile(file, JSON.stringify(configToWrite, null, "\t"), "utf8", (err) => {
     if(err) {
       throw err;
     }
@@ -992,7 +1019,7 @@ function parseCommand(msg, cmd) {
       }
 
       if(cmdInput === "LIST") {
-        var configStr = "**__Config Options__**\nThese are the config options that are currently loaded. Type 'trivia reset' to apply changes.";
+        var configStr = "**__Config Options__**\nThese are the config options that are currently loaded. Some options require a restart to take effect. Type 'trivia reset' to apply changes.";
         for(var i in Config) {
           if(i.toString().includes("token") || i.toString().includes("comment") || i.includes("configFile")) {
             continue;
@@ -1024,6 +1051,17 @@ function parseCommand(msg, cmd) {
         var configSplit = cmd.split(" ");
         var configKey = configSplit[1];
         var configVal = cmd.replace(`CONFIG ${configKey} `, "");
+
+        var localID;
+        if(configVal.endsWith(" LOCAL")) {
+          if(!ConfigData.localOptions.includes(configKey.toLowerCase())) {
+            Trivia.send(msg.channel, void 0, "The option specified either does not exist or can only be changed globally.");
+            return;
+          }
+
+          configVal = configVal.substring(0, configVal.lastIndexOf(" LOCAL"));
+          localID = id;
+        }
 
         // echo is the value that will be sent back in the confirmation message
         var echo = configVal.toLowerCase();
@@ -1069,7 +1107,7 @@ function parseCommand(msg, cmd) {
             configVal = null;
           }
 
-          var result = setConfigVal(configKey, configVal, true);
+          var result = setConfigVal(configKey, configVal, true, localID);
           if(result === -1) {
             Trivia.send(msg.channel, void 0, `Unable to modify the option "${configKey}".`);
 
