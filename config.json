@@ -7,7 +7,6 @@
   "discordbots.org-token": "optionaltokenhere",
   "discordbot.world-token": "optionaltokenhere",
 
-  "disable-admin-commands": false,
   "use-reactions": false,
   "hangman-mode": false,
   "hide-difficulty": false,
@@ -27,6 +26,7 @@
   "prefix": "trivia ",
   "allow-eval": true,
   "shard-count": "auto",
+  "disable-admin-commands": false,
   "disable-version-check": false,
   "allow-bots": false,
   "databaseURL": "https://opentdb.com",
