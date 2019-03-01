@@ -1483,6 +1483,12 @@ process.on("exit", (code) => {
   }
 });
 
+process.on("SIGTERM", function() {
+  console.log("Exit with termination signal, exporting game data...");
+  Trivia.exportGame();
+  process.exit();
+});
+
 // ## Import on Launch ## //
 global.client.on("ready", () => {
   var file = `./game.${global.client.shard.id}.json.bak`;
