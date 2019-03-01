@@ -987,7 +987,7 @@ function parseCommand(msg, cmd) {
       var cmdInput = cmd.replace("CONFIG ","");
 
       if(cmdInput === "LIST") {
-        var configStr = "**__Config Options__**";
+        var configStr = "**__Config Options__**\nThese are the config options that are currently loaded. Type 'trivia reset' to apply changes.";
         for(var i in Config) {
           if(i.toString().includes("token") || i.toString().includes("comment") || i.includes("configFile")) {
             continue;
