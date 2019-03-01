@@ -986,6 +986,11 @@ function parseCommand(msg, cmd) {
     if(isAdmin && getConfigVal("config-commands-enabled")) {
       var cmdInput = cmd.replace("CONFIG ","");
 
+      if(cmdInput === "CONFIG") {
+        Trivia.send(msg.channel, void 0, "Must specify an option to configure. `trivia config <option> <value>`");
+        return;
+      }
+
       if(cmdInput === "LIST") {
         var configStr = "**__Config Options__**\nThese are the config options that are currently loaded. Type 'trivia reset' to apply changes.";
         for(var i in Config) {
@@ -1022,6 +1027,11 @@ function parseCommand(msg, cmd) {
 
         // echo is the value that will be sent back in the confirmation message
         var echo = configVal.toLowerCase();
+        if(configVal === `CONFIG ${configKey}`) {
+          Trivia.send(msg.channel, void 0, "Must specify a value. `trivia config <option> <value>`");
+          return;
+        }
+
         if(configVal === "TRUE") {
           configVal = true;
         }
