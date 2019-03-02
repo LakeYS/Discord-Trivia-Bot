@@ -748,6 +748,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
     }
     else if(getConfigVal("hangman-mode", channel)) {
       gameMode = 2;
+      typeInput = "multiple"; // Override to get rid of T/F questions
     }
   }
 
