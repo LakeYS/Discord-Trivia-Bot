@@ -754,6 +754,9 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
   if(modeInput === 1) {
     gameMode = 1;
   }
+  else if(modeInput === 2) {
+    gameMode = 2;
+  }
 
   var isFirstQuestion = typeof game[id] === "undefined";
 
