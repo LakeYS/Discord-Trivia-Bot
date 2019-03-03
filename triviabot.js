@@ -841,19 +841,43 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
   }
   game[id].color = color;
 
-  // Sort the answers in reverse alphabetical order.
-  answers.sort();
-  answers.reverse();
-
   var answerString = "";
-  for(var i = 0; i <= answers.length-1; i++) {
-    answers[i] = answers[i].toString();
+  if(gameMode === 2) {
+    var answer = entities.decode(correct_answer);
+    var obscuredAnswer = "";
 
-    if(answers[i] === correct_answer) {
-      game[id].correctId = i;
+    console.log(answer);
+    for(var charI = 0; charI <= answer.length-1; charI++) {
+      var char = answer.charAt(charI);
+
+      if(char === " ") {
+        obscuredAnswer = `${obscuredAnswer} `;
+      }
+      else if(char === "," || char === "\"" || char === "'" || char === ":") {
+        obscuredAnswer = `${obscuredAnswer}${char}`;
+      }
+      else {
+        obscuredAnswer = `${obscuredAnswer}\\_`;
+      }
     }
 
-    answerString = `${answerString}**${letters[i]}:** ${entities.decode(answers[i])}${getConfigVal("debug-mode")&&i===game[id].correctId?" *(Answer)*":""}\n`;
+    answerString = obscuredAnswer;
+    game[id].correctId = 0;
+  }
+  else {
+    // Sort the answers in reverse alphabetical order.
+    answers.sort();
+    answers.reverse();
+
+    for(var i = 0; i <= answers.length-1; i++) {
+      answers[i] = answers[i].toString();
+
+      if(answers[i] === correct_answer) {
+        game[id].correctId = i;
+      }
+
+      answerString = `${answerString}**${letters[i]}:** ${entities.decode(answers[i])}${getConfigVal("debug-mode")&&i===game[id].correctId?" *(Answer)*":""}\n`;
+    }
   }
 
   var categoryString = entities.decode(question.category);
