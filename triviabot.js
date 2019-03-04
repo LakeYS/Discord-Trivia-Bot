@@ -600,7 +600,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
 
 // # parseAnswerHangman # //
 // This works by parsing the string, and if it matches the answer, passing it
-// to parseTriviaAnswer as the correct letter.
+// to parseAnswer as the correct letter.
 Trivia.parseAnswerHangman = function(str, id, userId, username, scoreValue) {
   var input = str.toLowerCase();
   var answer = entities.decode(game[id].answer).toLowerCase().replace(/\W/g, "");
@@ -612,22 +612,22 @@ Trivia.parseAnswerHangman = function(str, id, userId, username, scoreValue) {
   }
 
   if(input.replace(/\W/g, "") === answer) {
-    return parseTriviaAnswer(Letters[game[id].correctId], id, userId, username, scoreValue);
+    return Trivia.parseAnswer(Letters[game[id].correctId], id, userId, username, scoreValue);
   }
   else {
     // The string doesn't match, so we'll pass the first incorrect answer.
     var incorrect = Letters.slice(0); // Copy to avoid modifying it
     incorrect.splice(game[id].correctId, 1);
-    return parseTriviaAnswer(incorrect[0], id, userId, username, scoreValue);
+    return Trivia.parseAnswer(incorrect[0], id, userId, username, scoreValue);
   }
 };
 
-// # parseTriviaAnswer # //
+// # Trivia.parseAnswer # //
 // Parses a user's letter answer and scores it accordingly.
 // TODO: Refactor this to decouple participant counting from answer processing.
 // Str: Letter answer -- id: channel identifier
 // scoreValue: Score value from the config file.
-function parseTriviaAnswer(str, id, userId, username, scoreValue) {
+Trivia.parseAnswer = function (str, id, userId, username, scoreValue) {
   if(!game[id].inRound) {
     // Return -1 since there is no game.
     return -1;
@@ -696,7 +696,7 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
     // Return -1 to indicate that the input is NOT a valid answer
     return -1;
   }
-}
+};
 
 async function addAnswerReactions(msg, id) {
   try {
@@ -1276,7 +1276,7 @@ Trivia.parse = (str, msg) => {
       parse = Trivia.parseAnswerHangman;
     }
     else {
-      parse = parseTriviaAnswer;
+      parse = Trivia.parseAnswer;
     }
     var parsed = parse(str, id, msg.author.id, name, getConfigVal("score-value", msg.channel));
 
@@ -1434,7 +1434,7 @@ Trivia.reactionAdd = function(reaction, user) {
 
     // Get the user's nickname.
     var username = reaction.message.guild.members.get(user.id).displayName;
-    parseTriviaAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
+    Trivia.parseAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
   }
 };
 
