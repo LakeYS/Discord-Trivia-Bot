@@ -598,8 +598,33 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
   }, true);
 };
 
+// # parseAnswerHangman # //
+// This works by parsing the string, and if it matches the answer, passing it
+// to parseTriviaAnswer as the correct letter.
+Trivia.parseAnswerHangman = function(str, id, userId, username, scoreValue) {
+  var input = str.toLowerCase();
+  var answer = entities.decode(game[id].answer).toLowerCase().replace(/\W/g, "");
+
+  // Return -1 if the input is a command.
+  // If the input is much longer than the actual answer, assume that it is not an attempt to answer.
+  if(input.startsWith(getConfigVal("prefix", id)) || input.length > answer.length*2) {
+    return -1;
+  }
+
+  if(input.replace(/\W/g, "") === answer) {
+    return parseTriviaAnswer(letters[game[id].correctId], id, userId, username, scoreValue);
+  }
+  else {
+    // The string doesn't match, so we'll pass the first incorrect answer.
+    var incorrect = letters.slice(0); // Copy to avoid modifying it
+    incorrect.splice(game[id].correctId, 1);
+    return parseTriviaAnswer(incorrect[0], id, userId, username, scoreValue);
+  }
+};
+
 // # parseTriviaAnswer # //
 // Parses a user's letter answer and scores it accordingly.
+// TODO: Refactor this to decouple participant counting from answer processing.
 // Str: Letter answer -- id: channel identifier
 // scoreValue: Score value from the config file.
 function parseTriviaAnswer(str, id, userId, username, scoreValue) {
@@ -1242,7 +1267,15 @@ Trivia.parse = (str, msg) => {
   // Check for letters if not using reactions
   if(gameExists && game[id].gameMode !== 1) {
     var name = msg.member !== null?msg.member.displayName:msg.author.username;
-    var parsed = parseTriviaAnswer(str, id, msg.author.id, name, getConfigVal("score-value", msg.channel));
+    var parse;
+
+    if(game[id].gameMode === 2) {
+      parse = Trivia.parseAnswerHangman;
+    }
+    else {
+      parse = parseTriviaAnswer;
+    }
+    var parsed = parse(str, id, msg.author.id, name, getConfigVal("score-value", msg.channel));
 
     if(parsed !== -1) {
       if(getConfigVal("auto-delete-answers", msg.channel)) {
