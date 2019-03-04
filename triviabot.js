@@ -846,6 +846,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
     var answer = entities.decode(correct_answer);
     var obscuredAnswer = "";
 
+    console.log(answer);
     for(var charI = 0; charI <= answer.length-1; charI++) {
       var char = answer.charAt(charI);
 
@@ -1044,12 +1045,12 @@ function parseCommand(msg, cmd) {
       var cmdInput = cmd.replace("CONFIG ","");
 
       if(cmdInput === "CONFIG") {
-        Trivia.send(msg.channel, void 0, "Must specify an option to configure. `trivia config <option> <value>`");
+        Trivia.send(msg.channel, void 0, `Must specify an option to configure. \`${getConfigVal("prefix")}config <option> <value>\``);
         return;
       }
 
       if(cmdInput === "LIST") {
-        var configStr = "**__Config Options__**\nThese are the config options that are currently loaded. Some options require a restart to take effect. Type 'trivia reset' to apply changes.";
+        var configStr = `**__Config Options__**\nThese are the config options that are currently loaded. Some options require a restart to take effect. Type '${getConfigVal("prefix")}reset' to apply changes.`;
         for(var i in Config) {
           if(i.toString().includes("token") || i.toString().includes("comment") || i.includes("configFile")) {
             continue;
@@ -1096,7 +1097,7 @@ function parseCommand(msg, cmd) {
         // echo is the value that will be sent back in the confirmation message
         var echo = configVal.toLowerCase();
         if(configVal === `CONFIG ${configKey}`) {
-          Trivia.send(msg.channel, void 0, "Must specify a value. `trivia config <option> <value>`");
+          Trivia.send(msg.channel, void 0, `Must specify a value. \`${getConfigVal("prefix")}config <option> <value>\``);
           return;
         }
 
@@ -1180,7 +1181,7 @@ function parseCommand(msg, cmd) {
         if(typeof category === "undefined") {
           Trivia.send(msg.channel, msg.author, {embed: {
             color: 14164000,
-            description: "Unable to find the category you specified.\nType `trivia play` to play in random categories, or type `trivia categories` to see a list of categories."
+            description: `Unable to find the category you specified.\nType \`${getConfigVal("prefix")}play\` to play in random categories, or type \`${getConfigVal("prefix")}categories\` to see a list of categories.`
           }});
           return;
         }
