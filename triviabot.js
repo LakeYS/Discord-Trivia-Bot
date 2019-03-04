@@ -133,7 +133,7 @@ global.client.on("ready", () => {
 });
 
 // TODO: Use String.fromCharCode(65+letter) instead of this array?
-const letters = ["A", "B", "C", "D"];
+const Letters = ["A", "B", "C", "D"];
 // Convert the hex code to decimal so Discord can read it.
 Trivia.embedCol = Buffer.from(getConfigVal("embed-color").padStart(8, "0"), "hex").readInt32BE(0);
 
@@ -575,7 +575,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
 
   Trivia.send(channel, void 0, {embed: {
     color: game[id].color,
-    description: `${game[id].gameMode!==2?`**${letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}`
+    description: `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}`
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
       // NOTE: Participants check is repeated below in Trivia.doGame
@@ -612,11 +612,11 @@ Trivia.parseAnswerHangman = function(str, id, userId, username, scoreValue) {
   }
 
   if(input.replace(/\W/g, "") === answer) {
-    return parseTriviaAnswer(letters[game[id].correctId], id, userId, username, scoreValue);
+    return parseTriviaAnswer(Letters[game[id].correctId], id, userId, username, scoreValue);
   }
   else {
     // The string doesn't match, so we'll pass the first incorrect answer.
-    var incorrect = letters.slice(0); // Copy to avoid modifying it
+    var incorrect = Letters.slice(0); // Copy to avoid modifying it
     incorrect.splice(game[id].correctId, 1);
     return parseTriviaAnswer(incorrect[0], id, userId, username, scoreValue);
   }
@@ -649,7 +649,7 @@ function parseTriviaAnswer(str, id, userId, username, scoreValue) {
     // If their score doesn't exist, intialize it.
     game[id].scores[userId] = game[id].scores[userId] || 0;
 
-    if(str === letters[game[id].correctId]) {
+    if(str === Letters[game[id].correctId]) {
       if(typeof game[id].correctUsers[userId] === "undefined") {
         game[id].correctUsers[userId] = username;
 
@@ -904,7 +904,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
         game[id].correctId = i;
       }
 
-      answerString = `${answerString}**${letters[i]}:** ${entities.decode(answers[i])}${getConfigVal("debug-mode")&&i===game[id].correctId?" *(Answer)*":""}\n`;
+      answerString = `${answerString}**${Letters[i]}:** ${entities.decode(answers[i])}${getConfigVal("debug-mode")&&i===game[id].correctId?" *(Answer)*":""}\n`;
     }
   }
 
