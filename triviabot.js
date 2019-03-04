@@ -878,7 +878,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
       if(char === " ") {
         obscuredAnswer = `${obscuredAnswer} `;
       }
-      else if(char === "," || char === "\"" || char === "'" || char === ":") {
+      else if(char === "," || char === "\"" || char === "'" || char === ":" || char === "(" || char === ")") {
         obscuredAnswer = `${obscuredAnswer}${char}`;
       }
       else {
