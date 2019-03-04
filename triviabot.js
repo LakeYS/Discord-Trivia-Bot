@@ -575,7 +575,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
 
   Trivia.send(channel, void 0, {embed: {
     color: game[id].color,
-    description: `**${letters[game[id].correctId]}:** ${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}`
+    description: `${game[id].gameMode!==2?`**${letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}`
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
       // NOTE: Participants check is repeated below in Trivia.doGame
@@ -846,7 +846,6 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
     var answer = entities.decode(correct_answer);
     var obscuredAnswer = "";
 
-    console.log(answer);
     for(var charI = 0; charI <= answer.length-1; charI++) {
       var char = answer.charAt(charI);
 
