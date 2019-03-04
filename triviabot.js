@@ -871,7 +871,6 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
     var answer = entities.decode(correct_answer);
     var obscuredAnswer = "";
 
-    console.log(answer);
     for(var charI = 0; charI <= answer.length-1; charI++) {
       var char = answer.charAt(charI);
 
@@ -887,6 +886,10 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
     }
 
     answerString = obscuredAnswer;
+    if(getConfigVal("debug-mode")) {
+      answerString = `${answerString} *(Answer: ${entities.decode(correct_answer)})*`;
+    }
+
     game[id].correctId = 0;
   }
   else {
