@@ -886,7 +886,10 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
   if(!scheduled) {
     infoString = "\n";
 
-    if(gameMode !== 1) {
+    if(gameMode === 2) {
+      infoString = `${infoString}Type your answer! `;
+    }
+    else if(gameMode !== 1) {
       infoString = `${infoString}Type a letter to answer! `;
     }
 
