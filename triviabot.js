@@ -721,15 +721,27 @@ async function addAnswerReactions(msg, id) {
   }
 }
 
-function createObscuredAnswer(answer) {
+function createObscuredAnswer(answer, hint) {
   var obscuredAnswer = "";
+  var skipChars = [];
+
+  if(hint) {
+    // Randomly reveal up to 1/3 of the answer.
+    var charsToReveal = answer.length/3;
+    for(var i = 0; i <= charsToReveal; i++) {
+      var skipChar = Math.floor(Math.random() * answer.length);
+      skipChars.push(skipChar);
+    }
+  }
+
   for(var charI = 0; charI <= answer.length-1; charI++) {
     var char = answer.charAt(charI);
 
     if(char === " ") {
       obscuredAnswer = `${obscuredAnswer} `;
     }
-    else if(char === "," || char === "\"" || char === "'" || char === ":" || char === "(" || char === ")") {
+    else if(skipChars.includes(charI) || char === "," || char === "\"" || char === "'" || char === ":" || char === "(" || char === ")") {
+      // If this character is set to be revealed or contains an exception, show it.
       obscuredAnswer = `${obscuredAnswer}${char}`;
     }
     else {
@@ -742,6 +754,30 @@ function createObscuredAnswer(answer) {
 
   return obscuredAnswer;
 }
+
+function doHangmanHint(channel, answer) {
+  var id = channel.id;
+
+  // Verify that the game is still running and that it's the same game.
+  if(typeof game[id] === "undefined" || !game[id].inRound || answer !== game[id].answer) {
+    return;
+  }
+
+  answer = entities.decode(answer);
+
+  // If the total string is too small, skip showing a hint.
+  if(answer.length < 4) {
+    return;
+  }
+
+  var hintStr = createObscuredAnswer(answer, true);
+
+  Trivia.send(channel, void 0, {embed: {
+    color: Trivia.embedCol,
+    description: `Hint: ${hintStr}`
+  }});
+}
+
 // # Trivia.doGame #
 // TODO: Refactor and convert to an async function
 // - id: The unique identifier for the channel that the game is in.
@@ -983,6 +1019,17 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
         game[id].difficulty = question.difficulty;
         game[id].answer = question.correct_answer;
         game[id].date = new Date();
+
+        if(gameMode === 2) {
+          // Show a hint halfway through.
+          // No need for special handling here because it will auto-cancel if
+          // the game ends before running.
+          var answer = game[id].answer; // Pre-define to avoid errors.
+          setTimeout(() => {
+            doHangmanHint(channel, answer);
+          },
+          getConfigVal("round-length", channel)/2);
+        }
 
         // Reveal the answer after the time is up
         game[id].timeout = setTimeout(() => {
