@@ -26,6 +26,7 @@
             "always"
         ],
         "no-console": "off",
+        "no-irregular-whitespace": "off",
         "block-scoped-var": [
             "warn"
         ]

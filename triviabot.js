@@ -881,7 +881,10 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
         obscuredAnswer = `${obscuredAnswer}${char}`;
       }
       else {
-        obscuredAnswer = `${obscuredAnswer}\\_`;
+        // A thin space character (U+2009) is used so the underscores have
+        // a small distinguishing space between them.
+        // ESLint really doesn't like this, but it works great!
+        obscuredAnswer = `${obscuredAnswer}\\_ `;
       }
     }
 
