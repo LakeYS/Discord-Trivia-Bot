@@ -1177,14 +1177,19 @@ function parseCommand(msg, cmd) {
         var configVal = cmd.replace(`CONFIG ${configKey} `, "");
 
         var localID;
-        if(configVal.endsWith(" LOCAL")) {
+        if(configVal.endsWith(">")) {
+          var configChannelStr = configVal.slice(configVal.indexOf(" <"), configVal.length);
+          localID = configChannelStr.replace(" <#","").replace(">","");
           if(!ConfigData.localOptions.includes(configKey.toLowerCase())) {
             Trivia.send(msg.channel, void 0, "The option specified either does not exist or can only be changed globally.");
             return;
           }
 
-          configVal = configVal.substring(0, configVal.lastIndexOf(" LOCAL"));
-          localID = id;
+          if(isNaN(localID)) {
+            return;
+          }
+
+          configVal = configVal.substring(0, configVal.indexOf(" <"));
         }
 
         // echo is the value that will be sent back in the confirmation message
@@ -1240,7 +1245,7 @@ function parseCommand(msg, cmd) {
             Trivia.send(msg.channel, void 0, `Removed option ${configKey} successfully.`);
           }
           else {
-            Trivia.send(msg.channel, void 0, `Set option ${configKey} to "${echo}" (${typeof configVal}) successfully.`);
+            Trivia.send(msg.channel, void 0, `Set option ${configKey} to "${echo}" (${typeof configVal}) ${typeof localID !== "undefined"?`in channel <#${localID}>`:""} successfully.`);
           }
         }
       }
