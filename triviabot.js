@@ -954,6 +954,13 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
 
   var categoryString = entities.decode(question.category);
 
+  var timer = getConfigVal("round-length", channel);
+
+  if(gameMode === 2) {
+    // Hangman games get an extra ten seconds for balance.
+    timer = timer+10000;
+  }
+
   var infoString = "";
   if(!scheduled) {
     infoString = "\n";
@@ -965,7 +972,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
       infoString = `${infoString}Type a letter to answer! `;
     }
 
-    infoString = `${infoString}The answer will be revealed in ${getConfigVal("round-length", channel)/1000} seconds.`;
+    infoString = `${infoString}The answer will be revealed in ${timer/1000} seconds.`;
 
     // Add an extra initial message to let users know the game will insta-end with no answers.
     if(!getConfigVal("round-end-warnings-disabled", channel) && getConfigVal("rounds-end-after", channel) === 1) {
