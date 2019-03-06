@@ -4,6 +4,7 @@ const JSON = require("circular-json");
 
 var ConfigData = require("./lib/config.js")(process.argv[2]);
 var Config = ConfigData.config;
+var ConfigLocal = {};
 
 var Trivia = exports;
 
@@ -24,21 +25,38 @@ function getConfigVal(value, channel, guild) {
     }
   }
 
-  // TODO: Cache this so it doesn't need to re-read on each check
+  // "channel" refers to the channel's ID.
+
   var file = `./Options/config_${channel}.json`;
-  if(fs.existsSync(file)) {
-    if(ConfigData.localOptions.includes(value)) {
-      var currentConfig;
-      try {
-        currentConfig = fs.readFileSync(file).toString();
+  if(typeof channel !== "undefined" && fs.existsSync(file)) {
+    if(typeof ConfigLocal[channel] === "undefined") {
+      // If the data isn't in the cache, load it from file.
+      if(ConfigData.localOptions.includes(value)) {
+        var currentConfig;
+        try {
+          currentConfig = fs.readFileSync(file).toString();
 
-        currentConfig = JSON.parse(currentConfig);
+          currentConfig = JSON.parse(currentConfig);
 
-        return currentConfig[value];
-      } catch(error) {
-        // If this fails, fall back to default config and drop an error in the console.
-        console.log(`Failed to retrieve config option "${value}". Default option will be used instead.`);
-        console.log(error.stack);
+          // Cache the data so it doesn't need to be re-read.
+          // This also eliminates issues if the file is changed without restarting.
+          ConfigLocal[channel] = currentConfig;
+
+          // If the value doesn't exist, will attempt to fall back to global
+          if(typeof currentConfig[value] !== "undefined") {
+            return currentConfig[value];
+          }
+        } catch(error) {
+          // If this fails, fall back to default config and drop an error in the console.
+          console.log(`Failed to retrieve config option "${value}". Default option will be used instead.`);
+          console.log(error.stack);
+        }
+      }
+    }
+    else {
+      // This data is already in the cache, return it from there.
+      if(typeof ConfigLocal[channel][value] !== "undefined") {
+        return ConfigLocal[channel][value];
       }
     }
   }
@@ -1150,7 +1168,7 @@ function parseCommand(msg, cmd) {
           }
           else {
             // Use getConfigVal for security
-            var value = getConfigVal(i, msg.channel);
+            var value = getConfigVal(i);
 
             var outputStr = value;
             if(typeof outputStr === "object") {
