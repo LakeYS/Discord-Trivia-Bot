@@ -721,6 +721,27 @@ async function addAnswerReactions(msg, id) {
   }
 }
 
+function createObscuredAnswer(answer) {
+  var obscuredAnswer = "";
+  for(var charI = 0; charI <= answer.length-1; charI++) {
+    var char = answer.charAt(charI);
+
+    if(char === " ") {
+      obscuredAnswer = `${obscuredAnswer} `;
+    }
+    else if(char === "," || char === "\"" || char === "'" || char === ":" || char === "(" || char === ")") {
+      obscuredAnswer = `${obscuredAnswer}${char}`;
+    }
+    else {
+      // A thin space character (U+2009) is used so the underscores have
+      // a small distinguishing space between them.
+      // ESLint really doesn't like this, but it works great!
+      obscuredAnswer = `${obscuredAnswer}\\_ `;
+    }
+  }
+
+  return obscuredAnswer;
+}
 // # Trivia.doGame #
 // TODO: Refactor and convert to an async function
 // - id: The unique identifier for the channel that the game is in.
@@ -869,26 +890,10 @@ Trivia.doGame = async function(id, channel, author, scheduled, category, typeInp
   var answerString = "";
   if(gameMode === 2) {
     var answer = entities.decode(correct_answer);
-    var obscuredAnswer = "";
 
-    for(var charI = 0; charI <= answer.length-1; charI++) {
-      var char = answer.charAt(charI);
-
-      if(char === " ") {
-        obscuredAnswer = `${obscuredAnswer} `;
-      }
-      else if(char === "," || char === "\"" || char === "'" || char === ":" || char === "(" || char === ")") {
-        obscuredAnswer = `${obscuredAnswer}${char}`;
-      }
-      else {
-        // A thin space character (U+2009) is used so the underscores have
-        // a small distinguishing space between them.
-        // ESLint really doesn't like this, but it works great!
-        obscuredAnswer = `${obscuredAnswer}\\_ `;
-      }
-    }
-
+    var obscuredAnswer = createObscuredAnswer(answer);
     answerString = obscuredAnswer;
+
     if(getConfigVal("debug-mode")) {
       answerString = `${answerString} *(Answer: ${entities.decode(correct_answer)})*`;
     }
