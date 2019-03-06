@@ -1263,7 +1263,7 @@ function parseCommand(msg, cmd) {
             Trivia.send(msg.channel, void 0, `Removed option ${configKey} successfully.`);
           }
           else {
-            Trivia.send(msg.channel, void 0, `Set option ${configKey} to "${echo}" (${typeof configVal}) ${typeof localID !== "undefined"?`in channel <#${localID}>`:""} successfully.`);
+            Trivia.send(msg.channel, void 0, `Set option ${configKey} to "${echo}" (${typeof configVal}) ${typeof localID !== "undefined"?`in channel <#${localID}> `:""}successfully.`);
           }
         }
       }
