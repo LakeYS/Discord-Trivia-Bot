@@ -90,6 +90,9 @@ function setConfigVal(value, newValue, skipOverride, localID) {
       file = `./Options/config_${localID}.json`;
     }
 
+    // Get the value first so the file caches in case it hasn't already.
+    getConfigVal(value, localID);
+
     if(fs.existsSync(file)) {
       configToWrite = fs.readFileSync(file).toString();
 
