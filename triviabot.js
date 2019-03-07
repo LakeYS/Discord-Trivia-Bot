@@ -459,6 +459,19 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
 
   game[id].inRound = 0;
 
+  // Custom options
+  if(typeof game[id].config !== "undefined") {
+    // Custom round count subtracts by 1 until reaching 0, then the game ends.
+    if(typeof game[id].config.customRoundCount !== "undefined") {
+      game[id].config.customRoundCount = game[id].config.customRoundCount-1;
+
+      if(game[id].config.customRoundCount <= 0) {
+        Trivia.stopGame(channel, true);
+        return;
+      }
+    }
+  }
+
   var correctUsersStr = "**Correct answers:**\n";
 
   var scoreStr = "";
@@ -482,7 +495,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
   if(game[id].cancelled) {
     gameEndedMsg = "\n\n*Game ended by admin.*";
   }
-  else if(Object.keys(game[id].participants).length === 0) {
+  else if(Object.keys(game[id].participants).length === 0 && !game[id].customRoundCount) {
     // If there were no participants...
     if(game[id].emptyRoundCount+1 >= getConfigVal("rounds-end-after", channel)) {
       doAutoEnd = 1;
@@ -800,7 +813,7 @@ function doHangmanHint(channel, answer) {
 }
 
 // # Trivia.doGame #
-// TODO: Refactor and convert to an async function
+// TODO: Refactor, reduce args, and convert to an async function
 // - id: The unique identifier for the channel that the game is in.
 // - channel: The channel object that correlates with the game.
 // - author: The user that started the game. Can be left 'undefined'
@@ -894,7 +907,8 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     "prevParticipants": typeof game[id]!=="undefined"?game[id].participants:null,
     "emptyRoundCount": typeof game[id]!=="undefined"?game[id].emptyRoundCount:null,
 
-    "isLeagueGame": typeof game[id]!=="undefined"?game[id].isLeagueGame:false
+    "isLeagueGame": typeof game[id]!=="undefined"?game[id].isLeagueGame:false,
+    "config": typeof game[id]!=="undefined"?game[id].config:config
   };
 
   var question, answers = [], difficultyReceived, correct_answer;
@@ -997,7 +1011,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     infoString = `${infoString}The answer will be revealed in ${timer/1000} seconds.`;
 
     // Add an extra initial message to let users know the game will insta-end with no answers.
-    if(!getConfigVal("round-end-warnings-disabled", channel) && getConfigVal("rounds-end-after", channel) === 1) {
+    if(!getConfigVal("round-end-warnings-disabled", channel) && getConfigVal("rounds-end-after", channel) === 1 && !game[id].customRoundCount) {
       infoString += "\nThe game will end automatically if nobody participates.";
     }
   }
@@ -1085,7 +1099,7 @@ Trivia.stopGame = (channel, auto) => {
 
   game[id].cancelled = 1;
 
-  if(typeof timeout !== "undefined") {
+  if(typeof timeout !== "undefined" && typeof timeout._onTimeout === "function") {
     var onTimeout = timeout._onTimeout;
     clearTimeout(timeout);
 
@@ -1316,7 +1330,7 @@ function parseCommand(msg, cmd) {
           return;
         }
         else {
-          Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, category.id);
+          Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {}, category.id);
           return;
         }
       })
@@ -1331,7 +1345,6 @@ function parseCommand(msg, cmd) {
     }
     else {
       // No category specified, start a normal game. (The database will pick a random category for us)
-      Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0);
       Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {});
       return;
     }
@@ -1498,7 +1511,6 @@ function triviaResumeGame(json, id) {
       timeout = date-new Date();
 
       game[id].timeout = setTimeout(() => {
-        Trivia.doGame(id, channel, void 0, 0, json.category);
         Trivia.doGame(id, channel, void 0, 0, {}, json.category);
       }, timeout);
     }
