@@ -808,7 +808,8 @@ function doHangmanHint(channel, answer) {
 // - scheduled: Set to true if starting a game scheduled by the bot.
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
-Trivia.doGame = async function(id, channel, author, scheduled, category, typeInput, difficultyInput, modeInput) {
+//
+Trivia.doGame = async function(id, channel, author, scheduled, config, category, typeInput, difficultyInput, modeInput) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   // Checks are excepted for games that are being resumed from cache or file.
   if(typeof game[id] !== "undefined" && !game[id].resuming) {
@@ -1331,6 +1332,7 @@ function parseCommand(msg, cmd) {
     else {
       // No category specified, start a normal game. (The database will pick a random category for us)
       Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0);
+      Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {});
       return;
     }
   }
@@ -1497,6 +1499,7 @@ function triviaResumeGame(json, id) {
 
       game[id].timeout = setTimeout(() => {
         Trivia.doGame(id, channel, void 0, 0, json.category);
+        Trivia.doGame(id, channel, void 0, 0, {}, json.category);
       }, timeout);
     }
   }
