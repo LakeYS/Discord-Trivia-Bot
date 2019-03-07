@@ -637,6 +637,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
 // to parseAnswer as the correct letter.
 Trivia.parseAnswerHangman = function(str, id, userId, username, scoreValue) {
   var input = str.toLowerCase();
+  // Decode and remove all non-alphabetical characters
   var answer = entities.decode(game[id].answer).toLowerCase().replace(/\W/g, "");
 
   // Return -1 if the input is a command.
