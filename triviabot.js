@@ -1164,7 +1164,6 @@ function parseCommand(msg, cmd) {
       }
 
       if(cmdInput.startsWith("LIST") && cmdInput.indexOf("-") === -1) {
-        var configStr = `**__Config Options__**\nThese are the config options that are currently loaded. Some options require a restart to take effect. Type '${getConfigVal("prefix")}reset' to apply changes.`;
 
         var listID;
         if(cmdInput !== "CONFIG LIST ") {
@@ -1174,6 +1173,8 @@ function parseCommand(msg, cmd) {
             listID = void 0;
           }
         }
+
+        var configStr = `**__Config Options__**\nThese are the config options that are currently loaded${typeof listID!=="undefined"?` in the channel <#${listID}>`:""}. Some options require a restart to take effect. Type '${getConfigVal("prefix")}reset' to apply changes.`;
 
         for(var i in Config) {
           if(i.toString().includes("token") || i.toString().includes("comment") || i.includes("configFile")) {
