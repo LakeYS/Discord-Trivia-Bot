@@ -1351,7 +1351,7 @@ function parseCommand(msg, cmd) {
   }
 
   if(typeof commands.leagueParse !== "undefined" && cmd.startsWith("LEAGUE ")) {
-    commands.leagueParse(msg.channel.id, msg.channel, msg.author, msg.member, cmd);
+    commands.leagueParse(msg, cmd);
     return;
   }
 
