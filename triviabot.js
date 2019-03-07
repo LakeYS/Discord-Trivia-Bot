@@ -408,7 +408,7 @@ function triviaEndGame(id) {
   }
 
   if(game[id].isLeagueGame) {
-    Trivia.leaderboard.writeScores(game[id].scores, game[id].guildId, ["Monthly", "Weekly"], game[id].leagueName);
+    Trivia.leaderboard.writeScores(game[id].scores, game[id].guildId, ["Monthly", "Weekly"], game[id].config.leagueName);
   }
 
   delete game[id];
