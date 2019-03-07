@@ -1163,15 +1163,24 @@ function parseCommand(msg, cmd) {
         return;
       }
 
-      if(cmdInput === "LIST") {
+      if(cmdInput.startsWith("LIST") && cmdInput.indexOf("-") === -1) {
         var configStr = `**__Config Options__**\nThese are the config options that are currently loaded. Some options require a restart to take effect. Type '${getConfigVal("prefix")}reset' to apply changes.`;
+
+        var listID;
+        if(cmdInput !== "CONFIG LIST ") {
+          listID = cmdInput.replace("LIST <#","").replace(">","");
+
+          if(isNaN(listID)) {
+            listID = void 0;
+          }
+        }
+
         for(var i in Config) {
           if(i.toString().includes("token") || i.toString().includes("comment") || i.includes("configFile")) {
             continue;
           }
           else {
-            // Use getConfigVal for security
-            var value = getConfigVal(i);
+            var value = getConfigVal(i, listID);
 
             var outputStr = value;
             if(typeof outputStr === "object") {
