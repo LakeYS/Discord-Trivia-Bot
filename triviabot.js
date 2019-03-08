@@ -494,7 +494,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
   if(game[id].cancelled) {
     gameEndedMsg = "\n\n*Game ended by admin.*";
   }
-  else if(Object.keys(game[id].participants).length === 0 && !game[id].customRoundCount) {
+  else if(Object.keys(game[id].participants).length === 0 && !game[id].config.customRoundCount) {
     // If there were no participants...
     if(game[id].emptyRoundCount+1 >= getConfigVal("rounds-end-after", channel)) {
       doAutoEnd = 1;
@@ -1015,7 +1015,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     infoString = `${infoString}The answer will be revealed in ${timer/1000} seconds.`;
 
     // Add an extra initial message to let users know the game will insta-end with no answers.
-    if(!getConfigVal("round-end-warnings-disabled", channel) && getConfigVal("rounds-end-after", channel) === 1 && !game[id].customRoundCount) {
+    if(!getConfigVal("round-end-warnings-disabled", channel) && getConfigVal("rounds-end-after", channel) === 1 && !game[id].config.customRoundCount) {
       infoString += "\nThe game will end automatically if nobody participates.";
     }
   }
