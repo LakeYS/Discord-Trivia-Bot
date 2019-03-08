@@ -420,7 +420,7 @@ Trivia.applyBonusMultiplier = (id, channel, userID) => {
   var multiplier;
 
   var multiplierBase = getConfigVal("score-multiplier-max", channel);
-  if(multiplierBase !== 1) {
+  if(multiplierBase !== 0) {
     var index = Object.keys(game[id].participants).indexOf(userID)+1;
 
     // Score multiplier equation
