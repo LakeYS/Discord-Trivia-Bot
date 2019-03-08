@@ -443,6 +443,8 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
     return;
   }
 
+  var roundTimeout = getConfigVal("round-timeout", channel);
+
   if(typeof game[id].message !== "undefined" && getConfigVal("auto-delete-msgs", channel)) {
     game[id].message.delete()
     .catch((err) => {
@@ -464,7 +466,13 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
     if(typeof game[id].config.customRoundCount !== "undefined") {
       game[id].config.customRoundCount = game[id].config.customRoundCount-1;
 
-      if(game[id].config.customRoundCount <= 0) {
+      if(typeof game[id].config.intermissionTime !== "undefined" && game[id].config.customRoundCount <= game[id].config.totalRoundCount/2) {
+        roundTimeout = game[id].config.intermissionTime;
+
+        Trivia.send(channel, void 0, `Intermission - Game will resume in ${roundTimeout/60000} minute${roundTimeout/1000===1?"":"s"}.`);
+        game[id].config.intermissionTime = void 0;
+      }
+      else if(game[id].config.customRoundCount <= 0) {
         Trivia.stopGame(channel, true);
         return;
       }
@@ -625,7 +633,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
             });
           }
           Trivia.doGame(id, channel, void 0, 1);
-        }, getConfigVal("round-timeout", channel));
+        }, roundTimeout);
       }
       else {
         game[id].timeout = void 0;
