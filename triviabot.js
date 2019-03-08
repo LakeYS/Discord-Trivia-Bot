@@ -1412,7 +1412,7 @@ Trivia.parse = (str, msg) => {
 
   // Check for command whitelist permissions before proceeding.
   var cmdWhitelist = getConfigVal("command-whitelist", msg.channel);
-  if(typeof cmdWhitelist !== "undefined" && cmdWhitelist.length !== 0 && cmdWhitelist.indexOf(msg.author.tag)) {
+  if(typeof cmdWhitelist !== "undefined" && cmdWhitelist.length !== 0 && cmdWhitelist.indexOf(msg.author.tag) === -1) {
     return;
   }
 
