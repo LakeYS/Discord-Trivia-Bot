@@ -473,8 +473,10 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
         game[id].config.intermissionTime = void 0;
       }
       else if(game[id].config.customRoundCount <= 0) {
-        Trivia.stopGame(channel, true);
-        return;
+        setTimeout(() => {
+          Trivia.stopGame(channel, true);
+          return;
+        }, 100);
       }
     }
   }
