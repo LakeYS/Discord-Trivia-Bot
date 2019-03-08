@@ -443,6 +443,8 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
     return;
   }
 
+  game[id].config = game[id].config || {};
+
   var roundTimeout = getConfigVal("round-timeout", channel);
 
   if(typeof game[id].message !== "undefined" && getConfigVal("auto-delete-msgs", channel)) {
@@ -504,7 +506,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
   if(game[id].cancelled) {
     gameEndedMsg = "\n\n*Game ended by admin.*";
   }
-  else if(Object.keys(game[id].participants).length === 0 && typeof game[id].config !== "undefined" && !game[id].config.customRoundCount) {
+  else if(Object.keys(game[id].participants).length === 0 && !game[id].config.customRoundCount) {
     // If there were no participants...
     if(game[id].emptyRoundCount+1 >= getConfigVal("rounds-end-after", channel)) {
       doAutoEnd = 1;
