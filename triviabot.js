@@ -414,18 +414,17 @@ function triviaEndGame(id) {
   delete game[id];
 }
 
-Trivia.applyBonusMultiplier = (id, channel) => {
+Trivia.applyBonusMultiplier = (id, channel, userID) => {
   var score = getConfigVal("score-value", channel)[game[id].difficulty];
-  var totalParticipantCount = Object.keys(game[id].totalParticipants).length;
 
   var multiplier;
 
   var multiplierBase = getConfigVal("score-multiplier-max", channel);
   if(multiplierBase !== 1) {
-    var incorrectUserCount = Object.keys(game[id].correctUsers).length-game[id].participants.length;
+    var index = Object.keys(game[id].participants).indexOf(userID)+1;
 
     // Score multiplier equation
-    multiplier = (multiplierBase-(incorrectUserCount/totalParticipantCount));
+    multiplier = multiplierBase/index+1;
 
     // Don't apply if the number is negative or passive.
     if(multiplier > 1) {
@@ -559,7 +558,11 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
           var score = game[id].scores[ Object.keys(game[id].correctUsers)[i] ];
 
           var bonusStr = "";
-          var bonus = Trivia.applyBonusMultiplier(id, channel);
+          var bonus = Trivia.applyBonusMultiplier(id, channel, Object.keys(game[id].correctUsers)[i]);
+
+          if(getConfigVal("debug-log")) {
+            console.log(`Applied bonus score of ${bonus} to user ${Object.keys(game[id].correctUsers)[i]}`);
+          }
 
           if(score !== score+bonus && typeof bonus !== "undefined") {
             bonusStr = ` + ${bonus} bonus`;
