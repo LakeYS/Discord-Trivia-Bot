@@ -19,6 +19,7 @@ For support, questions, and comments, you can join the Discord server or contact
 - Easy to install and configure for server owners that wish to host the bot themselves.
 - Play in random categories or choose a category to play in.
 - A dynamic scoring system.
+- Multiple modes of play to choose from.
 
 # How to Install
 If you'd like to install and host TriviaBot yourself, you can find out how to do so [here](http://lakeys.net/triviabot/install.html).
