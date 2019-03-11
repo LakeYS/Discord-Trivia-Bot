@@ -1,13 +1,13 @@
 # Category 0 - Science
 ---
 questions:
-- question: What is the force of gravity on the moon?
+- question: Compared to Earth, what is the approximate force of gravity on the moon?
   difficulty: medium
-  correct_answer: About one sixth of earth's
+  correct_answer: One sixth
   incorrect_answers:
-  - About one half of earth's
-  - About one eighth of earth's
-  - About the same
+  - One half
+  - One eighth
+  - The same
 - question: Buzz Aldrin was the first man to step on the moon.
   difficulty: medium
   correct_answer: 'False'
