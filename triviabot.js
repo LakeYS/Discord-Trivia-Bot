@@ -1172,7 +1172,8 @@ function parseCommand(msg, cmd) {
   var id = msg.channel.id;
 
   var isAdmin;
-  if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm") && getConfigVal("disable-admin-commands", msg.channel) !== true) {
+  console.log(getConfigVal("command-whitelist", msg.channel).length);
+  if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm" || getConfigVal("command-whitelist", msg.channel).length > 0) && getConfigVal("disable-admin-commands", msg.channel) !== true) {
     isAdmin = true;
   }
 
