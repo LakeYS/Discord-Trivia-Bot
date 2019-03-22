@@ -1561,8 +1561,9 @@ Trivia.reactionAdd = function(reaction, user) {
       return; // The reaction isn't a letter, ignore it.
     }
 
-    // Get the user's nickname.
-    var username = reaction.message.guild.members.get(user.id).displayName;
+    // Get the user's guild nickname, or regular name if in a DM.
+    var msg = reaction.message;
+    var username = msg.guild !== null?msg.guild.members.get(user.id).displayName:user.username;
     Trivia.parseAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
   }
 };
