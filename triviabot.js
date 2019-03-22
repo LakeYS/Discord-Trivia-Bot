@@ -871,9 +871,6 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
   // ## Permission Checks ##
   // Start with the game value if defined, otherwise default to 0.
   var gameMode = 0;
-  if(typeof game[id] !== "undefined") {
-    gameMode = game[id].gameMode || gameMode;
-  }
 
   if(channel.type !== "dm" && typeof modeInput === "undefined") {
     if(getConfigVal("use-reactions", channel)) {
@@ -895,6 +892,10 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     typeInput = "multiple"; // Override to get rid of T/F questions
   }
 
+  if(typeof game[id] !== "undefined") {
+    gameMode = game[id].gameMode || gameMode;
+  }
+  
   var isFirstQuestion = typeof game[id] === "undefined";
 
   // ## Game ##
