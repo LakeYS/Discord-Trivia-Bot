@@ -895,7 +895,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
   if(typeof game[id] !== "undefined") {
     gameMode = game[id].gameMode || gameMode;
   }
-  
+
   var isFirstQuestion = typeof game[id] === "undefined";
 
   // ## Game ##
@@ -1010,8 +1010,8 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
   var timer = getConfigVal("round-length", channel);
 
   if(gameMode === 2) {
-    // Hangman games get an extra ten seconds for balance.
-    timer = timer+10000;
+    // Hangman games get an extra twenty seconds for balance.
+    timer = timer+20000;
   }
 
   var infoString = "";
