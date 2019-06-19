@@ -22,7 +22,10 @@ function postBotStats() {
     .then((countArray) => {
       var guildCountVal = countArray.reduce((prev, val) => prev + val, 0);
       var id = global.client.user.id;
-      console.log("===== Posting guild count of\x1b[1m " + guildCountVal + "\x1b[0m =====");
+
+      if(guildCountVal > 1) {
+        console.log("===== Posting guild count of\x1b[1m " + guildCountVal + "\x1b[0m =====");
+      }
 
       var listings = {
         // If 'data' not specified, assume it is this: { server_count: guildCount }
