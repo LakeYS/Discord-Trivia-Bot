@@ -230,7 +230,7 @@ manager.on("message", (shard, input) => {
 });
 
 // # Console Functions # //
-const evalCmds = require("./lib/evalCmds.js")(manager);
+const evalCmds = require("./lib/eval_cmds.js")(manager);
 manager.eCmds = evalCmds;
 
 if(Config["allow-eval"] === true) {
