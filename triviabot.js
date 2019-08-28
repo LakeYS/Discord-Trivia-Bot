@@ -217,7 +217,8 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
       }
     }
     else {
-      console.warn("Failed to send message to channel. (no user)");
+      console.warn("Failed to send message to channel, user object nonexistent. Dumping message data...");
+      console.log(msg);
     }
 
     if(typeof callback === "function") {
@@ -895,7 +896,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
   if(typeof game[id] !== "undefined") {
     gameMode = game[id].gameMode || gameMode;
   }
-  
+
   var isFirstQuestion = typeof game[id] === "undefined";
 
   // ## Game ##
