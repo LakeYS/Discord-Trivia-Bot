@@ -195,6 +195,11 @@ manager.on("launch", (shard) => {
     // This is done on launch because it requires totalShards to be a number.
     refreshGameExports();
   }
+
+  // TODO: Rate limit this to prevent API flooding
+  shard.on("death", (process) => {
+    console.error("Shard " + shard.id + " closed unexpectedly! PID: " + process.pid + "; Exit code: " + process.exitCode + ".");
+  });
 });
 
 // ## Manager Messages ## //
