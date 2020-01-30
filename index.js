@@ -205,6 +205,10 @@ manager.on("launch", (shard) => {
       console.warn("WARNING: Shard " + shard.id + " exited with NULL error code. This may be a result of a lack of available system memory. Ensure that there is enough memory allocated to continue.");
     }
   });
+
+  shard.on("reconnecting", () => {
+    console.warn("Shard " + shard.id + " is reconnecting...");
+  });
 });
 
 // ## Manager Messages ## //
