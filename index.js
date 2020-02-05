@@ -206,6 +206,11 @@ manager.on("launch", (shard) => {
     }
   });
 
+  shard.on("disconnect", (event) => {
+    console.warn("Shard " + shard.id + " disconnected. Dumping socket close event...");
+    console.log(event);
+  });
+
   shard.on("reconnecting", () => {
     console.warn("Shard " + shard.id + " is reconnecting...");
   });
