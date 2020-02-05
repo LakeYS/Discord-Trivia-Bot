@@ -1,4 +1,7 @@
 const pjson = require("./package.json");
+const fs = require("fs");
+const { ShardingManager } = require("discord.js");
+
 process.title = `TriviaBot ${pjson.version}`;
 
 // # Art Display # //
@@ -66,10 +69,7 @@ if(Config["allow-eval"] === true) {
   process.stdin.setEncoding("utf8");
 }
 
-const fs = require("fs");
-
 // # Discord # //
-const { ShardingManager } = require("discord.js");
 var token = Config.token;
 const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: Config["shard-count"], token, shardArgs: [configFile] });
 
