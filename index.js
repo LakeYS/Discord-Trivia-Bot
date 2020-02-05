@@ -7,7 +7,7 @@ process.title = `TriviaBot ${pjson.version}`;
 // # Art Display # //
 // process.stdout.columns returns "undefined" in certain situations
 var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version}        `,
-                 "\x1b[7m Copyright (c) 2018-2019 Lake Y \x1b[0m",
+                 "\x1b[7m Copyright (c) 2018-2020 Lake Y \x1b[0m",
                  "\x1b[7m https://lakeys.net             \x1b[0m" ];
 
 // Adjust length of the first line
