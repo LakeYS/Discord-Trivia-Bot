@@ -4,6 +4,7 @@ const { ShardingManager } = require("discord.js");
 
 process.title = `TriviaBot ${pjson.version}`;
 
+
 // # Art Display # //
 // process.stdout.columns returns "undefined" in certain situations
 var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version}        `,
@@ -71,7 +72,11 @@ if(Config["allow-eval"] === true) {
 
 // # Discord # //
 var token = Config.token;
-const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: Config["shard-count"], token, shardArgs: [configFile] });
+const manager = new ShardingManager(`${__dirname}/shard.js`, {
+  totalShards: Config["shard-count"],
+  token,
+  shardArgs: [configFile]
+});
 
 // # Custom Package Loading # //
 if(typeof Config["additional-packages-root"] !== "undefined") {
