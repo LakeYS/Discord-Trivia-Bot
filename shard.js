@@ -1,9 +1,15 @@
 const Discord = require("discord.js");
-global.client = new Discord.Client();
-global.Trivia = require("./triviabot.js");
+const { Client } = Discord;
 const snekfetch = require("snekfetch");
 
 var Config = require("./lib/config.js")(process.argv[2]).config;
+
+global.client = new Client({
+  retryLimit: 3,
+  messageCacheMaxSize: 50
+});
+
+global.Trivia = require("./triviabot.js");
 
 if(Config["fallback-mode"] && Config["debug-mode"]) {
   require("./lib/failover_client.js")(Config);
@@ -143,6 +149,9 @@ global.client.on("disconnect", (event) => {
   if(event.code !== 1000) {
     console.log("Discord global.client disconnected with reason: " + event.reason + " (" + event.code + ").");
     process.exit();
+  }
+  else {
+    console.log("Discord client disconnected.");
   }
 });
 
