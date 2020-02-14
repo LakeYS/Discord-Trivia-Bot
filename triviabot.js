@@ -209,7 +209,9 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
           description: `TriviaBot is unable to send messages in this channel:\n${err.message.replace("DiscordAPIError: ","")} ${str}`
         }})
         .catch(() => {
-          console.warn(`Failed to send message to user ${author.id}. (DM failed)`);
+          console.warn(`Failed to send message to user ${author.id}, DM failed. Dumping message data...`);
+          console.log(msg);
+          console.log("Dumped message data.");
         });
       }
       else {
