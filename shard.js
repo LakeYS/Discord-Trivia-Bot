@@ -18,6 +18,12 @@ else if(Config["debug-mode"]) {
   require("./lib/failover_server.js");
 }
 
+if(Config["debug-log"]) {
+  global.client.on("debug", (info) => {
+    console.log("DEBUG [" + global.client.shard.id + "]: " + info);
+  });
+}
+
 // # Post to Bot Listings # //
 function postBotStats() {
   // The following sites only need the total shard count, so we'll only post using the last shard.
