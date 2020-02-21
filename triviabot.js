@@ -1447,7 +1447,7 @@ Trivia.parse = (str, msg) => {
   parseAdv(id, msg);
 
   // ## Help Command Parser ##
-  if(str === prefix + "HELP" || str.includes(`<@${global.client.user.id}>`)) {
+  if(str === prefix + "HELP" || str.includes(`<@!${global.client.user.id}>`)) {
     commands.triviaHelp(msg, Database)
     .then((res) => {
 
