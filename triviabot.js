@@ -1154,21 +1154,31 @@ commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
 commands.triviaPing = require("./lib/cmd_ping.js")(Config, Trivia, Database);
 commands.triviaStop = require("./lib/cmd_stop.js")(Config, Trivia, commands, getConfigVal);
 
+Trivia.buildCategorySearchIndex = async () => {
+  Trivia.categorySearchIndex = await Database.getCategories();
+
+  for(var el in Trivia.categorySearchIndex) {
+    var index = Trivia.categorySearchIndex[el];
+    index.name = index.name.toUpperCase().replace(":", "");
+  }
+};
+
 // getCategoryFromStr
 // Returns a category based on the string specified. Returns undefined if no category is found.
 Trivia.getCategoryFromStr = async (str) => {
-  var categoryList;
   // Automatically give "invalid category" if query is shorter than 3 chars.
   if(str.length < 3) {
     return void 0;
   }
 
-  // Get the category list.
-  categoryList = await Database.getCategories();
+  // If we haven't already, initialize a category list index.
+  if(typeof Trivia.categorySearchIndex === "undefined") {
+    await Trivia.buildCategorySearchIndex();
+  }
 
-  var strCheck = str.toUpperCase();
-  return categoryList.find((el) => {
-    return el.name.toUpperCase().includes(strCheck);
+  var strCheck = str.toUpperCase().replace(":", "");
+  return Trivia.categorySearchIndex.find((el) => {
+    return el.name.toUpperCase().replace(":", "").includes(strCheck);
   });
 };
 
