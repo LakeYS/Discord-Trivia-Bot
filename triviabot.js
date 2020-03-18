@@ -1178,7 +1178,7 @@ Trivia.getCategoryFromStr = async (str) => {
 
   var strCheck = str.toUpperCase().replace(":", "");
   return Trivia.categorySearchIndex.find((el) => {
-    return el.name.toUpperCase().replace(":", "").includes(strCheck);
+    return el.name.toUpperCase().includes(strCheck);
   });
 };
 
