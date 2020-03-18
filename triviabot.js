@@ -1159,7 +1159,7 @@ Trivia.buildCategorySearchIndex = async () => {
 
   for(var el in Trivia.categorySearchIndex) {
     var index = Trivia.categorySearchIndex[el];
-    index.name = index.name.toUpperCase().replace(":", "");
+    index.name = index.name.toUpperCase().replace(":", "").replace(" AND ", " & ");
   }
 };
 
@@ -1176,7 +1176,7 @@ Trivia.getCategoryFromStr = async (str) => {
     await Trivia.buildCategorySearchIndex();
   }
 
-  var strCheck = str.toUpperCase().replace(":", "");
+  var strCheck = str.toUpperCase().replace(":", "").replace(" AND ", " & ");
   return Trivia.categorySearchIndex.find((el) => {
     return el.name.toUpperCase().includes(strCheck);
   });
