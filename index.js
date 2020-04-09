@@ -216,9 +216,9 @@ manager.on("launch", (shard) => {
     console.log(event);
   });
 
-  shard.on("reconnecting", () => {
-    console.warn("Shard " + shard.id + " is reconnecting...");
-  });
+  //shard.on("reconnecting", () => {
+  //  console.warn("Shard " + shard.id + " is reconnecting...");
+  //});
 });
 
 // ## Manager Messages ## //
