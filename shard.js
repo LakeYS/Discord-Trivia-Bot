@@ -151,14 +151,8 @@ global.client.on("ready", () => {
   postBotStats();
 });
 
-global.client.on("disconnect", (event) => {
-  if(event.code !== 1000) {
-    console.log("Discord global.client disconnected with reason: " + event.reason + " (" + event.code + ").");
-    process.exit();
-  }
-  else {
-    console.log("Discord client disconnected.");
-  }
+global.client.on("disconnect", () => {
+  console.log("Discord client disconnected.");
 });
 
 global.client.on("error", (err) => {
