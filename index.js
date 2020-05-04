@@ -259,10 +259,16 @@ manager.eCmds = evalCmds;
 
 if(Config["allow-eval"] === true) {
   process.stdin.on("data", (text) => {
-    var cmd = text.replace("\r","").replace("\n","");
+    // Cut newlines, split the command by spaces to represent arguments.
+    var cmdFull = text.replace("\r","").replace("\n","").split(" ");
+    var cmdFunction = cmdFull[0];
 
-    if(typeof evalCmds[cmd] === "function") {
-      evalCmds[cmd]();
+    if(typeof evalCmds[cmdFunction] === "function") {
+      // Remove the first word (the command itself) before pasing it
+      cmdFull.shift(1);
+
+      // Execute the command with any further parameters as an array
+      evalCmds[cmdFunction](cmdFull);
     }
     else {
       console.log("Eval:");

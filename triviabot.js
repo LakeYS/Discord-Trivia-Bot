@@ -298,10 +298,14 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
       } catch(error) {
         // Something went wrong. We'll display a warning but we won't cancel the game.
         console.log(`Failed to generate token for channel ${tokenChannel.id}: ${error.message}`);
-        Trivia.send(tokenChannel, void 0, {embed: {
-          color: 14164000,
-          description: `Error: Failed to generate a session token for this channel. You may see repeating questions. (${error.message})`
-        }});
+
+        // Skip display of session token messages if a pre-defined error message has been written.
+        if(typeof Trivia.maintenanceMsg !== "string") {
+          Trivia.send(tokenChannel, void 0, {embed: {
+            color: 14164000,
+            description: `Error: Failed to generate a session token for this channel. You may see repeating questions. (${error.message})`
+          }});
+        }
       }
 
       if(typeof token !== "undefined" && (isCustom || Config.databaseURL.startsWith("file://")) ) {
@@ -946,10 +950,18 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
       console.log(err);
     }
 
-    Trivia.send(channel, author, {embed: {
-      color: 14164000,
-      description: `An error occurred while querying the trivia database:\n*${err.message}*`
-    }});
+    if(typeof Trivia.maintenanceMsg === "string") {
+      Trivia.send(channel, author, {embed: {
+        color: 14164000,
+        description: `An error occurred while querying the trivia database:\n*${Trivia.maintenanceMsg}*`
+      }});
+    }
+    else {
+      Trivia.send(channel, author, {embed: {
+        color: 14164000,
+        description: `An error occurred while querying the trivia database:\n*${err.message}*`
+      }});
+    }
 
     triviaEndGame(id);
   }
