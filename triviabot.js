@@ -360,9 +360,15 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
         }
       }
       else {
-        console.log("Received error from the trivia database!");
-        console.log(error);
-        console.log(json);
+        // If an override has been set, show a shortened message instead
+        if(typeof Trivia.maintenanceMsg !== "string") {
+          console.log("Received error from the trivia database!");
+          console.log(error);
+          console.log(json);
+        }
+        else {
+          console.log("Error from trivia database, displaying canned response");
+        }
 
         // Delete the token so we'll generate a new one next time.
         // This is to fix the game in case the cached token is invalid.
@@ -945,11 +951,6 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     difficultyReceived = question.difficulty.toString();
     correct_answer = question.correct_answer.toString();
   } catch(err) {
-    if(err.code !== -1) {
-      console.log("Database query error:");
-      console.log(err);
-    }
-
     if(typeof Trivia.maintenanceMsg === "string") {
       Trivia.send(channel, author, {embed: {
         color: 14164000,
@@ -957,6 +958,11 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
       }});
     }
     else {
+      if(err.code !== -1) {
+        console.log("Database query error:");
+        console.log(err);
+      }
+
       Trivia.send(channel, author, {embed: {
         color: 14164000,
         description: `An error occurred while querying the trivia database:\n*${err.message}*`
