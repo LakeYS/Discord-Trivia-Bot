@@ -842,7 +842,7 @@ function doHangmanHint(channel, answer) {
 }
 
 // # Trivia.doGame #
-// TODO: Refactor, reduce args, and convert to an async function
+// TODO: Refactor and reduce args
 // - id: The unique identifier for the channel that the game is in.
 // - channel: The channel object that correlates with the game.
 // - author: The user that started the game. Can be left 'undefined'
