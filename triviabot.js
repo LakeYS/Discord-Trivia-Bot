@@ -1173,7 +1173,7 @@ commands.triviaPing = require("./lib/cmd_ping.js")(Config, Trivia, Database);
 commands.triviaStop = require("./lib/cmd_stop.js")(Config, Trivia, commands, getConfigVal);
 
 Trivia.buildCategorySearchIndex = async () => {
-  Trivia.categorySearchIndex = await Database.getCategories();
+  Trivia.categorySearchIndex = JSON.parse(JSON.stringify(await Database.getCategories()));
 
   for(var el in Trivia.categorySearchIndex) {
     var index = Trivia.categorySearchIndex[el];
