@@ -3,8 +3,8 @@
 ---
 trivia_categories:
 - id: 0
-  name: Science
+  name: "Science"
 - id: 1
-  name: Video Games
+  name: "Video Games"
 - id: 2
-  name: Music
+  name: "Music"
