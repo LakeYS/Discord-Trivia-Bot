@@ -293,7 +293,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
         token = await Database.getTokenByIdentifier(tokenChannel.id);
 
         if(getConfigVal("debug-mode")) {
-          Trivia.send(tokenChannel, void 0, `*Token: ${token}*`);
+          Trivia.send(tokenChannel, void 0, `*DB Token: ${token}*`);
         }
       } catch(error) {
         // Something went wrong. We'll display a warning but we won't cancel the game.
