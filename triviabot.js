@@ -653,31 +653,56 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
   if(gameFooter !== "") {
     gameFooter = "\n\n" + gameFooter;
   }
-
-  Trivia.send(channel, void 0, {embed: {
-    color: game[id].color,
-    //description: `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}` // DELTA - Don't know why I deactivated this
-    description: `${correctUsersStr}${gameEndedMsg}${gameFooter}` // DELTA
-  }}, (msg, err) => {
-    if(typeof game[id] !== "undefined") {
-      // NOTE: Participants check is repeated below in Trivia.doGame
-      if(!err && !doAutoEnd) {
-        game[id].timeout = setTimeout(() => {
-          if(getConfigVal("auto-delete-msgs", channel)) {
-            msg.delete()
-            .catch((err) => {
-              console.log(`Failed to delete message - ${err.message}`);
-            });
-          }
-          Trivia.doGame(id, channel, void 0, 1);
-        }, roundTimeout);
+  if(getConfigVal("reveal-answers", channel) === false) { // DELTA: Answers will be not shown in the Summary
+    Trivia.send(channel, void 0, {embed: {
+      color: game[id].color,
+      description: `${correctUsersStr}${gameEndedMsg}${gameFooter}` 
+    }}, (msg, err) => {
+      if(typeof game[id] !== "undefined") {
+        // NOTE: Participants check is repeated below in Trivia.doGame
+        if(!err && !doAutoEnd) {
+          game[id].timeout = setTimeout(() => {
+            if(getConfigVal("auto-delete-msgs", channel)) {
+              msg.delete()
+              .catch((err) => {
+                console.log(`Failed to delete message - ${err.message}`);
+              });
+            }
+            Trivia.doGame(id, channel, void 0, 1);
+          }, roundTimeout);
+        }
+        else {
+          game[id].timeout = void 0;
+          triviaEndGame(id);
+        }
       }
-      else {
-        game[id].timeout = void 0;
-        triviaEndGame(id);
+    }, true);
+  }
+  else { // DELTA: Answers will be shown in the Summary
+    Trivia.send(channel, void 0, {embed: {
+      color: game[id].color,
+      description:  `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}` 
+    }}, (msg, err) => {
+      if(typeof game[id] !== "undefined") {
+        // NOTE: Participants check is repeated below in Trivia.doGame
+        if(!err && !doAutoEnd) {
+          game[id].timeout = setTimeout(() => {
+            if(getConfigVal("auto-delete-msgs", channel)) {
+              msg.delete()
+              .catch((err) => {
+                console.log(`Failed to delete message - ${err.message}`);
+              });
+            }
+            Trivia.doGame(id, channel, void 0, 1);
+          }, roundTimeout);
+        }
+        else {
+          game[id].timeout = void 0;
+          triviaEndGame(id);
+        }
       }
-    }
-  }, true);
+    }, true);
+  }
 };
 
 // # parseAnswerHangman # //
