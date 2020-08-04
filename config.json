@@ -23,6 +23,7 @@
   "command-whitelist": [],
   "accept-first-answer-only": false,
 
+  "reveal-answers": false,
   "participant-role": "",
   "score-threshold": 800,
   "rounds-fixed-number": 15,
