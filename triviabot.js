@@ -292,7 +292,7 @@ async function getTriviaQuestion(initial, tokenChannel, tokenRetry, isFirstQuest
       try {
         token = await Database.getTokenByIdentifier(tokenChannel.id);
 
-        if(getConfigVal("debug-mode")) {
+        if(getConfigVal("debug-mode",tokenChannel)) { // DELTA added ,tokenChannel 
           Trivia.send(tokenChannel, void 0, `*DB Token: ${token}*`);
         }
       } catch(error) {
@@ -528,7 +528,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
       game[id].emptyRoundCount++;
 
       // Round end warning after we're halfway through the inactive round cap.
-      if(!getConfigVal("round-end-warnings-disabled", channel) && game[id].emptyRoundCount >= Math.ceil(getConfigVal("rounds-end-after", channel)/2)) {
+      if(!getConfigVal("round-end-warnings-disabled", channel) && game[id].emptyRoundCount >= Math.ceil(getConfigVal("rounds-end-after", channel)/2) && !game[id].config.customRoundCount) { // DELTA: Added Custom Round config
         var roundEndCount = getConfigVal("rounds-end-after", channel.id)-game[id].emptyRoundCount;
         gameFooter += `Game will end in ${roundEndCount} round${roundEndCount===1?"":"s"} if nobody participates.`;
       }
@@ -628,6 +628,25 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
     }
     else {
       correctUsersStr = `${correctUsersStr}\n${Trivia.leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants)}`;
+      // Adding Participant Role to Players. - DELTA
+      if(getConfigVal("debug-log")) { console.log(`Role: ` + getConfigVal("participant-role",channel) + ` / Guild: ` + channel.guild.roles.some(role => role.id === getConfigVal("participant-role",channel))); }
+      if(getConfigVal("participant-role",channel) != "" && channel.guild.roles.some(role => role.id === getConfigVal("participant-role",channel)) ) {
+        Object.keys(game[id].totalParticipants).forEach(element => {
+          if(getConfigVal("debug-log")) {
+            console.log(`Channel guild: ` + channel.guild);
+            console.log(`User: ` + element);
+            console.log(`Channel Guild available: ` + channel.guild.available);
+          }
+          if (game[id].scores[element] >= Config["score-threshold"] )
+          {
+            if(getConfigVal("debug-log")) { console.log(`Winner Score: ` + game[id].scores[element]); }
+            channel.guild.member(element).addRole(getConfigVal("participant-role",channel)).catch(console.error);
+            if(getConfigVal("debug-log")) { console.log(`Added Role ` + getConfigVal("participant-role",channel) + ` to user `+ element); }
+          }
+          
+        });
+      }
+      // Participant Role end - DELTA
     }
   }
 
@@ -637,7 +656,8 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
 
   Trivia.send(channel, void 0, {embed: {
     color: game[id].color,
-    description: `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}`
+    //description: `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}` // DELTA - Don't know why I deactivated this
+    description: `${correctUsersStr}${gameEndedMsg}${gameFooter}` // DELTA
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
       // NOTE: Participants check is repeated below in Trivia.doGame
@@ -940,6 +960,12 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     "isLeagueGame": typeof game[id]!=="undefined"?game[id].isLeagueGame:false,
     "config": typeof game[id]!=="undefined"?game[id].config:config
   };
+  // DELTA - Adding fixed number of rounds game
+if(isFirstQuestion && getConfigVal("rounds-fixed-number", channel) !== false) {
+  game[id].config.customRoundCount = getConfigVal("rounds-fixed-number", channel);
+  if(getConfigVal("debug-log")) { console.log(`Setting CustomRoundCount to: ` + game[id].config.customRoundCount);  } // DELTA - Debug output
+}
+// DELTA - Adding fixed number of rounds game - END
 
   var question, answers = [], difficultyReceived, correct_answer;
   try {
@@ -1004,7 +1030,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     var obscuredAnswer = createObscuredAnswer(answer);
     answerString = obscuredAnswer;
 
-    if(getConfigVal("debug-mode")) {
+    if(getConfigVal("debug-mode",channel)) { //DELTA added ,channel
       answerString = `${answerString} *(Answer: ${entities.decode(correct_answer)})*`;
     }
 
@@ -1022,7 +1048,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
         game[id].correctId = i;
       }
 
-      answerString = `${answerString}**${Letters[i]}:** ${entities.decode(answers[i])}${getConfigVal("debug-mode")&&i===game[id].correctId?" *(Answer)*":""}\n`;
+      answerString = `${answerString}**${Letters[i]}:** ${entities.decode(answers[i])}${getConfigVal("debug-mode",channel)&&i===game[id].correctId?" *(Answer)*":""}\n`; // DELTA added ,channel
     }
   }
 
@@ -1101,7 +1127,8 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
         game[id].answer = question.correct_answer;
         game[id].date = new Date();
 
-        if(gameMode === 2) {
+        // if(gameMode === 2) { // DELTA: keeping this for reference
+        if(gameMode === 2 && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
           // Show a hint halfway through.
           // No need for special handling here because it will auto-cancel if
           // the game ends before running.
@@ -1134,6 +1161,9 @@ Trivia.stopGame = (channel, auto) => {
   let inRound = game[id].inRound;
   let finalScoreStr = Trivia.leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants);
   let totalParticipantCount = Object.keys(game[id].totalParticipants).length;
+  let customRoundCount = game[id].config.customRoundCount; // DELTA: This is for fixed round lenght
+  let d_totalParticipants = game[id].totalParticipants; // DELTA: For storing scores
+  let d_scores = game[id].scores; // DELTA: For storing scores
 
   game[id].cancelled = 1;
 
@@ -1153,14 +1183,36 @@ Trivia.stopGame = (channel, auto) => {
   }
 
   // Display a message if between rounds
-  if(!inRound) {
+  if(!inRound && typeof customRoundCount === "undefined") { // DELTA: Only if no fixed rounds are played.
     var headerStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
 
     Trivia.send(channel, void 0, {embed: {
       color: Trivia.embedCol,
       description: `Game ended by admin.${finalScoreStr!==""?`\n\n${headerStr}\n`:""}${finalScoreStr}`
     }});
-  }
+  } // DELTA
+  else if (customRoundCount <= 0) { 
+    var headerStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
+
+    Trivia.send(channel, void 0, {embed: {
+      color: Trivia.embedCol,
+      description: `Game ended.${finalScoreStr!==""?`\n\n${headerStr}\n`:""}${finalScoreStr}`
+    }}, void 0, true);
+    // DELTA: Adding Participant Role to Players.
+    if(getConfigVal("debug-log")) { console.log(`Role: ` + getConfigVal("participant-role",channel) + ` / Guild: ` + channel.guild.roles.some(role => role.id === getConfigVal("participant-role",channel))); }
+    if(getConfigVal("participant-role",channel) != "" && channel.guild.roles.some(role => role.id === getConfigVal("participant-role",channel)) ) {
+      Object.keys(d_totalParticipants).forEach(element => {
+        if (d_scores[element] >= Config["score-threshold"] )
+        {
+          if(getConfigVal("debug-log")) { console.log(`Winner Score: ` + d_scores[element]); }
+          channel.guild.member(element).addRole(getConfigVal("participant-role",channel)).catch(console.error);
+          if(getConfigVal("debug-log")) { console.log(`Added Role ` + getConfigVal("participant-role",channel) + ` to user `+ element); }
+        }
+        
+      });
+    }
+    // DELTA:Participant Role end 
+  } // DELTA
 };
 
 Trivia.leaderboard = require("./lib/leaderboard.js")(getConfigVal);
@@ -1377,8 +1429,11 @@ function parseCommand(msg, cmd) {
           }});
           return;
         }
-        else {
-          Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {}, category.id);
+        else { // DELTA: Bot will send some rules at the beginning of every round
+          Trivia.SendRules(msg.channel); 
+          setTimeout(() => { 
+            Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {}, category.id)
+          }, 10000); // DELTA
           return;
         }
       })
@@ -1393,7 +1448,10 @@ function parseCommand(msg, cmd) {
     }
     else {
       // No category specified, start a normal game. (The database will pick a random category for us)
-      Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {});
+      Trivia.SendRules(msg.channel); // DELTA: Bot will send some rules at the beginning of every round
+      setTimeout(() => { 
+        Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {})
+      }, 10000); // DELTA
       return;
     }
   }
@@ -1729,3 +1787,22 @@ global.client.on("ready", () => {
     Trivia.importGame(file, 1);
   }
 });
+
+//DELTA - Send rule information to Channel
+Trivia.SendRules = function(channel) {
+  let rules_string = "";
+  if(getConfigVal("hangman-mode", channel) === true) {rules_string = `- :pencil: You have to write the answer to the question into the channel.`; }
+  if(getConfigVal("hangman-mode", channel) === false) {rules_string = `- :pencil: You have to write the correct letter as answer into the channel.`; }
+  if(getConfigVal("auto-delete-msgs", channel) === true) {rules_string += `\n - :sponge: Messages by the bot will be automatically deleted after a few seconds.`; }
+  if(getConfigVal("auto-delete-answers", channel) === true) {rules_string += `\n - :mute: Answers by players will be automatically deleted immediately.`; }
+  if(getConfigVal("accept-first-answer-only", channel) === true) {rules_string += `\n - :one: Only your first answer counts. **So no need to spam different answers**.`; }
+  rules_string += `\n - :hourglass_flowing_sand: You have ` + getConfigVal("round-length", channel)/1000 + ` seconds to answer a question.`;
+  if(getConfigVal("score-threshold", channel) >= 1) { rules_string += `\n - :medal: You need to get ` + getConfigVal("score-threshold", channel) + ` points to receive the Role.`; }
+  rules_string += `\n - :person_lifting_weights: Easy Questions will bring ` + getConfigVal("score-value", channel)["easy"] + `, medium ` + getConfigVal("score-value", channel)["medium"] + ` and hard ` + getConfigVal("score-value", channel)["hard"] + ` points.`;
+  Trivia.send(channel, void 0, {embed: {
+    color: Trivia.embedCol,
+    description: `**Rules of the Game:**\n`+rules_string
+  }}, void 0, true);
+  
+  return;
+} // DELTA End 

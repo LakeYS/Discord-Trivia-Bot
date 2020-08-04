@@ -23,6 +23,12 @@
   "command-whitelist": [],
   "accept-first-answer-only": false,
 
+  "participant-role": "",
+  "score-threshold": 800,
+  "rounds-fixed-number": 15,
+  "hangman-hints": false,
+
+
   "prefix": "trivia ",
   "allow-eval": true,
   "shard-count": "auto",
