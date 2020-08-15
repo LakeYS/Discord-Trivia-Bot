@@ -23,6 +23,8 @@
   "command-whitelist": [],
   "accept-first-answer-only": false,
 
+  "participant-role": "",
+
   "prefix": "trivia ",
   "allow-eval": true,
   "shard-count": "auto",
