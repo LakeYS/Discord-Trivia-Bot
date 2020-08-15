@@ -24,6 +24,7 @@
   "accept-first-answer-only": false,
 
   "participant-role": "",
+  "score-threshold": 800,
 
   "prefix": "trivia ",
   "allow-eval": true,
