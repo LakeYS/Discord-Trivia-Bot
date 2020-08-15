@@ -23,6 +23,8 @@
   "command-whitelist": [],
   "accept-first-answer-only": false,
 
+  "rounds-fixed-number": 15,
+
   "prefix": "trivia ",
   "allow-eval": true,
   "shard-count": "auto",

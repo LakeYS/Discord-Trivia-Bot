@@ -528,7 +528,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
       game[id].emptyRoundCount++;
 
       // Round end warning after we're halfway through the inactive round cap.
-      if(!getConfigVal("round-end-warnings-disabled", channel) && game[id].emptyRoundCount >= Math.ceil(getConfigVal("rounds-end-after", channel)/2)) {
+      if(!getConfigVal("round-end-warnings-disabled", channel) && game[id].emptyRoundCount >= Math.ceil(getConfigVal("rounds-end-after", channel)/2) && !game[id].config.customRoundCount) { // DELTA: Added Custom Round config
         var roundEndCount = getConfigVal("rounds-end-after", channel.id)-game[id].emptyRoundCount;
         gameFooter += `Game will end in ${roundEndCount} round${roundEndCount===1?"":"s"} if nobody participates.`;
       }
@@ -940,6 +940,12 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     "isLeagueGame": typeof game[id]!=="undefined"?game[id].isLeagueGame:false,
     "config": typeof game[id]!=="undefined"?game[id].config:config
   };
+  // DELTA - Adding fixed number of rounds game
+if(isFirstQuestion && getConfigVal("rounds-fixed-number", channel) !== false) {
+  game[id].config.customRoundCount = getConfigVal("rounds-fixed-number", channel);
+  if(getConfigVal("debug-log")) { console.log(`Setting CustomRoundCount to: ` + game[id].config.customRoundCount);  } // DELTA - Debug output
+}
+// DELTA - Adding fixed number of rounds game - END
 
   var question, answers = [], difficultyReceived, correct_answer;
   try {
@@ -1153,7 +1159,7 @@ Trivia.stopGame = (channel, auto) => {
   }
 
   // Display a message if between rounds
-  if(!inRound) {
+  if(!inRound && typeof customRoundCount === "undefined") { // DELTA: Only if no fixed rounds are played.
     var headerStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
 
     Trivia.send(channel, void 0, {embed: {
