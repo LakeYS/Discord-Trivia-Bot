@@ -17,13 +17,13 @@
   "round-timeout": 5500,
   "round-end-warnings-disabled": false,
   "rounds-end-after": 2,
+  "use-fixed-rounds": false,
+  "rounds-fixed-number": 15,
   "disable-score-display": false,
   "score-value": { "easy": 100, "medium": 200, "hard": 300 },
   "score-multiplier-max": 0,
   "command-whitelist": [],
   "accept-first-answer-only": false,
-
-  "rounds-fixed-number": 15,
 
   "prefix": "trivia ",
   "allow-eval": true,

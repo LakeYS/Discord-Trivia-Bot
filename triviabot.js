@@ -941,7 +941,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     "config": typeof game[id]!=="undefined"?game[id].config:config
   };
   // DELTA - Adding fixed number of rounds game
-if(isFirstQuestion && getConfigVal("rounds-fixed-number", channel) !== false) {
+if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) !== false) {
   game[id].config.customRoundCount = getConfigVal("rounds-fixed-number", channel);
   if(getConfigVal("debug-log")) { console.log("Setting CustomRoundCount to: " + game[id].config.customRoundCount);  } // DELTA - Debug output
 }
