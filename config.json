@@ -9,6 +9,7 @@
 
   "use-reactions": false,
   "hangman-mode": false,
+  "hangman-hints": true,
   "hide-difficulty": false,
   "auto-delete-msgs": false,
   "auto-delete-answers": true,
@@ -22,6 +23,7 @@
   "score-multiplier-max": 0,
   "command-whitelist": [],
   "accept-first-answer-only": false,
+
 
   "prefix": "trivia ",
   "allow-eval": true,
