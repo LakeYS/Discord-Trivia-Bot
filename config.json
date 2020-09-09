@@ -23,7 +23,7 @@
   "score-multiplier-max": 0,
   "command-whitelist": [],
   "accept-first-answer-only": false,
-
+  "reveal-answers": true,
 
   "prefix": "trivia ",
   "allow-eval": true,

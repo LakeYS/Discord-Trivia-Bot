@@ -635,9 +635,15 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
     gameFooter = "\n\n" + gameFooter;
   }
 
+  var answerStr = "";
+
+  if(getConfigVal("reveal-answers", channel) === true) { // DELTA: Answers will be not shown in the Summary
+    answerStr = `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n`;
+  }
+
   Trivia.send(channel, void 0, {embed: {
     color: game[id].color,
-    description: `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}`
+    description: `${answerStr}${correctUsersStr}${gameEndedMsg}${gameFooter}`
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
       // NOTE: Participants check is repeated below in Trivia.doGame
