@@ -1127,7 +1127,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
         game[id].answer = question.correct_answer;
         game[id].date = new Date();
 
-        if(gameMode === 2) {
+        if(gameMode === 2 && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
           // Show a hint halfway through.
           // No need for special handling here because it will auto-cancel if
           // the game ends before running.
