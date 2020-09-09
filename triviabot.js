@@ -1133,7 +1133,11 @@ Trivia.stopGame = (channel, auto) => {
   let timeout = game[id].timeout;
   let inRound = game[id].inRound;
   let finalScoreStr = Trivia.leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants);
-  let totalParticipantCount = Object.keys(game[id].totalParticipants).length;
+  let totalParticipantCount;
+
+  if(game[id].totalParticipants === null) {
+    totalParticipantCount = Object.keys(game[id].totalParticipants).length;
+  }
 
   game[id].cancelled = 1;
 
@@ -1378,10 +1382,9 @@ function parseCommand(msg, cmd) {
           return;
         }
         else { // DELTA: Bot will send some rules at the beginning of every round
-          Trivia.SendRules(msg.channel);
-          setTimeout(() => {
+          Trivia.sendRules(msg.channel, setTimeout(() => {
             Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {}, category.id);
-          }, 10000); // DELTA
+          }, 10000)); // DELTA
           return;
         }
       })
@@ -1396,10 +1399,10 @@ function parseCommand(msg, cmd) {
     }
     else {
       // No category specified, start a normal game. (The database will pick a random category for us)
-      Trivia.SendRules(msg.channel); // DELTA: Bot will send some rules at the beginning of every round
-      setTimeout(() => {
+      // DELTA: Bot will send some rules at the beginning of every round
+      Trivia.sendRules(msg.channel, setTimeout(() => {
         Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {});
-      }, 10000); // DELTA
+      }, 10000)); // DELTA
       return;
     }
   }
@@ -1737,7 +1740,7 @@ global.client.on("ready", () => {
 });
 
 //DELTA - Send rule information to Channel
-Trivia.SendRules = function(channel) {
+Trivia.sendRules = (channel, timeout) => {
   let rules_string = "";
   if(getConfigVal("hangman-mode", channel) === true) {rules_string = "- :pencil: You have to write the answer to the question into the channel."; }
   if(getConfigVal("hangman-mode", channel) === false) {rules_string = "- :pencil: You have to write the correct letter as answer into the channel."; }
@@ -1747,6 +1750,15 @@ Trivia.SendRules = function(channel) {
   rules_string += `\n - :hourglass_flowing_sand: You have ${getConfigVal("round-length", channel)/1000} seconds to answer a question.`;
   if(getConfigVal("score-threshold", channel) >= 1) { rules_string += `\n - :medal: You need to get ${getConfigVal("score-threshold", channel)} points to receive the Role.`; }
   rules_string += `\n - :person_lifting_weights: Easy Questions will bring ${getConfigVal("score-value", channel)["easy"]}, medium ${getConfigVal("score-value", channel)["medium"]} and hard ${getConfigVal("score-value", channel)["hard"]} points.`;
+
+  // Init a temp game to store the timeout
+  game[channel.id] = {
+    "inProgress": 1,
+    "inRound": 0,
+
+    "timeout": timeout
+  };
+
   Trivia.send(channel, void 0, {embed: {
     color: Trivia.embedCol,
     description: `**Rules of the Game:**\n${rules_string}`
