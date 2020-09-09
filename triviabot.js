@@ -1378,9 +1378,9 @@ function parseCommand(msg, cmd) {
           return;
         }
         else { // DELTA: Bot will send some rules at the beginning of every round
-          Trivia.SendRules(msg.channel); 
-          setTimeout(() => { 
-            Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {}, category.id)
+          Trivia.SendRules(msg.channel);
+          setTimeout(() => {
+            Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {}, category.id);
           }, 10000); // DELTA
           return;
         }
@@ -1397,8 +1397,8 @@ function parseCommand(msg, cmd) {
     else {
       // No category specified, start a normal game. (The database will pick a random category for us)
       Trivia.SendRules(msg.channel); // DELTA: Bot will send some rules at the beginning of every round
-      setTimeout(() => { 
-        Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {})
+      setTimeout(() => {
+        Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {});
       }, 10000); // DELTA
       return;
     }
@@ -1739,18 +1739,18 @@ global.client.on("ready", () => {
 //DELTA - Send rule information to Channel
 Trivia.SendRules = function(channel) {
   let rules_string = "";
-  if(getConfigVal("hangman-mode", channel) === true) {rules_string = `- :pencil: You have to write the answer to the question into the channel.`; }
-  if(getConfigVal("hangman-mode", channel) === false) {rules_string = `- :pencil: You have to write the correct letter as answer into the channel.`; }
-  if(getConfigVal("auto-delete-msgs", channel) === true) {rules_string += `\n - :sponge: Messages by the bot will be automatically deleted after a few seconds.`; }
-  if(getConfigVal("auto-delete-answers", channel) === true) {rules_string += `\n - :mute: Answers by players will be automatically deleted immediately.`; }
-  if(getConfigVal("accept-first-answer-only", channel) === true) {rules_string += `\n - :one: Only your first answer counts. **So no need to spam different answers**.`; }
-  rules_string += `\n - :hourglass_flowing_sand: You have ` + getConfigVal("round-length", channel)/1000 + ` seconds to answer a question.`;
-  if(getConfigVal("score-threshold", channel) >= 1) { rules_string += `\n - :medal: You need to get ` + getConfigVal("score-threshold", channel) + ` points to receive the Role.`; }
-  rules_string += `\n - :person_lifting_weights: Easy Questions will bring ` + getConfigVal("score-value", channel)["easy"] + `, medium ` + getConfigVal("score-value", channel)["medium"] + ` and hard ` + getConfigVal("score-value", channel)["hard"] + ` points.`;
+  if(getConfigVal("hangman-mode", channel) === true) {rules_string = "- :pencil: You have to write the answer to the question into the channel."; }
+  if(getConfigVal("hangman-mode", channel) === false) {rules_string = "- :pencil: You have to write the correct letter as answer into the channel."; }
+  if(getConfigVal("auto-delete-msgs", channel) === true) {rules_string += "`\n - :sponge: Messages by the bot will be automatically deleted after a few seconds.`"; }
+  if(getConfigVal("auto-delete-answers", channel) === true) {rules_string += "`\n - :mute: Answers by players will be automatically deleted immediately.`"; }
+  if(getConfigVal("accept-first-answer-only", channel) === true) {rules_string += "`\n - :one: Only your first answer counts. **So no need to spam different answers**.`"; }
+  rules_string += `\n - :hourglass_flowing_sand: You have ${getConfigVal("round-length", channel)/1000} seconds to answer a question.`;
+  if(getConfigVal("score-threshold", channel) >= 1) { rules_string += `\n - :medal: You need to get ${getConfigVal("score-threshold", channel)} points to receive the Role.`; }
+  rules_string += `\n - :person_lifting_weights: Easy Questions will bring ${getConfigVal("score-value", channel)["easy"]}, medium ${getConfigVal("score-value", channel)["medium"]} and hard ${getConfigVal("score-value", channel)["hard"]} points.`;
   Trivia.send(channel, void 0, {embed: {
     color: Trivia.embedCol,
-    description: `**Rules of the Game:**\n`+rules_string
+    description: `**Rules of the Game:**\n${rules_string}`
   }}, void 0, true);
-  
+
   return;
-} // DELTA End 
+}; // DELTA End
