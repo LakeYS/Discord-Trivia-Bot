@@ -1742,14 +1742,28 @@ global.client.on("ready", () => {
 //DELTA - Send rule information to Channel
 Trivia.sendRules = (channel, timeout) => {
   let rules_string = "";
-  if(getConfigVal("hangman-mode", channel) === true) {rules_string = "- :pencil: You have to write the answer to the question into the channel."; }
-  if(getConfigVal("hangman-mode", channel) === false) {rules_string = "- :pencil: You have to write the correct letter as answer into the channel."; }
-  if(getConfigVal("auto-delete-msgs", channel) === true) {rules_string += "`\n - :sponge: Messages by the bot will be automatically deleted after a few seconds.`"; }
-  if(getConfigVal("auto-delete-answers", channel) === true) {rules_string += "`\n - :mute: Answers by players will be automatically deleted immediately.`"; }
-  if(getConfigVal("accept-first-answer-only", channel) === true) {rules_string += "`\n - :one: Only your first answer counts. **So no need to spam different answers**.`"; }
-  rules_string += `\n - :hourglass_flowing_sand: You have ${getConfigVal("round-length", channel)/1000} seconds to answer a question.`;
-  if(getConfigVal("score-threshold", channel) >= 1) { rules_string += `\n - :medal: You need to get ${getConfigVal("score-threshold", channel)} points to receive the Role.`; }
-  rules_string += `\n - :person_lifting_weights: Easy Questions will bring ${getConfigVal("score-value", channel)["easy"]}, medium ${getConfigVal("score-value", channel)["medium"]} and hard ${getConfigVal("score-value", channel)["hard"]} points.`;
+  if(getConfigVal("hangman-mode", channel)) {
+    rules_string += "- :pencil: Type the complete answer to the question for points.";
+
+    if(getConfigVal("hangman-hints", channel))
+      rules_string += "\n- :pencil: A hint will be revealed halfway through each round.";
+  }
+  else if(getConfigVal("use-reactions", channel))
+    rules_string += "- :1234: Click a reaction letter to answer the question for points.";
+  else
+    rules_string += "- :pencil: Type a letter to answer for points.";
+
+  if(getConfigVal("auto-delete-msgs", channel))
+    rules_string += "`\n - :sponge: Messages by the bot will be automatically deleted after a few seconds.`";
+  if(getConfigVal("auto-delete-answers", channel))
+    rules_string += "\n - :mute: Your answers will be automatically deleted.";
+  if(getConfigVal("accept-first-answer-only", channel))
+    rules_string += "`\n - :one: Only your first answer counts. **No need to spam different answers**.`";
+  rules_string += `\n - :hourglass_flowing_sand: Each round will last ${getConfigVal("round-length", channel)/1000} seconds.`;
+  if(getConfigVal("score-threshold", channel) >= 1)
+    rules_string += `\n - :medal: You need to get ${getConfigVal("score-threshold", channel)} points to receive the role.`;
+  if(!getConfigVal("hide-difficulty", channel))
+    rules_string += `\n - :person_lifting_weights: You earn points for each round based on the difficulty. ${getConfigVal("score-value", channel)["easy"]} points for easy questions, ${getConfigVal("score-value", channel)["medium"]} for medium, and ${getConfigVal("score-value", channel)["hard"]} for hard questions.`;
 
   // Init a temp game to store the timeout
   game[channel.id] = {
@@ -1763,6 +1777,4 @@ Trivia.sendRules = (channel, timeout) => {
     color: Trivia.embedCol,
     description: `**Rules of the Game:**\n${rules_string}`
   }}, void 0, true);
-
-  return;
 }; // DELTA End
