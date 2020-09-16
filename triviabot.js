@@ -519,8 +519,9 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
   if(game[id].cancelled) {
     gameEndedMsg = "\n\n*Game ended by admin.*";
   }
-  else if(Object.keys(game[id].participants).length === 0 && !game[id].config.customRoundCount) {
+  else if(Object.keys(game[id].participants).length === 0 && !game[id].config.useFixedRounds) {
     // If there were no participants...
+    // This is skipped in fixed rounds.
     if(game[id].emptyRoundCount+1 >= getConfigVal("rounds-end-after", channel)) {
       doAutoEnd = 1;
       gameEndedMsg = "\n\n*Game ended.*";
@@ -528,7 +529,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
       game[id].emptyRoundCount++;
 
       // Round end warning after we're halfway through the inactive round cap.
-      if(!getConfigVal("round-end-warnings-disabled", channel) && game[id].emptyRoundCount >= Math.ceil(getConfigVal("rounds-end-after", channel)/2) && !game[id].config.customRoundCount) { // DELTA: Added Custom Round config
+      if(!getConfigVal("round-end-warnings-disabled", channel) && game[id].emptyRoundCount >= Math.ceil(getConfigVal("rounds-end-after", channel)/2)) {
         var roundEndCount = getConfigVal("rounds-end-after", channel.id)-game[id].emptyRoundCount;
         gameFooter += `Game will end in ${roundEndCount} round${roundEndCount===1?"":"s"} if nobody participates.`;
       }
@@ -943,6 +944,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
   // DELTA - Adding fixed number of rounds game
 if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) !== false) {
   game[id].config.customRoundCount = getConfigVal("rounds-fixed-number", channel);
+  game[id].config.useFixedRounds = 1;
   if(getConfigVal("debug-log")) { console.log("Setting CustomRoundCount to: " + game[id].config.customRoundCount);  } // DELTA - Debug output
 }
 // DELTA - Adding fixed number of rounds game - END
@@ -1140,6 +1142,7 @@ Trivia.stopGame = (channel, auto) => {
   let inRound = game[id].inRound;
   let finalScoreStr = Trivia.leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants);
   let totalParticipantCount = Object.keys(game[id].totalParticipants).length;
+  let useFixedRounds = game[id].config.useFixedRounds;
 
   game[id].cancelled = 1;
 
@@ -1153,13 +1156,14 @@ Trivia.stopGame = (channel, auto) => {
       onTimeout();
     }
   }
+
   // If there's still a game, clear it.
   if(typeof game[id] !== "undefined") {
     triviaEndGame(id);
   }
 
   // Display a message if between rounds
-  if(!inRound && typeof customRoundCount === "undefined") { // DELTA: Only if no fixed rounds are played.
+  if(!inRound && !useFixedRounds) { // DELTA: Only if no fixed rounds are played.
     var headerStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
 
     Trivia.send(channel, void 0, {embed: {
