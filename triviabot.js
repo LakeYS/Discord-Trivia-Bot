@@ -646,7 +646,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
     description: `${answerStr}${correctUsersStr}${gameEndedMsg}${gameFooter}`
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
-      // NOTE: Participants check is repeated below in Trivia.doGame
+      // NOTE: Participants check is repeated below in Trivia.doGame/initGame
       if(!err && !doAutoEnd) {
         game[id].timeout = setTimeout(() => {
           if(getConfigVal("auto-delete-msgs", channel)) {
@@ -655,7 +655,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
               console.log(`Failed to delete message - ${err.message}`);
             });
           }
-          Trivia.doGame(id, channel, void 0, 1);
+          Trivia.initGame(id, channel, void 0, 1);
         }, roundTimeout);
       }
       else {
@@ -847,7 +847,7 @@ function doHangmanHint(channel, answer) {
   }});
 }
 
-// # Trivia.doGame #
+// # Trivia.initGame #
 // TODO: Refactor and reduce args
 // - id: The unique identifier for the channel that the game is in.
 // - channel: The channel object that correlates with the game.
@@ -857,7 +857,7 @@ function doHangmanHint(channel, answer) {
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
 //
-Trivia.doGame = async function(id, channel, author, scheduled, config, category, typeInput, difficultyInput, modeInput) {
+Trivia.initGame = async function(id, channel, author, scheduled, config, category, typeInput, difficultyInput, modeInput) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   // Checks are excepted for games that are being resumed from cache or file.
   if(typeof game[id] !== "undefined" && !game[id].resuming) {
@@ -947,6 +947,10 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     "config": typeof game[id]!=="undefined"?game[id].config:config
   };
 
+  return Trivia.doGame(id, channel, author, isFirstQuestion, gameMode);
+};
+
+Trivia.doGame = async(id, channel, author, scheduled, isFirstQuestion, gameMode) => {
   var question, answers = [], difficultyReceived, correct_answer;
   try {
     question = await getTriviaQuestion(0, channel, 0, isFirstQuestion, game[id].category, game[id].typeInput, game[id].difficultyInput);
@@ -1139,7 +1143,11 @@ Trivia.stopGame = (channel, auto) => {
   let timeout = game[id].timeout;
   let inRound = game[id].inRound;
   let finalScoreStr = Trivia.leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants);
-  let totalParticipantCount = Object.keys(game[id].totalParticipants).length;
+  let totalParticipantCount;
+
+  if(game[id].totalParticipants === null) {
+    totalParticipantCount = Object.keys(game[id].totalParticipants).length;
+  }
 
   game[id].cancelled = 1;
 
@@ -1383,8 +1391,10 @@ function parseCommand(msg, cmd) {
           }});
           return;
         }
-        else {
-          Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {}, category.id);
+        else { // DELTA: Bot will send some rules at the beginning of every round
+          Trivia.sendRules(msg.channel, setTimeout(() => {
+            Trivia.initGame(msg.channel.id, msg.channel, msg.author, 0, {}, category.id);
+          }, 10000)); // DELTA
           return;
         }
       })
@@ -1399,7 +1409,10 @@ function parseCommand(msg, cmd) {
     }
     else {
       // No category specified, start a normal game. (The database will pick a random category for us)
-      Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {});
+      // DELTA: Bot will send some rules at the beginning of every round
+      Trivia.sendRules(msg.channel, setTimeout(() => {
+        Trivia.initGame(msg.channel.id, msg.channel, msg.author, 0, {});
+      }, 10000)); // DELTA
       return;
     }
   }
@@ -1565,7 +1578,7 @@ function triviaResumeGame(json, id) {
       timeout = date-new Date();
 
       game[id].timeout = setTimeout(() => {
-        Trivia.doGame(id, channel, void 0, 0, {}, json.category);
+        Trivia.initGame(id, channel, void 0, 0, {}, json.category);
       }, timeout);
     }
   }
@@ -1735,3 +1748,43 @@ global.client.on("ready", () => {
     Trivia.importGame(file, 1);
   }
 });
+
+//DELTA - Send rule information to Channel
+Trivia.sendRules = (channel, timeout) => {
+  let rules_string = "";
+  if(getConfigVal("hangman-mode", channel)) {
+    rules_string += "- :pencil: Type the complete answer to the question for points.";
+
+    if(getConfigVal("hangman-hints", channel))
+      rules_string += "\n- :pencil: A hint will be revealed halfway through each round.";
+  }
+  else if(getConfigVal("use-reactions", channel))
+    rules_string += "- :1234: Click a reaction letter to answer the question for points.";
+  else
+    rules_string += "- :pencil: Type a letter to answer for points.";
+
+  if(getConfigVal("auto-delete-msgs", channel))
+    rules_string += "`\n - :sponge: Messages by the bot will be automatically deleted after a few seconds.`";
+  if(getConfigVal("auto-delete-answers", channel))
+    rules_string += "\n - :mute: Your answers will be automatically deleted.";
+  if(getConfigVal("accept-first-answer-only", channel))
+    rules_string += "`\n - :one: Only your first answer counts. **No need to spam different answers**.`";
+  rules_string += `\n - :hourglass_flowing_sand: Each round will last ${getConfigVal("round-length", channel)/1000} seconds.`;
+  if(getConfigVal("score-threshold", channel) >= 1)
+    rules_string += `\n - :medal: You need to get ${getConfigVal("score-threshold", channel)} points to receive the role.`;
+  if(!getConfigVal("hide-difficulty", channel))
+    rules_string += `\n - :person_lifting_weights: You earn points for each round based on the difficulty. ${getConfigVal("score-value", channel)["easy"]} points for easy questions, ${getConfigVal("score-value", channel)["medium"]} for medium, and ${getConfigVal("score-value", channel)["hard"]} for hard questions.`;
+
+  // Init a temp game to store the timeout
+  game[channel.id] = {
+    "inProgress": 1,
+    "inRound": 0,
+
+    "timeout": timeout
+  };
+
+  Trivia.send(channel, void 0, {embed: {
+    color: Trivia.embedCol,
+    description: `**Rules of the Game:**\n${rules_string}`
+  }}, void 0, true);
+}; // DELTA End
