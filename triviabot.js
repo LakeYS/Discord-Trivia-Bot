@@ -640,7 +640,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
     description: `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}`
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
-      // NOTE: Participants check is repeated below in Trivia.doGame
+      // NOTE: Participants check is repeated below in Trivia.doGame/initGame
       if(!err && !doAutoEnd) {
         game[id].timeout = setTimeout(() => {
           if(getConfigVal("auto-delete-msgs", channel)) {
@@ -649,7 +649,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
               console.log(`Failed to delete message - ${err.message}`);
             });
           }
-          Trivia.doGame(id, channel, void 0, 1);
+          Trivia.initGame(id, channel, void 0, 1);
         }, roundTimeout);
       }
       else {
@@ -841,7 +841,7 @@ function doHangmanHint(channel, answer) {
   }});
 }
 
-// # Trivia.doGame #
+// # Trivia.initGame #
 // TODO: Refactor and reduce args
 // - id: The unique identifier for the channel that the game is in.
 // - channel: The channel object that correlates with the game.
@@ -851,7 +851,7 @@ function doHangmanHint(channel, answer) {
 //              Keep false if starting on a user's command. (must
 //              already have a game initialized to start)
 //
-Trivia.doGame = async function(id, channel, author, scheduled, config, category, typeInput, difficultyInput, modeInput) {
+Trivia.initGame = async function(id, channel, author, scheduled, config, category, typeInput, difficultyInput, modeInput) {
   // Check if there is a game running. If there is one, make sure it isn't frozen.
   // Checks are excepted for games that are being resumed from cache or file.
   if(typeof game[id] !== "undefined" && !game[id].resuming) {
@@ -941,6 +941,10 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     "config": typeof game[id]!=="undefined"?game[id].config:config
   };
 
+  return Trivia.doGame(id, channel, author, isFirstQuestion, gameMode);
+};
+
+Trivia.doGame = async(id, channel, author, scheduled, isFirstQuestion, gameMode) => {
   var question, answers = [], difficultyReceived, correct_answer;
   try {
     question = await getTriviaQuestion(0, channel, 0, isFirstQuestion, game[id].category, game[id].typeInput, game[id].difficultyInput);
@@ -1383,7 +1387,7 @@ function parseCommand(msg, cmd) {
         }
         else { // DELTA: Bot will send some rules at the beginning of every round
           Trivia.sendRules(msg.channel, setTimeout(() => {
-            Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {}, category.id);
+            Trivia.initGame(msg.channel.id, msg.channel, msg.author, 0, {}, category.id);
           }, 10000)); // DELTA
           return;
         }
@@ -1401,7 +1405,7 @@ function parseCommand(msg, cmd) {
       // No category specified, start a normal game. (The database will pick a random category for us)
       // DELTA: Bot will send some rules at the beginning of every round
       Trivia.sendRules(msg.channel, setTimeout(() => {
-        Trivia.doGame(msg.channel.id, msg.channel, msg.author, 0, {});
+        Trivia.initGame(msg.channel.id, msg.channel, msg.author, 0, {});
       }, 10000)); // DELTA
       return;
     }
@@ -1568,7 +1572,7 @@ function triviaResumeGame(json, id) {
       timeout = date-new Date();
 
       game[id].timeout = setTimeout(() => {
-        Trivia.doGame(id, channel, void 0, 0, {}, json.category);
+        Trivia.initGame(id, channel, void 0, 0, {}, json.category);
       }, timeout);
     }
   }
