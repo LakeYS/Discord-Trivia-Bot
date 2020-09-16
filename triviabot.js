@@ -941,7 +941,15 @@ Trivia.initGame = async function(id, channel, author, scheduled, config, categor
     "config": typeof game[id]!=="undefined"?game[id].config:config
   };
 
-  return Trivia.doGame(id, channel, author, isFirstQuestion, gameMode);
+  if(getConfigVal("display-pregame-rules")) {
+    Trivia.sendRules(channel, setTimeout(() => {
+      // DELTA: Bot will send some rules at the beginning of every round
+      return Trivia.doGame(id, channel, author, isFirstQuestion, gameMode);
+    }, 10000)); // DELTA
+  }
+  else {
+    return Trivia.doGame(id, channel, author, isFirstQuestion, gameMode);
+  }
 };
 
 Trivia.doGame = async(id, channel, author, scheduled, isFirstQuestion, gameMode) => {
@@ -1385,10 +1393,8 @@ function parseCommand(msg, cmd) {
           }});
           return;
         }
-        else { // DELTA: Bot will send some rules at the beginning of every round
-          Trivia.sendRules(msg.channel, setTimeout(() => {
-            Trivia.initGame(msg.channel.id, msg.channel, msg.author, 0, {}, category.id);
-          }, 10000)); // DELTA
+        else {
+          Trivia.initGame(msg.channel.id, msg.channel, msg.author, 0, {}, category.id);
           return;
         }
       })
@@ -1403,10 +1409,7 @@ function parseCommand(msg, cmd) {
     }
     else {
       // No category specified, start a normal game. (The database will pick a random category for us)
-      // DELTA: Bot will send some rules at the beginning of every round
-      Trivia.sendRules(msg.channel, setTimeout(() => {
-        Trivia.initGame(msg.channel.id, msg.channel, msg.author, 0, {});
-      }, 10000)); // DELTA
+      Trivia.initGame(msg.channel.id, msg.channel, msg.author, 0, {});
       return;
     }
   }

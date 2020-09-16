@@ -22,6 +22,7 @@
   "score-multiplier-max": 0,
   "command-whitelist": [],
   "accept-first-answer-only": false,
+  "display-pregame-rules": false,
 
   "prefix": "trivia ",
   "allow-eval": true,
