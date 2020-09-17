@@ -531,7 +531,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
       // Round end warning after we're halfway through the inactive round cap.
       if(!getConfigVal("round-end-warnings-disabled", channel) && game[id].emptyRoundCount >= Math.ceil(getConfigVal("rounds-end-after", channel)/2)) {
         var roundEndCount = getConfigVal("rounds-end-after", channel.id)-game[id].emptyRoundCount;
-        gameFooter += `Game will end in ${roundEndCount} round${roundEndCount===1?"":"s"} if nobody participates.`;
+        gameFooter += `Game will end in ${roundEndCount} round${roundEndCount===1?"":"s"} if there is no activity.`;
       }
     }
   } else {
@@ -1064,7 +1064,7 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) !== false) {
 
     // Add an extra initial message to let users know the game will insta-end with no answers.
     if(!getConfigVal("round-end-warnings-disabled", channel) && getConfigVal("rounds-end-after", channel) === 1 && !game[id].config.customRoundCount) {
-      infoString += "\nThe game will end automatically if nobody participates.";
+      infoString += "\nThe game will when there is no activity in a round.";
     }
   }
 
