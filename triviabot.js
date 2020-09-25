@@ -1064,7 +1064,7 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) !== false) {
 
     // Add an extra initial message to let users know the game will insta-end with no answers.
     if(!getConfigVal("round-end-warnings-disabled", channel) && getConfigVal("rounds-end-after", channel) === 1 && !game[id].config.customRoundCount) {
-      infoString += "\nThe game will when there is no activity in a round.";
+      infoString += "\nThe game will end when there is no activity in a round.";
     }
   }
 
