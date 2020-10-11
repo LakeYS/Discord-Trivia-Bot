@@ -43,8 +43,6 @@
 
   "additional-packages": [],
   "additional-packages-root": [],
-  "beta-mode": false,
-  "beta-require-external-function": false,
   "debug-mode": false,
   "debug-log": false,
   "debug-database-flush": false,
