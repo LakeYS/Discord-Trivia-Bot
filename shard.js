@@ -127,11 +127,12 @@ if(Config["beta-mode"]) {
 
 // # Discord Client Login # //
 global.client.login(global.client.token);
+process.title = `Trivia - Shard ${global.client.shard.id} (Initializing)`;
 
 global.client.on("ready", () => {
   console.log("Shard " + global.client.shard.id + " connected to\x1b[1m " + global.client.guilds.size + " \x1b[0mserver" + (global.client.guilds.size===1?"":"s") + ".");
 
-  process.title = `Shard ${global.client.shard.id} - TriviaBot`;
+  process.title = `Trivia - Shard ${global.client.shard.id}`;
 
   if(global.client.user.avatar === null) {
     console.log("Set profile image to profile.png");
