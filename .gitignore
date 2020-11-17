@@ -1,21 +1,28 @@
-# Node.js
+# Node.js and TriviaBot Files
 node_modules
-update.sh
-game.json.bak
-config_private*.json
-config_dev*.json
-config_beta*.json
-run_private*.bat
-run_private*.sh
-run_dev*.bat
-run_dev*.sh
-run_beta*.bat
-run_beta*.sh
+game*.json.bak
+config_*.json
+stats*.json*
+auth*.json
+
+# Scripts
+run_*.bat
+run_*.sh
 update*.bat
 update*.sh
+
+# TriviaBot Info Directories
+Questions_*/*
+Scores*/*
+
+# Builds
 TriviaBot/*
 triviabot.tar.gz
 TriviaBot.zip
+
+# Binaries
+bin/*
+node.exe
 
 # Windows image file caches
 Thumbs.db

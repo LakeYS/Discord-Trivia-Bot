@@ -1,0 +1,15 @@
+# Category 1 - Video Games
+---
+questions:
+- question: In the video game Terraria, the Moon Lord is a hardmode boss.
+  difficulty: easy
+  correct_answer: 'True'
+  incorrect_answers:
+  - 'False'
+- question: Who is the main antagonist of the Crash Bandicoot franchise?
+  difficulty: medium
+  correct_answer: Dr. Neo Cortex
+  incorrect_answers:
+  - Dr. Nitrus Brio
+  - Dr. Nefarious Tropy
+  - Nitros Oxide

@@ -1,0 +1,15 @@
+# Category 0 - Science
+---
+questions:
+- question: Compared to Earth, what is the approximate force of gravity on the moon?
+  difficulty: medium
+  correct_answer: One sixth
+  incorrect_answers:
+  - One half
+  - One eighth
+  - The same
+- question: Buzz Aldrin was the first man to step on the moon.
+  difficulty: medium
+  correct_answer: 'False'
+  incorrect_answers:
+  - 'True'

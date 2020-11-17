@@ -5,7 +5,8 @@
     },
     "extends": "eslint:recommended",
     "parserOptions": {
-        "sourceType": "module"
+        "sourceType": "module",
+        "ecmaVersion": 8
     },
     "rules": {
         "linebreak-style": [
@@ -20,6 +21,14 @@
             "error",
             "always"
         ],
-        "no-console": "off"
+        "eqeqeq": [
+            "warn",
+            "always"
+        ],
+        "no-console": "off",
+        "no-irregular-whitespace": "off",
+        "block-scoped-var": [
+            "warn"
+        ]
     }
 }

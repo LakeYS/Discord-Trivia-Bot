@@ -1,100 +1,175 @@
-/*jshint esversion: 6 */
-/*jshint evil:true */
-
 const Discord = require("discord.js");
-global.client = new Discord.Client();
-const trivia = require("./discord-trivia-func.js");
+const { Client } = Discord;
 const snekfetch = require("snekfetch");
 
-global.config = require(process.argv[2]);
+var Config = require("./lib/config.js")(process.argv[2]).config;
 
-if(global.config.prefix === undefined)
-  global.config.prefix = "trivia ";
+global.client = new Client({
+  retryLimit: 3,
+  messageCacheMaxSize: 50
+});
 
+global.Trivia = require("./triviabot.js");
+
+if(Config["fallback-mode"] && Config["debug-mode"]) {
+  require("./lib/failover_client.js")(Config);
+}
+else if(Config["debug-mode"]) {
+  require("./lib/failover_server.js");
+}
+
+if(Config["debug-log"]) {
+  global.client.on("debug", (info) => {
+    console.log("DEBUG [" + global.client.shard.id + "]: " + info);
+  });
+}
+
+// # Post to Bot Listings # //
+function postBotStats() {
+  // The following sites only need the total shard count, so we'll only post using the last shard.
+
+  // TODO: Fix this for when shards spawn out of order
+  if(global.client.shard.id === global.client.shard.count-1) {
+    global.client.shard.fetchClientValues("guilds.size")
+    .then((countArray) => {
+      var guildCountVal = countArray.reduce((prev, val) => prev + val, 0);
+      var id = global.client.user.id;
+
+      if(guildCountVal > 1) {
+        console.log("===== Posting guild count of\x1b[1m " + guildCountVal + "\x1b[0m =====");
+      }
+
+      var listings = {
+        // If 'data' not specified, assume it is this: { server_count: guildCount }
+        "botsfordiscord.com": {
+          url: `https://botsfordiscord.com/api/bot/${id}/`
+        },
+        "botlist.space": {
+          url: `https://botlist.space/api/bots/${id}/`
+        },
+        "discordbots.group": {
+          url: `https://discordbots.group/api/bot/${id}`,
+          data: { count: guildCountVal }
+        },
+        "discord.bots.gg": {
+          url: `https://discord.bots.gg/api/v1/bots/${id}/stats`,
+          data: { guildCount: guildCountVal }
+        },
+        "discordbots.org": {
+          url: `https://discordbots.org/api/bots/${id}/stats`
+        },
+        "discordbot.world": {
+          url: `https://discordbot.world/api/bot/${id}/stats`
+        }
+      };
+
+      for(var site in listings) {
+        if(Config[`${site}-token`] && Config[`${site}-token`] !== "optionaltokenhere") {
+          var data = listings[site].data || { server_count: guildCountVal };
+
+          snekfetch.post(listings[site].url)
+          .set("Authorization", Config[`${site}-token`])
+          .send(data)
+          .catch((err) => {
+            console.log(`Error occurred while posting to ${err.request.connection.servername} on shard ${global.client.shard.id}:\n${err}`);
+
+            if(typeof err.text !== "undefined") {
+              console.log("Response included with the error: " + err.text);
+            }
+          })
+          .then((res) => {
+            if(typeof res !== "undefined") {
+              console.log(`Posted to site ${res.request.connection.servername}, received response: ${res.text}`);
+            }
+          });
+        }
+      }
+    });
+  }
+}
+
+// # Custom Package Loading # //
+if(typeof Config["additional-packages"] !== "undefined") {
+  Config["additional-packages"].forEach((key) => {
+    require(key)(global.Trivia);
+  });
+}
+
+// # Beta/Private Mode # //
+// NOTE: Not compatible with multiple shards if using external authentication.
+async function guildBetaCheck(guild, skipRefresh) {
+  if(typeof Config.betaAuthorizedRefresh === "function") {
+    // If initializing, we only need to refresh once.
+    if(!skipRefresh) {
+      await Config.betaAuthorizedRefresh();
+    }
+    Config.guildBetaCheck(guild);
+  }
+  else if(Config["beta-require-external-function"]) {
+    console.error("ERROR: Unable to refresh beta authorized list. Skipping auth process.");
+
+    // Auto-reject guilds that were just added in the last 60s.
+    if(new Date().getTime()-60000 < guild.joinedAt.getTime()) {
+      console.log(`Guild ${guild.id} (${guild.name}) REJECTED (Unable to authenticate, auto-rejected)`);
+      guild.leave();
+    }
+    return;
+  }
+}
+
+if(Config["beta-mode"]) {
+  global.client.on("guildCreate", (guild) => {
+    setTimeout(() => {
+      guildBetaCheck(guild);
+    }, 1000);
+  });
+}
+
+// # Discord Client Login # //
 global.client.login(global.client.token);
 
 global.client.on("ready", () => {
   console.log("Shard " + global.client.shard.id + " connected to\x1b[1m " + global.client.guilds.size + " \x1b[0mserver" + (global.client.guilds.size===1?"":"s") + ".");
 
-  if(global.client.user.avatar == null) {
+  process.title = `Shard ${global.client.shard.id} - TriviaBot`;
+
+  if(global.client.user.avatar === null) {
     console.log("Set profile image to profile.png");
     global.client.user.setAvatar("./profile.png");
   }
 
-  global.client.user.setPresence({ game: { name: "Trivia! Type '" + global.config.prefix + "help' to get started.", type: 0 } });
+  global.client.user.setPresence({ game: { name: "Trivia! Type '" + Config.prefix + "help' to get started.", type: 0 } });
 
-  global.postBotStats();
-});
-
-global.client.on("disconnect", function(event) {
-  if(event.code !== 1000) {
-    console.log("Discord global.client disconnected with reason: " + event.reason + " (" + event.code + "). Attempting to reconnect in 6s...");
-    setTimeout(() => { global.client.login(global.config.token); }, 6000);
+  if(Config["beta-mode"]) {
+    var skip = false;
+    global.client.guilds.forEach((guild) => {
+      guildBetaCheck(guild, skip);
+      skip = true;
+    });
   }
+
+  postBotStats();
 });
 
-global.client.on("error", function(err) {
-  console.log("Discord global.client error '" + err.code + "'. Attempting to reconnect in 6s...");
-
-  global.client.destroy();
-  setTimeout(() => { global.client.login(global.config.token); }, 6000);
+global.client.on("disconnect", () => {
+  console.log("Discord client disconnected.");
 });
 
-global.client.on("message", msg => {
+global.client.on("error", (err) => {
+  console.log("Discord client error: " + err.message);
+
+  global.Trivia.exportGame();
+  process.exit();
+});
+
+global.client.on("message", (msg) => {
   var str = msg.toString().toUpperCase();
 
   if(msg.channel.type === "text" || msg.channel.type === "dm") {
-    trivia.parse(str, msg);
+    global.Trivia.parse(str, msg);
   }
 });
 
 global.client.on("messageReactionAdd", (reaction, user) => {
-  trivia.reactionAdd(reaction, user);
+  global.Trivia.reactionAdd(reaction, user);
 });
-
-// # Console Functions # //
-process.stdin.on("data", function (text) {
-  var id = process.pid;
-  if(global.client.shard !== null)
-    id = id + ":" + global.client.shard.id;
-
-  global.client.shard.broadcastEval(text.toString())
-  .then(res => {
-    console.log("#" + id + ": " + res);
-  })
-  .catch(err => {
-    console.log("#" + id + ": Eval err " + err);
-  });
-});
-
-// # Post to Bot Listings # //
-global.postBotStats = () => {
-  // ## bots.discord.pw ## //
-  if(global.config["bots.discord.pw-token"] && global.config["bots.discord.pw-token"] !== "optionaltokenhere")
-  {
-    snekfetch.post("https://bots.discord.pw/api/bots/" + global.client.user.id + "/stats")
-      .set("Authorization",global.config["bots.discord.pw-token"])
-      .send({
-        shard_id: global.client.shard.id,
-        shard_count: global.client.shard.count,
-        server_count: global.client.guilds.size
-      }).catch(err => {
-        console.log("Error occurred while posting to bots.discord.pw on shard " + global.client.shard.id + ":\n" + err);
-        console.log("Error occurred while posting to bots.discord.pw on shard " + global.client.shard.id + ":\n" + err);
-      });
-  }
-
-  // ## discordbots.org ## //
-  if(global.config["discordbots.org-token"] && global.config["discordbots.org-token"] !== "optionaltokenhere")
-  {
-    snekfetch.post("https://discordbots.org/api/bots/" + global.client.user.id + "/stats")
-      .set("Authorization",global.config["discordbots.org-token"])
-      .send({
-        shard_id: global.client.shard.id,
-        shard_count: global.client.shard.count,
-        server_count: global.client.guilds.size
-      }).catch(err => {
-        console.log("Error occurred while posting to discordbots.org on shard " + global.client.shard.id + ":\n" + err);
-      });
-  }
-};

@@ -1,169 +1,283 @@
-/*jshint esversion: 6 */
-/*jshint evil:true */
-
 const pjson = require("./package.json");
+const fs = require("fs");
+const { ShardingManager } = require("discord.js");
 
-// Note that the spacing of the artwork will mess up with double-digit version numbers (such as '1.10.0')
-if(process.stdout.columns > 61)
-  console.log("                 ########\n            ##################\n         ###      #######     ###\n       ###    ###############   ###\n     ###    ####################  ###\n    ###     #########    ########  ###\n   ###     ########      ########   ###\n  ###       #####       ########     ###\n ###                  ##########      ### \x1b[7m TriviaBot Version " + pjson.version + "   \x1b[0m\n ###               ###########        ### \x1b[7m Copyright (c) 2018 Lake Y \x1b[0m\n ###              #########           ### \x1b[7m http://lakeys.net         \x1b[0m\n  ###             ########           ###\n   ###            ######            ###\n    ###            ####            ###\n      ###         ######         ###\n        ###      #######       ###\n          #####    ####    #####\n               ############\n                  ######");
-else
-  console.log("                 ########\n            ##################\n         ###      #######     ###\n       ###    ###############   ###\n     ###    ####################  ###\n    ###     #########    ########  ###\n   ###     ########      ########   ###\n  ###       #####       ########     ###\n ###                  ##########      ###\n ###               ###########        ###\n ###              #########           ###\n  ###             ########           ###\n   ###            ######            ###\n    ###            ####            ###\n      ###         ######         ###\n        ###      #######       ###\n          #####    ####    #####\n               ############\n                  ######\n\x1b[7m TriviaBot Version 1" + pjson.version + "   \x1b[0m\n\x1b[7m Copyright (c) 2018 Lake Y \x1b[0m\n\x1b[7m http://lakeys.net         \x1b[0m");
+process.title = `TriviaBot ${pjson.version}`;
 
-const os = require("os");
-console.log(os.platform() + " " + os.totalmem() + " " + os.cpus()[0].model + " x" + Object.keys(os.cpus()).length);
 
-const https = require("https");
+// # Art Display # //
+// process.stdout.columns returns "undefined" in certain situations
+var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version}        `,
+                 "\x1b[7m Copyright (c) 2018-2020 Lake Y \x1b[0m",
+                 "\x1b[7m https://lakeys.net             \x1b[0m" ];
 
-process.title = "TriviaBot " + pjson.version;
+// Adjust length of the first line
+strArray[0] = strArray[0].padEnd(31," ") + "\x1b[0m";
 
-// # Initialize Config # //
-configFile = "./config.json";
+var strSide = ["", "", ""];
+var strBottom = "";
 
+if(process.stdout.columns > 61) {
+  strSide = strArray;
+}
+else {
+  strBottom = `\n${strArray[0]}\n${strArray[1]}\n${strArray[2]}`;
+}
+
+// See here for an example of how this looks when the application is running:
+// http://lakeys.net/triviabot/console.png
+console.log(`\
+                 ########
+            ##################
+         ###      #######     ###
+       ###    ###############   ###
+     ###    ####################  ###
+    ###     #########    ########  ###
+   ###     ########      ########   ###
+  ###       #####       ########     ###
+ ###                  ##########      ### ${strSide[0]}
+ ###               ###########        ### ${strSide[1]}
+ ###              #########           ### ${strSide[2]}
+  ###             ########           ###
+   ###            ######            ###
+    ###            ####            ###
+      ###         ######         ###
+        ###      #######       ###
+          #####    ####    #####
+               ############
+                  ######${strBottom}`);
+
+// # Initialize Config Args # //
+var configFile;
 for(var i = 0; i <= process.argv.length; i++) {
-  if(process.argv[i] !== undefined && process.argv[i].startsWith("--configfile=")) {
-    var configFile = process.argv[i].replace("--configfile=", "");
+  if(typeof process.argv[i] !== "undefined" && process.argv[i].startsWith("--configfile=")) {
+    configFile = process.argv[i].replace("--configfile=", "");
   }
 }
 
-global.config = require(configFile);
-
-if(global.config["shard-count"] === undefined)
-  global.config["shard-count"] = "auto";
-
-// # Version Check # //
-var skipVersionCheck = 0;
-
-if(!global.config["disable-version-check"]) {
-// If, for whatever reason, semver-compare isn't installed, we'll skip the version check.
-  try {
-    var semver = require("semver-compare");
-  } catch(err) {
-    if(err.code === "MODULE_NOT_FOUND") {
-      console.warn("********\nWARNING: semver-compare module not found. The version check will be skipped.\nMake sure to keep the bot up-to-date! Check here for newer versions:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
-      skipVersionCheck = 1;
-    }
-    else
-      throw(err);
-  }
-
-  if(!skipVersionCheck) {
-    var options = {
-      host: "api.github.com",
-      path: "/repos/LakeYS/Discord-Trivia-Bot/releases/latest",
-      method: "GET",
-      headers: {"user-agent":"Discord-Trivia-Bot"}
-    };
-
-    var input = "";
-    var json = "";
-    var request = https.request(options, (res) => {
-      res.on("data", (data) => {
-        input = input + data; // Combine the data
-      });
-      res.on("error", (err) => {
-        console.log(err);
-      });
-      res.on("uncaughtException", (err) => {
-        console.log(err);
-      });
-
-      // Note that if there is an error while parsing the JSON data, the bot will crash.
-      res.on("end", () => {
-        if(input !== undefined) {
-          json = JSON.parse(input.toString());
-          if(json.tag_name === undefined) {
-            console.log(json);
-            console.warn("WARNING: Unable to parse version data.");
-            }
-            else {
-              const release = json.tag_name.replace("v",""); // Mark the release
-
-              // Compare this build's version to the latest release.
-              var releaseRelative = semver(pjson.version, release);
-
-              if(releaseRelative === 1)
-                console.log("********\nNOTICE: You are currently running\x1b[1m v" + pjson.version + "\x1b[0m. This build is considered unstable.\nCheck here for the latest stable versions of this script:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
-
-              if(releaseRelative === -1)
-                console.log("********\nNOTICE: You are currently running\x1b[1m v" + pjson.version + "\x1b[0m. A newer version is available.\nCheck here for the latest version of this script:\n\x1b[1m https://github.com/LakeYS/Discord-Trivia-Bot/releases \x1b[0m\n********");
-            }
-          }
-        else {
-          console.log(input); // Log the input on error
-          console.log("WARNING: Unable to parse version data.");
-        }
-      });
-    });
-
-    request.end();
-    process.nextTick(() => {
-      request.on("error", (err) => {
-        console.log(err);
-        console.log("ERROR: Unable to query version data.");
-      });
-    });
-  }
-}
+var Config = require("./lib/config.js")(configFile, true).config;
 
 // # Requirements/Init # //
-process.stdin.resume();
-process.stdin.setEncoding("utf8");
+const configPrivate = {
+  githubAuthor: "LakeYS",
+  githubName: "Discord-Trivia-Bot"
+};
 
-const Discord = require("discord.js");
-const client = new Discord.Client();
+require("./lib/init.js")(pjson, Config, configPrivate);
+
+if(Config["allow-eval"] === true) {
+  process.stdin.resume();
+  process.stdin.setEncoding("utf8");
+}
 
 // # Discord # //
-const { ShardingManager } = require("discord.js");
-var token = global.config.token;
-const manager = new ShardingManager(`${__dirname}/shard.js`, { totalShards: global.config["shard-count"], token: token, shardArgs: [configFile] });
+var token = Config.token;
+const manager = new ShardingManager(`${__dirname}/shard.js`, {
+  totalShards: Config["shard-count"],
+  token,
+  shardArgs: [configFile]
+});
 
+// # Custom Package Loading # //
+if(typeof Config["additional-packages-root"] !== "undefined") {
+  Config["additional-packages-root"].forEach((key) => {
+    require(key)(Config, manager);
+  });
+}
+
+// # Stats # //
+var stats;
+try {
+  stats = JSON.parse(fs.readFileSync(Config["stat-file"]));
+} catch(error) {
+  if(typeof error.code !== "undefined" && error.code === "ENOENT") {
+    console.warn("No stats file found; one will be created.");
+  }
+  else {
+    // If an error occurs, don't overwrite the old stats.
+    Config["stat-file"] = Config["stat-file"] + ".1";
+    stats = {};
+    console.log(`Failed to load stats file, stats will be saved to ${Config["stat-file"]}. Received error:\n${error}`);
+  }
+}
+
+// # File Handling # //
+// ## refreshGameExports() ##
+// Renames all exported game files to match their corresponding shards.
+// The files will be renamed, merged, and split where necessary.
+// This must be called before importing if the shard count has changed, or games will NOT import.
+// WARNING: There MUST be a complete sequence of exported files; if a number is skipped, this
+//          will not work properly.
+function refreshGameExports() {
+  var i = 0;
+  var gameExports = {};
+
+  var games;
+  while(fs.existsSync("./game."  + i + ".json.bak")) {
+    try {
+      games = JSON.parse(fs.readFileSync("./game."  + i + ".json.bak"));
+    } catch(error) {
+      console.log(`refreshGameExports - Failed to import file for shard ${i}: ${error.message}`);
+      i++;
+      continue;
+    }
+
+    var shardId;
+    // We only need to sample one guild ID in the file to determine its corresponding shard.
+    if(typeof Object.values(games)[0] !== "undefined") {
+      if(manager.totalShards === "auto") {
+        console.error("ERROR: manager.totalShards must be a number in order to import properly.");
+        return;
+      }
+
+      // We'll use Discord's sharding formula to determine the corresponding shard.
+      shardId = parseInt((Object.values(games)[0].guildId/2**22) % manager.totalShards);
+      if(isNaN(shardId)) {
+        console.error(`ERROR: Shard ID (${Object.values(games)[0].guildId/2**22} % ${manager.totalShards}) is NaN, defaulting to ${i}`);
+        shardId = i;
+      }
+      console.log(`Contents of file "game.${i}.json.bak" belong to shard ${shardId}`);
+    }
+    else {
+      shardId = i;
+      console.log(`Contents of file "game.${i}.json.bak" are empty, defaulting to shard ${i}`);
+    }
+
+    // Initialize the shard in preparation for exporting
+    gameExports[shardId] = gameExports[shardId] || {};
+
+    // Define the old shard if it does not exist yet.
+    gameExports[i] = gameExports[i] || {};
+
+    Object.keys(games).forEach((key) => {
+      gameExports[shardId][key] = games[key];
+    });
+
+    i++;
+  }
+
+  // Now, we re-export the data.
+  Object.keys(gameExports).forEach((key) => {
+    var file = "./game."  + key + ".json.bak";
+
+    try {
+      fs.writeFileSync(file, JSON.stringify(gameExports[key], null, "\t"), "utf8");
+      console.log(`Exported ${Object.keys(gameExports[key]).length} game(s) to ${file}`);
+    }
+    catch(err) {
+      console.error(`Failed to rewrite to game.json.bak with the following err:\n ${err}`);
+    }
+  });
+}
+
+// # ShardingManager # //
 manager.spawn()
 .catch((err) => {
   var warning = "";
 
-  if(err == "Error: 401 Unauthorized") {
-    warning += "\nPlease double-check your token and try again.";
+  if(err.message.includes("401 Unauthorized")) {
+    if(token === "yourtokenhere") {
+      warning = "\nIt appears that you have not yet added a token. Please replace \"yourtokenhere\" with a valid token in the config file.";
+    }
+    else {
+      warning += "\nPlease double-check your token and try again.";
+
+      if(token.length < 50) {
+        warning = "\nIt appears that you have entered a client secret or other invalid string. Please ensure that you have entered a token and try again.";
+      }
+    }
   }
 
-  console.error("Discord client login failed - " + err + warning);
+  console.error(`Discord client login failed - ${err}${warning}`);
 
   process.exit();
 });
 
-manager.on("launch", shard => {
+manager.on("launch", (shard) => {
   console.log(`Successfully launched shard ${shard.id} of ${manager.totalShards-1}`);
+  if(shard.id === 0) {
+    // Refresh exports before the first shard spawns.
+    // This is done on launch because it requires totalShards to be a number.
+    refreshGameExports();
+  }
+
+  // TODO: Rate limit this to prevent API flooding
+  shard.on("death", (process) => {
+    console.error("Shard " + shard.id + " closed unexpectedly! PID: " + process.pid + "; Exit code: " + process.exitCode + ".");
+
+    if(process.exitCode === null)
+    {
+      console.warn("WARNING: Shard " + shard.id + " exited with NULL error code. This may be a result of a lack of available system memory. Ensure that there is enough memory allocated to continue.");
+    }
+  });
+
+  shard.on("disconnect", (event) => {
+    console.warn("Shard " + shard.id + " disconnected. Dumping socket close event...");
+    console.log(event);
+  });
+
+  //shard.on("reconnecting", () => {
+  //  console.warn("Shard " + shard.id + " is reconnecting...");
+  //});
 });
 
-process.on("rejectionHandled", (err) => {
-  console.log(err);
-  console.log("An error occurred. Reconnecting...");
-  client.destroy();
-  setTimeout(() => { client.login(global.config.token); }, 2000);
-});
+// ## Manager Messages ## //
+manager.on("message", (shard, input) => {
+  if(typeof input.evalStr !== "undefined") {
+    // Eval
+    eval(input.evalStr);
+  }
+  else if(typeof input.stats !== "undefined") {
+    // Update stats
+    // Example: client.shard.send({stats: { test: 123 }});
+    if(Config["fallback-mode"] !== true) {
+      Object.keys(input.stats).forEach((stat) => {
+        stats = stats || {};
 
-process.on("exit", () => {
-  client.destroy();
+        if(typeof stats[stat] !== "number") {
+          // This stat doesn't exist, initialize it.
+          stats[stat] = input.stats[stat];
+        }
+        else {
+          // Increase the stat
+          stats[stat] += input.stats[stat];
+        }
+      });
+
+      fs.writeFile(Config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
+        if(err) {
+          console.error(`Failed to save stats.json with the following err:\n${err}\nMake sure stats.json is not read-only or missing.`);
+        }
+      });
+    }
+  }
 });
 
 // # Console Functions # //
-process.stdin.on("data", function (text) {
-  if(text.toString() === "stop\r\n" || text.toString() === "exit\r\n" || text.toString() === "stop\n" || text.toString() === "exit\n")
-  {
-    // TRIVIABOT override: Don't shut down if a game is in progress.
-    if(Object.keys(global.game).length === 0)
-      process.exit();
-    else
-      console.log("There are\x1b[1m " + Object.keys(global.game).length + " \x1b[0mgame(s) in progress, bot will not close.\nType 'forceexit' to override.");
-  }
-  else if(text.toString() === "forceexit\r\n") // TRIVIABOT override: Check for 'forceexit'
-    process.exit();
-  else {
-    console.log("Eval on index:");
-    try {
-      eval(text.toString());
+const evalCmds = require("./lib/eval_cmds.js")(manager);
+manager.eCmds = evalCmds;
+
+if(Config["allow-eval"] === true) {
+  process.stdin.on("data", (text) => {
+    // Cut newlines, split the command by spaces to represent arguments.
+    var cmdFull = text.replace("\r","").replace("\n","").split(" ");
+    var cmdFunction = cmdFull[0];
+
+    if(typeof evalCmds[cmdFunction] === "function") {
+      // Remove the first word (the command itself) before pasing it
+      cmdFull.shift(1);
+
+      // Execute the command with any further parameters as an array
+      evalCmds[cmdFunction](cmdFull);
     }
-    catch(err) {
-      console.log(err);
+    else {
+      console.log("Eval:");
+      try {
+        eval(text.toString());
+      }
+      catch(err) {
+        console.log(err);
+      }
     }
-  }
-});
+  });
+}
