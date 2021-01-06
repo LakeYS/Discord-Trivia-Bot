@@ -1,2 +1,2 @@
-call npm install
+call npm install --only=prod
 pause
