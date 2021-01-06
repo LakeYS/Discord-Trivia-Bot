@@ -26,5 +26,9 @@
     "js-yaml": "^3.14.0",
     "semver-compare": "^1.0.0",
     "snekfetch": "^3.6.4"
+  },
+  "devDependencies": {
+    "eslint": "^7.17.0",
+    "jsdoc": "^3.6.6"
   }
 }
