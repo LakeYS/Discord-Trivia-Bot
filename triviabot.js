@@ -235,7 +235,7 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
     if(getConfigVal("auto-delete-msgs", channel) && noDelete !== true) {
       setTimeout(() => {
         msg.delete();
-      }, 15000);
+      }, getConfigVal("auto-delete-msgs-timer", msg.channel));
     }
   });
 };
