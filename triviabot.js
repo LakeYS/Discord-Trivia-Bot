@@ -1026,7 +1026,7 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) !== false) {
   }
   else {
     // Sort the answers in reverse alphabetical order.
-    answers.sort();
+    answers.sort((a, b) => a.localeCompare(b));
     answers.reverse();
 
     for(var i = 0; i <= answers.length-1; i++) {
