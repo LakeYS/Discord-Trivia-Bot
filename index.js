@@ -15,7 +15,7 @@ function initLogs(Config) {
   // Adjust length of the first line
   strArray[0] = strArray[0].padEnd(31," ") + "\x1b[0m";
 
-  //
+  // Optional logo display
   if(typeof Config !== "undefined" && Config["display-ascii-logo"]) {
     var useSideStr = process.stdout.columns > 61;
 
