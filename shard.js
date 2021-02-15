@@ -114,8 +114,12 @@ global.client.on("ready", () => {
   postBotStats();
 });
 
-global.client.on("disconnect", () => {
-  console.log("Discord client disconnected.");
+global.client.on("disconnect", (event) => {
+  console.log("Discord client disconnected with code " + event.code);
+  
+  if(event.reason !== "" && typeof event.reason !== undefined) {
+    console.log("Disconnect reason: " + event.reason);
+  }
 });
 
 global.client.on("error", (err) => {
