@@ -46,6 +46,7 @@
   "debug-mode": false,
   "debug-log": false,
   "debug-database-flush": false,
+  "display-ascii-logo": false,
   "fallback-mode": false,
   "fallback-silent": false,
   "fallback-exceptions": []
