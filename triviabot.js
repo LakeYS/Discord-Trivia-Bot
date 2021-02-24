@@ -487,12 +487,6 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
         Trivia.send(channel, void 0, `Intermission - Game will resume in ${roundTimeout/60000} minute${roundTimeout/1000===1?"":"s"}.`);
         game[id].config.intermissionTime = void 0;
       }
-      else if(game[id].config.customRoundCount <= 0) {
-        setTimeout(() => {
-          Trivia.stopGame(channel, true);
-          return;
-        }, 100);
-      }
     }
   }
 
@@ -516,8 +510,14 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
 
   var gameEndedMsg = "", gameFooter = "";
   var doAutoEnd = 0;
+
   if(game[id].cancelled) {
     gameEndedMsg = "\n\n*Game ended by admin.*";
+  }
+  else if(game[id].config.useFixedRounds && game[id].config.customRoundCount <= 0) {
+    // Custom round count is subtracted above -- If it's reached 0, auto end.
+    gameEndedMsg = "\n\n*Game ended.*";
+    doAutoEnd = 1;
   }
   else if(Object.keys(game[id].participants).length === 0 && !game[id].config.useFixedRounds) {
     // If there were no participants...
