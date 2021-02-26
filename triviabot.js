@@ -1220,8 +1220,19 @@ function parseCommand(msg, cmd) {
   var id = msg.channel.id;
 
   var isAdmin;
-  if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm" || getConfigVal("command-whitelist", msg.channel).length > 0) && getConfigVal("disable-admin-commands", msg.channel) !== true) {
-    isAdmin = true;
+  if(getConfigVal("disable-admin-commands", msg.channel) !== true) {
+    // Admin if there is a valid member object and they have permission.
+    if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) {
+      isAdmin = true;
+    }
+    else if(msg.channel.type === "dm") {
+      // Admin if the game is run in a DM.
+      isAdmin = true;
+    }
+    else if(getConfigVal("command-whitelist", msg.channel).length > 0) {
+      // Admin if they are whitelisted (No need to check here -- if the command ran, they're whitelisted)
+      isAdmin = true;
+    }
   }
 
   if(cmd === "PING") {
