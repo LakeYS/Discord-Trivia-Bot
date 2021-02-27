@@ -235,7 +235,7 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
     if(getConfigVal("auto-delete-msgs", channel) && noDelete !== true) {
       setTimeout(() => {
         msg.delete();
-      }, 15000);
+      }, getConfigVal("auto-delete-msgs-timer", msg.channel));
     }
   });
 };
@@ -650,12 +650,6 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
       // NOTE: Participants check is repeated below in Trivia.doGame
       if(!err && !doAutoEnd) {
         game[id].timeout = setTimeout(() => {
-          if(getConfigVal("auto-delete-msgs", channel)) {
-            msg.delete()
-            .catch((err) => {
-              console.log(`Failed to delete message - ${err.message}`);
-            });
-          }
           Trivia.doGame(id, channel, void 0, 1);
         }, roundTimeout);
       }
@@ -664,7 +658,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
         triviaEndGame(id);
       }
     }
-  }, true);
+  });
 };
 
 // # parseAnswerHangman # //

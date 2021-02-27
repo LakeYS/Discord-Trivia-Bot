@@ -12,6 +12,7 @@
   "hangman-hints": true,
   "hide-difficulty": false,
   "auto-delete-msgs": false,
+  "auto-delete-msgs-timer": 15000,
   "auto-delete-answers": true,
   "auto-delete-answers-timer": 0,
   "round-length": 20000,
