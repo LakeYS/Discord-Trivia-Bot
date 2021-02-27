@@ -629,19 +629,19 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
     else {
       correctUsersStr = `${correctUsersStr}\n${Trivia.leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants)}`;
       // Adding Participant Role to Players. - DELTA
-      if(getConfigVal("debug-log")) { console.log(`Role: ` + getConfigVal("participant-role",channel) + ` / Guild: ` + channel.guild.roles.some(role => role.id === getConfigVal("participant-role",channel))); }
+      if(getConfigVal("debug-log")) { console.log("Role: " + getConfigVal("participant-role",channel) + " / Guild: " + channel.guild.roles.some(role => role.id === getConfigVal("participant-role",channel))); }
       if(getConfigVal("participant-role",channel) != "" && channel.guild.roles.some(role => role.id === getConfigVal("participant-role",channel)) ) {
         Object.keys(game[id].totalParticipants).forEach(element => {
           if(getConfigVal("debug-log")) {
-            console.log(`Channel guild: ` + channel.guild);
-            console.log(`User: ` + element);
-            console.log(`Channel Guild available: ` + channel.guild.available);
+            console.log("Channel guild: " + channel.guild);
+            console.log("User: " + element);
+            console.log("Channel Guild available: " + channel.guild.available);
           }
           if (game[id].scores[element] >= Config["score-threshold"] )
           {
-            if(getConfigVal("debug-log")) { console.log(`Winner Score: ` + game[id].scores[element]); }
+            if(getConfigVal("debug-log")) { console.log("Winner Score: " + game[id].scores[element]); }
             channel.guild.member(element).addRole(getConfigVal("participant-role",channel)).catch(console.error);
-            if(getConfigVal("debug-log")) { console.log(`Added Role ` + getConfigVal("participant-role",channel) + ` to user `+ element); }
+            if(getConfigVal("debug-log")) { console.log("Added Role " + getConfigVal("participant-role",channel) + " to user " + element); }
           }
 
         });
@@ -1188,14 +1188,14 @@ Trivia.stopGame = (channel, auto) => {
       description: `Game ended.${finalScoreStr!==""?`\n\n${headerStr}\n`:""}${finalScoreStr}`
     }}, void 0, true);
     // DELTA: Adding Participant Role to Players.
-    if(getConfigVal("debug-log")) { console.log(`Role: ` + getConfigVal("participant-role",channel) + ` / Guild: ` + channel.guild.roles.some(role => role.id === getConfigVal("participant-role",channel))); }
+    if(getConfigVal("debug-log")) { console.log("Role: " + getConfigVal("participant-role",channel) + " / Guild: " + channel.guild.roles.some(role => role.id === getConfigVal("participant-role",channel))); }
     if(getConfigVal("participant-role",channel) != "" && channel.guild.roles.some(role => role.id === getConfigVal("participant-role",channel)) ) {
       Object.keys(d_totalParticipants).forEach(element => {
         if (d_scores[element] >= Config["score-threshold"] )
         {
-          if(getConfigVal("debug-log")) { console.log(`Winner Score: ` + d_scores[element]); }
+          if(getConfigVal("debug-log")) { console.log("Winner Score: " + d_scores[element]); }
           channel.guild.member(element).addRole(getConfigVal("participant-role",channel)).catch(console.error);
-          if(getConfigVal("debug-log")) { console.log(`Added Role ` + getConfigVal("participant-role",channel) + ` to user `+ element); }
+          if(getConfigVal("debug-log")) { console.log("Added Role " + getConfigVal("participant-role",channel) + " to user " + element); }
         }
 
       });
