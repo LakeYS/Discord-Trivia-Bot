@@ -235,7 +235,7 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
     if(getConfigVal("auto-delete-msgs", channel) && noDelete !== true) {
       setTimeout(() => {
         msg.delete();
-      }, 15000);
+      }, getConfigVal("auto-delete-msgs-timer", msg.channel));
     }
   });
 };
@@ -487,12 +487,6 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
         Trivia.send(channel, void 0, `Intermission - Game will resume in ${roundTimeout/60000} minute${roundTimeout/1000===1?"":"s"}.`);
         game[id].config.intermissionTime = void 0;
       }
-      else if(game[id].config.customRoundCount <= 0) {
-        setTimeout(() => {
-          Trivia.stopGame(channel, true);
-          return;
-        }, 100);
-      }
     }
   }
 
@@ -516,11 +510,18 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
 
   var gameEndedMsg = "", gameFooter = "";
   var doAutoEnd = 0;
+
   if(game[id].cancelled) {
     gameEndedMsg = "\n\n*Game ended by admin.*";
   }
-  else if(Object.keys(game[id].participants).length === 0 && !game[id].config.customRoundCount) {
+  else if(game[id].config.useFixedRounds && game[id].config.customRoundCount <= 0) {
+    // Custom round count is subtracted above -- If it's reached 0, auto end.
+    gameEndedMsg = "\n\n*Game ended.*";
+    doAutoEnd = 1;
+  }
+  else if(Object.keys(game[id].participants).length === 0 && !game[id].config.useFixedRounds) {
     // If there were no participants...
+    // This is skipped in fixed rounds.
     if(game[id].emptyRoundCount+1 >= getConfigVal("rounds-end-after", channel)) {
       doAutoEnd = 1;
       gameEndedMsg = "\n\n*Game ended.*";
@@ -530,7 +531,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
       // Round end warning after we're halfway through the inactive round cap.
       if(!getConfigVal("round-end-warnings-disabled", channel) && game[id].emptyRoundCount >= Math.ceil(getConfigVal("rounds-end-after", channel)/2)) {
         var roundEndCount = getConfigVal("rounds-end-after", channel.id)-game[id].emptyRoundCount;
-        gameFooter += `Game will end in ${roundEndCount} round${roundEndCount===1?"":"s"} if nobody participates.`;
+        gameFooter += `Game will end in ${roundEndCount} round${roundEndCount===1?"":"s"} if there is no activity.`;
       }
     }
   } else {
@@ -654,20 +655,20 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
     gameFooter = "\n\n" + gameFooter;
   }
 
+  var answerStr = "";
+
+  if(getConfigVal("reveal-answers", channel) === true) { // DELTA: Answers will be not shown in the Summary
+    answerStr = `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n`;
+  }
+
   Trivia.send(channel, void 0, {embed: {
     color: game[id].color,
-    description: `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n${correctUsersStr}${gameEndedMsg}${gameFooter}`
+    description: `${answerStr}${correctUsersStr}${gameEndedMsg}${gameFooter}`
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
       // NOTE: Participants check is repeated below in Trivia.doGame
       if(!err && !doAutoEnd) {
         game[id].timeout = setTimeout(() => {
-          if(getConfigVal("auto-delete-msgs", channel)) {
-            msg.delete()
-            .catch((err) => {
-              console.log(`Failed to delete message - ${err.message}`);
-            });
-          }
           Trivia.doGame(id, channel, void 0, 1);
         }, roundTimeout);
       }
@@ -676,7 +677,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
         triviaEndGame(id);
       }
     }
-  }, true);
+  });
 };
 
 // # parseAnswerHangman # //
@@ -959,6 +960,13 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     "isLeagueGame": typeof game[id]!=="undefined"?game[id].isLeagueGame:false,
     "config": typeof game[id]!=="undefined"?game[id].config:config
   };
+  // DELTA - Adding fixed number of rounds game
+if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) !== false) {
+  game[id].config.customRoundCount = getConfigVal("rounds-fixed-number", channel);
+  game[id].config.useFixedRounds = 1;
+  if(getConfigVal("debug-log")) { console.log("Setting CustomRoundCount to: " + game[id].config.customRoundCount);  } // DELTA - Debug output
+}
+// DELTA - Adding fixed number of rounds game - END
 
   var question, answers = [], difficultyReceived, correct_answer;
   try {
@@ -1031,7 +1039,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
   }
   else {
     // Sort the answers in reverse alphabetical order.
-    answers.sort();
+    answers.sort((a, b) => a.localeCompare(b));
     answers.reverse();
 
     for(var i = 0; i <= answers.length-1; i++) {
@@ -1069,7 +1077,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
 
     // Add an extra initial message to let users know the game will insta-end with no answers.
     if(!getConfigVal("round-end-warnings-disabled", channel) && getConfigVal("rounds-end-after", channel) === 1 && !game[id].config.customRoundCount) {
-      infoString += "\nThe game will end automatically if nobody participates.";
+      infoString += "\nThe game will end when there is no activity in a round.";
     }
   }
 
@@ -1120,7 +1128,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
         game[id].answer = question.correct_answer;
         game[id].date = new Date();
 
-        if(gameMode === 2) {
+        if(gameMode === 2 && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
           // Show a hint halfway through.
           // No need for special handling here because it will auto-cancel if
           // the game ends before running.
@@ -1153,6 +1161,7 @@ Trivia.stopGame = (channel, auto) => {
   let inRound = game[id].inRound;
   let finalScoreStr = Trivia.leaderboard.makeScoreStr(game[id].scores, game[id].totalParticipants);
   let totalParticipantCount = Object.keys(game[id].totalParticipants).length;
+  let useFixedRounds = game[id].config.useFixedRounds;
 
   game[id].cancelled = 1;
 
@@ -1166,13 +1175,14 @@ Trivia.stopGame = (channel, auto) => {
       onTimeout();
     }
   }
+
   // If there's still a game, clear it.
   if(typeof game[id] !== "undefined") {
     triviaEndGame(id);
   }
 
   // Display a message if between rounds
-  if(!inRound) {
+  if(!inRound && !useFixedRounds) { // DELTA: Only if no fixed rounds are played.
     var headerStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
 
     Trivia.send(channel, void 0, {embed: {
@@ -1245,8 +1255,19 @@ function parseCommand(msg, cmd) {
   var id = msg.channel.id;
 
   var isAdmin;
-  if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm" || getConfigVal("command-whitelist", msg.channel).length > 0) && getConfigVal("disable-admin-commands", msg.channel) !== true) {
-    isAdmin = true;
+  if(getConfigVal("disable-admin-commands", msg.channel) !== true) {
+    // Admin if there is a valid member object and they have permission.
+    if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) {
+      isAdmin = true;
+    }
+    else if(msg.channel.type === "dm") {
+      // Admin if the game is run in a DM.
+      isAdmin = true;
+    }
+    else if(getConfigVal("command-whitelist", msg.channel).length > 0) {
+      // Admin if they are whitelisted (No need to check here -- if the command ran, they're whitelisted)
+      isAdmin = true;
+    }
   }
 
   if(cmd === "PING") {

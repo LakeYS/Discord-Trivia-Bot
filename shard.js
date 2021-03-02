@@ -95,43 +95,14 @@ if(typeof Config["additional-packages"] !== "undefined") {
   });
 }
 
-// # Beta/Private Mode # //
-// NOTE: Not compatible with multiple shards if using external authentication.
-async function guildBetaCheck(guild, skipRefresh) {
-  if(typeof Config.betaAuthorizedRefresh === "function") {
-    // If initializing, we only need to refresh once.
-    if(!skipRefresh) {
-      await Config.betaAuthorizedRefresh();
-    }
-    Config.guildBetaCheck(guild);
-  }
-  else if(Config["beta-require-external-function"]) {
-    console.error("ERROR: Unable to refresh beta authorized list. Skipping auth process.");
-
-    // Auto-reject guilds that were just added in the last 60s.
-    if(new Date().getTime()-60000 < guild.joinedAt.getTime()) {
-      console.log(`Guild ${guild.id} (${guild.name}) REJECTED (Unable to authenticate, auto-rejected)`);
-      guild.leave();
-    }
-    return;
-  }
-}
-
-if(Config["beta-mode"]) {
-  global.client.on("guildCreate", (guild) => {
-    setTimeout(() => {
-      guildBetaCheck(guild);
-    }, 1000);
-  });
-}
-
 // # Discord Client Login # //
 global.client.login(global.client.token);
+process.title = `Trivia - Shard ${global.client.shard.id} (Initializing)`;
 
 global.client.on("ready", () => {
   console.log("Shard " + global.client.shard.id + " connected to\x1b[1m " + global.client.guilds.size + " \x1b[0mserver" + (global.client.guilds.size===1?"":"s") + ".");
 
-  process.title = `Shard ${global.client.shard.id} - TriviaBot`;
+  process.title = `Trivia - Shard ${global.client.shard.id}`;
 
   if(global.client.user.avatar === null) {
     console.log("Set profile image to profile.png");
@@ -140,19 +111,15 @@ global.client.on("ready", () => {
 
   global.client.user.setPresence({ game: { name: "Trivia! Type '" + Config.prefix + "help' to get started.", type: 0 } });
 
-  if(Config["beta-mode"]) {
-    var skip = false;
-    global.client.guilds.forEach((guild) => {
-      guildBetaCheck(guild, skip);
-      skip = true;
-    });
-  }
-
   postBotStats();
 });
 
-global.client.on("disconnect", () => {
-  console.log("Discord client disconnected.");
+global.client.on("disconnect", (event) => {
+  console.log("Discord client disconnected with code " + event.code);
+  
+  if(event.reason !== "" && typeof event.reason !== undefined) {
+    console.log("Disconnect reason: " + event.reason);
+  }
 });
 
 global.client.on("error", (err) => {

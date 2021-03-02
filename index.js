@@ -4,50 +4,55 @@ const { ShardingManager } = require("discord.js");
 
 process.title = `TriviaBot ${pjson.version}`;
 
+function initLogs(Config) {
+  // process.stdout.columns returns "undefined" in certain situations
+  var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version}        `,
+                   "\x1b[7m Copyright (c) 2018-2021 Lake Y \x1b[0m",
+                   "\x1b[7m https://lakeys.net             \x1b[0m" ];
 
-// # Art Display # //
-// process.stdout.columns returns "undefined" in certain situations
-var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version}        `,
-                 "\x1b[7m Copyright (c) 2018-2020 Lake Y \x1b[0m",
-                 "\x1b[7m https://lakeys.net             \x1b[0m" ];
+  var strHeader = `${strArray[0]}\n${strArray[1]}\n${strArray[2]}`;
 
-// Adjust length of the first line
-strArray[0] = strArray[0].padEnd(31," ") + "\x1b[0m";
+  // Adjust length of the first line
+  strArray[0] = strArray[0].padEnd(31," ") + "\x1b[0m";
 
-var strSide = ["", "", ""];
-var strBottom = "";
+  // Optional logo display
+  if(typeof Config !== "undefined" && Config["display-ascii-logo"]) {
+    var useSideStr = process.stdout.columns > 61;
 
-if(process.stdout.columns > 61) {
-  strSide = strArray;
+    // Use a pattern to properly space the logo.
+    var patt = /^ {3}./mg;
+
+    // See here for an example of how this looks when the application is running:
+    // http://lakeys.net/triviabot/console.png
+    console.log(`\
+                     ########
+                ##################
+             ###      #######     ###
+           ###    ###############   ###
+         ###    ####################  ###
+        ###     #########    ########  ###
+       ###     ########      ########   ###
+      ###       #####       ########     ###
+     ###                  ##########      ### ${useSideStr?strArray[0]:""}
+     ###               ###########        ### ${useSideStr?strArray[1]:""}
+     ###              #########           ### ${useSideStr?strArray[2]:""}
+      ###             ########           ###
+       ###            ######            ###
+        ###            ####            ###
+          ###         ######         ###
+            ###      #######       ###
+              #####    ####    #####
+                   ############
+                      ######\n${useSideStr?"":strHeader}`
+    .replace(patt, ""));
+  }
+  else {
+    console.log(`${strHeader}\n`);
+  }
 }
-else {
-  strBottom = `\n${strArray[0]}\n${strArray[1]}\n${strArray[2]}`;
-}
-
-// See here for an example of how this looks when the application is running:
-// http://lakeys.net/triviabot/console.png
-console.log(`\
-                 ########
-            ##################
-         ###      #######     ###
-       ###    ###############   ###
-     ###    ####################  ###
-    ###     #########    ########  ###
-   ###     ########      ########   ###
-  ###       #####       ########     ###
- ###                  ##########      ### ${strSide[0]}
- ###               ###########        ### ${strSide[1]}
- ###              #########           ### ${strSide[2]}
-  ###             ########           ###
-   ###            ######            ###
-    ###            ####            ###
-      ###         ######         ###
-        ###      #######       ###
-          #####    ####    #####
-               ############
-                  ######${strBottom}`);
 
 // # Initialize Config Args # //
+var Config;
 var configFile;
 for(var i = 0; i <= process.argv.length; i++) {
   if(typeof process.argv[i] !== "undefined" && process.argv[i].startsWith("--configfile=")) {
@@ -55,7 +60,17 @@ for(var i = 0; i <= process.argv.length; i++) {
   }
 }
 
-var Config = require("./lib/config.js")(configFile, true).config;
+try {
+  Config = require("./lib/config.js")(configFile, true).config;
+}
+catch(err) {
+  // Config file broken or missing -- display the initial message and an error
+  initLogs();
+  console.error("Unable to load config file: " + err.message);
+  process.exit();
+}
+
+initLogs(Config);
 
 // # Requirements/Init # //
 const configPrivate = {
@@ -92,6 +107,7 @@ try {
 } catch(error) {
   if(typeof error.code !== "undefined" && error.code === "ENOENT") {
     console.warn("No stats file found; one will be created.");
+    console.warn("The stats.json file appears to be missing. Statistics will not be saved.");
   }
   else {
     // If an error occurs, don't overwrite the old stats.
@@ -211,9 +227,8 @@ manager.on("launch", (shard) => {
     }
   });
 
-  shard.on("disconnect", (event) => {
-    console.warn("Shard " + shard.id + " disconnected. Dumping socket close event...");
-    console.log(event);
+  shard.on("disconnect", () => {
+    console.warn("Shard " + shard.id + " disconnected.");
   });
 
   //shard.on("reconnecting", () => {
