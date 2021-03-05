@@ -688,7 +688,6 @@ Trivia.parseAnswerHangman = function(str, id, userId, username, scoreValue) {
 
 // # Trivia.parseAnswer # //
 // Parses a user's letter answer and scores it accordingly.
-// TODO: Refactor this to decouple participant counting from answer processing.
 // Str: Letter answer -- id: channel identifier
 // scoreValue: Score value from the config file.
 Trivia.parseAnswer = function (str, id, userId, username, scoreValue) {
@@ -1425,7 +1424,7 @@ function parseCommand(msg, cmd) {
   }
 
   if(cmd === "CATEGORIES") {
-    commands.triviaCategories(msg, Trivia); // TODO: Refactor
+    commands.triviaCategories(msg, Trivia);
     return;
   }
 }
