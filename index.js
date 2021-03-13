@@ -54,7 +54,7 @@ function initLogs(Config) {
 // # Initialize Config Args # //
 var Config;
 var configFile;
-for(var i = 0; i <= process.argv.length; i++) {
+for(let i = 0; i <= process.argv.length; i++) {
   if(typeof process.argv[i] !== "undefined" && process.argv[i].startsWith("--configfile=")) {
     configFile = process.argv[i].replace("--configfile=", "");
   }
