@@ -20,7 +20,7 @@ else if(Config["debug-mode"]) {
 
 if(Config["debug-log"]) {
   global.client.on("debug", (info) => {
-    console.log("DEBUG [" + global.client.shard.id + "]: " + info);
+    console.log("DEBUG [" + global.client.shard.ids + "]: " + info);
   });
 }
 
@@ -29,7 +29,7 @@ function postBotStats() {
   // The following sites only need the total shard count, so we'll only post using the last shard.
 
   // TODO: Fix this for when shards spawn out of order
-  if(global.client.shard.id === global.client.shard.count-1) {
+  if(global.client.shard.ids[0] === global.client.shard.count-1) {
     global.client.shard.fetchClientValues("guilds.size")
     .then((countArray) => {
       var guildCountVal = countArray.reduce((prev, val) => prev + val, 0);
@@ -71,7 +71,7 @@ function postBotStats() {
           .set("Authorization", Config[`${site}-token`])
           .send(data)
           .catch((err) => {
-            console.log(`Error occurred while posting to ${err.request.connection.servername} on shard ${global.client.shard.id}:\n${err}`);
+            console.log(`Error occurred while posting to ${err.request.connection.servername} on shard ${global.client.shard.ids}:\n${err}`);
 
             if(typeof err.text !== "undefined") {
               console.log("Response included with the error: " + err.text);
@@ -97,10 +97,10 @@ if(typeof Config["additional-packages"] !== "undefined") {
 
 // # Discord Client Login # //
 global.client.login(global.client.token);
-process.title = `Trivia - Shard ${global.client.shard.id} (Initializing)`;
+process.title = `Trivia - Shard ${global.client.shard.ids} (Initializing)`;
 
 global.client.on("ready", () => {
-  console.log("Shard " + global.client.shard.id + " connected to\x1b[1m " + global.client.guilds.size + " \x1b[0mserver" + (global.client.guilds.size===1?"":"s") + ".");
+  console.log("Shard " + global.client.shard.ids + " connected to\x1b[1m " + global.client.guilds.cache.size + " \x1b[0mserver" + (global.client.guilds.cache.size===1?"":"s") + ".");
 
   process.title = `Trivia - Shard ${global.client.shard.id}`;
 
@@ -114,7 +114,7 @@ global.client.on("ready", () => {
   postBotStats();
 });
 
-global.client.on("disconnect", (event) => {
+global.client.on("shardDisconnect", (event) => {
   console.log("Discord client disconnected with code " + event.code);
   
   if(event.reason !== "" && typeof event.reason !== undefined) {

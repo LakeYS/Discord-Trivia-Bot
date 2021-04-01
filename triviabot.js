@@ -133,7 +133,7 @@ global.client.on("ready", () => {
   Trivia.restrictedChannels = [];
   if(typeof restrictedChannelsInput !== "undefined" && restrictedChannelsInput.length !== 0) {
     // Can't use for..in here because is isn't supported by Map objects.
-    global.client.channels.forEach((channel) => {
+    global.client.channels.cache.forEach((channel) => {
       for(var i in restrictedChannelsInput) {
         var channelInput = restrictedChannelsInput[i];
 
@@ -1591,7 +1591,7 @@ Trivia.getGame = () => {
 };
 
 // Detect reaction answers
-Trivia.reactionAdd = function(reaction, user) {
+Trivia.reactionAdd = async function(reaction, user) {
   var id = reaction.message.channel.id;
   var str = reaction.emoji.name;
 
@@ -1615,7 +1615,17 @@ Trivia.reactionAdd = function(reaction, user) {
 
     // Get the user's guild nickname, or regular name if in a DM.
     var msg = reaction.message;
-    var username = msg.guild !== null?msg.guild.members.get(user.id).displayName:user.username;
+    var username;
+
+    if(msg.guild !== null) {
+      // Fetch the guild member for this user.
+      var guildMember = await msg.guild.members.fetch({user: user.id});
+      username = guildMember.displayName;
+    }
+    else {
+      username = user.username; 
+    }
+
     Trivia.parseAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
   }
 };

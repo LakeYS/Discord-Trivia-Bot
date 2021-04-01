@@ -210,9 +210,11 @@ manager.spawn()
   process.exit();
 });
 
-manager.on("launch", (shard) => {
-  console.log(`Successfully launched shard ${shard.id} of ${manager.totalShards-1}`);
-  if(shard.id === 0) {
+manager.on("shardCreate", (shard) => {
+  var shardId = shard.id;
+
+  console.log(`Successfully launched shard ${shardId} of ${manager.totalShards-1}`);
+  if(shardId === 0) {
     // Refresh exports before the first shard spawns.
     // This is done on launch because it requires totalShards to be a number.
     refreshGameExports();
@@ -220,21 +222,17 @@ manager.on("launch", (shard) => {
 
   // TODO: Rate limit this to prevent API flooding
   shard.on("death", (process) => {
-    console.error("Shard " + shard.id + " closed unexpectedly! PID: " + process.pid + "; Exit code: " + process.exitCode + ".");
+    console.error("Shard " + shardId + " closed unexpectedly! PID: " + process.pid + "; Exit code: " + process.exitCode + ".");
 
     if(process.exitCode === null)
     {
-      console.warn("WARNING: Shard " + shard.id + " exited with NULL error code. This may be a result of a lack of available system memory. Ensure that there is enough memory allocated to continue.");
+      console.warn("WARNING: Shard " + shardId + " exited with NULL error code. This may be a result of a lack of available system memory. Ensure that there is enough memory allocated to continue.");
     }
   });
 
-  shard.on("disconnect", () => {
-    console.warn("Shard " + shard.id + " disconnected.");
+  shard.on("shardDisconnect", () => {
+    console.warn("Shard " + shardId + " disconnected.");
   });
-
-  //shard.on("reconnecting", () => {
-  //  console.warn("Shard " + shard.id + " is reconnecting...");
-  //});
 });
 
 // ## Manager Messages ## //
