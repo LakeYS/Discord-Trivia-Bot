@@ -107,7 +107,7 @@ try {
   stats = JSON.parse(fs.readFileSync(Config["stat-file"]));
 } catch(error) {
   if(typeof error.code !== "undefined" && error.code === "ENOENT") {
-    console.warn("The stats.json file appears to be missing. Statistics will not be saved.");
+    console.warn("No stats file found; one will be created.");
   }
   else {
     // If an error occurs, don't overwrite the old stats.
