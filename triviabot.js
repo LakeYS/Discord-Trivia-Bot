@@ -1517,7 +1517,7 @@ Trivia.parse = (str, msg) => {
 
 // triviaResumeGame
 // Restores a game that does not have an active timeout.
-function triviaResumeGame(json, id) {
+async function triviaResumeGame(json, id) {
   var channel;
   if(typeof json.userId !== "undefined") {
     // Find the DM channel
@@ -1533,7 +1533,7 @@ function triviaResumeGame(json, id) {
 
   }
   else {
-    channel = global.client.channels.get(id);
+    channel = await global.client.channels.fetch(id);
   }
 
   if(!json.inProgress) {
