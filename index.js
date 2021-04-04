@@ -107,7 +107,6 @@ try {
   stats = JSON.parse(fs.readFileSync(Config["stat-file"]));
 } catch(error) {
   if(typeof error.code !== "undefined" && error.code === "ENOENT") {
-    console.warn("No stats file found; one will be created.");
     console.warn("The stats.json file appears to be missing. Statistics will not be saved.");
   }
   else {
@@ -233,39 +232,40 @@ manager.on("shardCreate", (shard) => {
   shard.on("shardDisconnect", () => {
     console.warn("Shard " + shardId + " disconnected.");
   });
-});
 
-// ## Manager Messages ## //
-manager.on("message", (shard, input) => {
-  if(typeof input.evalStr !== "undefined") {
-    // Eval
-    eval(input.evalStr);
-  }
-  else if(typeof input.stats !== "undefined") {
-    // Update stats
-    // Example: client.shard.send({stats: { test: 123 }});
-    if(Config["fallback-mode"] !== true) {
-      Object.keys(input.stats).forEach((stat) => {
-        stats = stats || {};
-
-        if(typeof stats[stat] !== "number") {
-          // This stat doesn't exist, initialize it.
-          stats[stat] = input.stats[stat];
-        }
-        else {
-          // Increase the stat
-          stats[stat] += input.stats[stat];
-        }
-      });
-
-      fs.writeFile(Config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
-        if(err) {
-          console.error(`Failed to save stats.json with the following err:\n${err}\nMake sure stats.json is not read-only or missing.`);
-        }
-      });
+  // ## Manager Messages ## //
+  shard.on("message", (input) => {
+    if(typeof input.evalStr !== "undefined") {
+      // Eval
+      eval(input.evalStr);
     }
-  }
+    else if(typeof input.stats !== "undefined") {
+      // Update stats
+      // Example: client.shard.send({stats: { test: 123 }});
+      if(Config["fallback-mode"] !== true) {
+        Object.keys(input.stats).forEach((stat) => {
+          stats = stats || {};
+
+          if(typeof stats[stat] !== "number") {
+            // This stat doesn't exist, initialize it.
+            stats[stat] = input.stats[stat];
+          }
+          else {
+            // Increase the stat
+            stats[stat] += input.stats[stat];
+          }
+        });
+
+        fs.writeFile(Config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
+          if(err) {
+            console.error(`Failed to save stats.json with the following err:\n${err}\nMake sure stats.json is not read-only or missing.`);
+          }
+        });
+      }
+    }
+  });
 });
+
 
 // # Console Functions # //
 const evalCmds = require("./lib/eval_cmds.js")(manager);
