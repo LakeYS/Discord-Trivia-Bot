@@ -2,7 +2,7 @@
 # Package the bot for distribution on Windows
 
 mkdir TriviaBot
-cp config.json TriviaBot
+cp config.example.json TriviaBot
 cp package.json TriviaBot
 cp triviabot.js TriviaBot
 cp index.js TriviaBot
