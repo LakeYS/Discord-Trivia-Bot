@@ -102,7 +102,7 @@ process.title = `Trivia - Shard ${global.client.shard.ids} (Initializing)`;
 global.client.on("ready", () => {
   console.log("Shard " + global.client.shard.ids + " connected to\x1b[1m " + global.client.guilds.cache.size + " \x1b[0mserver" + (global.client.guilds.cache.size===1?"":"s") + ".");
 
-  process.title = `Trivia - Shard ${global.client.shard.id}`;
+  process.title = `Trivia - Shard ${global.client.shard.ids}`;
 
   if(global.client.user.avatar === null) {
     console.log("Set profile image to profile.png");

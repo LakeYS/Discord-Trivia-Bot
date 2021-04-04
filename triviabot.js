@@ -1542,7 +1542,7 @@ function triviaResumeGame(json, id) {
   }
 
   if(channel === null) {
-    console.warn(`Unable to find channel '${id}' on shard ${global.client.shard.id}. Game will not resume.`);
+    console.warn(`Unable to find channel '${id}' on shard ${global.client.shard.ids}. Game will not resume.`);
     delete game[id];
     return;
   }
@@ -1659,7 +1659,7 @@ Trivia.exportGame = (file) => {
     }
   });
 
-  file = file || "./game."  + global.client.shard.id + ".json.bak";
+  file = file || "./game."  + global.client.shard.ids + ".json.bak";
   try {
     fs.writeFileSync(file, JSON.stringify(json, null, "\t"), "utf8");
     console.log(`Game exported to ${file}`);
@@ -1674,7 +1674,7 @@ Trivia.exportGame = (file) => {
 // input: file string or valid JSON object
 // unlink (bool): delete file after opening
 Trivia.importGame = (input, unlink) => {
-  console.log(`Importing games to shard ${global.client.shard.id} from file...`);
+  console.log(`Importing games to shard ${global.client.shard.ids} from file...`);
   var json;
   if(typeof input === "string") {
     try {
@@ -1688,7 +1688,7 @@ Trivia.importGame = (input, unlink) => {
 
       json = JSON.parse(file);
     } catch(error) {
-      console.log(`Failed to parse JSON from ./game.${global.client.shard.id}.json.bak`);
+      console.log(`Failed to parse JSON from ./game.${global.client.shard.ids}.json.bak`);
       console.log(error.message);
       return;
     }
@@ -1716,7 +1716,7 @@ Trivia.importGame = (input, unlink) => {
 
 // # Maintenance Shutdown Command #
 Trivia.doMaintenanceShutdown = () => {
-  console.log(`Clearing ${Object.keys(game).length} games on shard ${global.client.shard.id}`);
+  console.log(`Clearing ${Object.keys(game).length} games on shard ${global.client.shard.ids}`);
 
   Object.keys(game).forEach((key) => {
     var channel = game[key].message.channel;
@@ -1734,7 +1734,7 @@ Trivia.doMaintenanceShutdown = () => {
 // # Fallback Mode Functionality #
 if(getConfigVal("fallback-mode") && !getConfigVal("fallback-silent")) {
   global.client.on("message", (msg) => {
-      console.log(`Msg - ${msg.author === global.client.user?"(self)":""} Shard ${global.client.shard.id} - Channel ${msg.channel.id}`);
+      console.log(`Msg - ${msg.author === global.client.user?"(self)":""} Shard ${global.client.shard.ids} - Channel ${msg.channel.id}`);
   });
 }
 
@@ -1753,7 +1753,7 @@ process.on("SIGTERM", function() {
 
 // ## Import on Launch ## //
 global.client.on("ready", () => {
-  var file = `./game.${global.client.shard.id}.json.bak`;
+  var file = `./game.${global.client.shard.ids}.json.bak`;
   if(fs.existsSync(file)) {
     // Import the file, then delete it.
     Trivia.importGame(file, 1);
