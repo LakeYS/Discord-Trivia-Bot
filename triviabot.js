@@ -1467,6 +1467,7 @@ Trivia.parse = (str, msg) => {
           msg.delete()
           .catch((err) => {
             if(err.message !== "Missing Permissions") {
+              console.log(err);
               console.log("Failed to delete player answer: " + err.message);
             }
           });
