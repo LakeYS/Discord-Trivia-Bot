@@ -4,58 +4,73 @@ const { ShardingManager } = require("discord.js");
 
 process.title = `TriviaBot ${pjson.version}`;
 
+function initLogs(Config) {
+  // process.stdout.columns returns "undefined" in certain situations
+  var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version}        `,
+                   "\x1b[7m Copyright (c) 2018-2021 Lake Y \x1b[0m",
+                   "\x1b[7m https://lakeys.net             \x1b[0m" ];
 
-// # Art Display # //
-// process.stdout.columns returns "undefined" in certain situations
-var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version}        `,
-                 "\x1b[7m Copyright (c) 2018-2020 Lake Y \x1b[0m",
-                 "\x1b[7m https://lakeys.net             \x1b[0m" ];
+  var strHeader = `${strArray[0]}\n${strArray[1]}\n${strArray[2]}`;
 
-// Adjust length of the first line
-strArray[0] = strArray[0].padEnd(31," ") + "\x1b[0m";
+  // Adjust length of the first line
+  strArray[0] = strArray[0].padEnd(31," ") + "\x1b[0m";
 
-var strSide = ["", "", ""];
-var strBottom = "";
+  // Optional logo display
+  if(typeof Config !== "undefined" && Config["display-ascii-logo"]) {
+    var useSideStr = process.stdout.columns > 61;
 
-if(process.stdout.columns > 61) {
-  strSide = strArray;
+    // Use a pattern to properly space the logo.
+    var patt = /^ {3}./mg;
+
+    // See here for an example of how this looks when the application is running:
+    // http://lakeys.net/triviabot/console.png
+    console.log(`\
+                     ########
+                ##################
+             ###      #######     ###
+           ###    ###############   ###
+         ###    ####################  ###
+        ###     #########    ########  ###
+       ###     ########      ########   ###
+      ###       #####       ########     ###
+     ###                  ##########      ### ${useSideStr?strArray[0]:""}
+     ###               ###########        ### ${useSideStr?strArray[1]:""}
+     ###              #########           ### ${useSideStr?strArray[2]:""}
+      ###             ########           ###
+       ###            ######            ###
+        ###            ####            ###
+          ###         ######         ###
+            ###      #######       ###
+              #####    ####    #####
+                   ############
+                      ######\n${useSideStr?"":strHeader}`
+    .replace(patt, ""));
+  }
+  else {
+    console.log(`${strHeader}\n`);
+  }
 }
-else {
-  strBottom = `\n${strArray[0]}\n${strArray[1]}\n${strArray[2]}`;
-}
-
-// See here for an example of how this looks when the application is running:
-// http://lakeys.net/triviabot/console.png
-console.log(`\
-                 ########
-            ##################
-         ###      #######     ###
-       ###    ###############   ###
-     ###    ####################  ###
-    ###     #########    ########  ###
-   ###     ########      ########   ###
-  ###       #####       ########     ###
- ###                  ##########      ### ${strSide[0]}
- ###               ###########        ### ${strSide[1]}
- ###              #########           ### ${strSide[2]}
-  ###             ########           ###
-   ###            ######            ###
-    ###            ####            ###
-      ###         ######         ###
-        ###      #######       ###
-          #####    ####    #####
-               ############
-                  ######${strBottom}`);
 
 // # Initialize Config Args # //
+var Config;
 var configFile;
-for(var i = 0; i <= process.argv.length; i++) {
+for(let i = 0; i <= process.argv.length; i++) {
   if(typeof process.argv[i] !== "undefined" && process.argv[i].startsWith("--configfile=")) {
     configFile = process.argv[i].replace("--configfile=", "");
   }
 }
 
-var Config = require("./lib/config.js")(configFile, true).config;
+try {
+  Config = require("./lib/config.js")(configFile, true).config;
+}
+catch(err) {
+  // Config file broken or missing -- display the initial message and an error
+  initLogs();
+  console.error("Unable to load config file: " + err.message);
+  process.exit();
+}
+
+initLogs(Config);
 
 // # Requirements/Init # //
 const configPrivate = {
@@ -75,7 +90,8 @@ var token = Config.token;
 const manager = new ShardingManager(`${__dirname}/shard.js`, {
   totalShards: Config["shard-count"],
   token,
-  shardArgs: [configFile]
+  shardArgs: [configFile],
+  respawn: !Config["shard-count"]
 });
 
 // # Custom Package Loading # //
@@ -193,9 +209,11 @@ manager.spawn()
   process.exit();
 });
 
-manager.on("launch", (shard) => {
-  console.log(`Successfully launched shard ${shard.id} of ${manager.totalShards-1}`);
-  if(shard.id === 0) {
+manager.on("shardCreate", (shard) => {
+  var shardId = shard.id;
+
+  console.log(`Successfully launched shard ${shardId} of ${manager.totalShards-1}`);
+  if(shardId === 0) {
     // Refresh exports before the first shard spawns.
     // This is done on launch because it requires totalShards to be a number.
     refreshGameExports();
@@ -203,55 +221,51 @@ manager.on("launch", (shard) => {
 
   // TODO: Rate limit this to prevent API flooding
   shard.on("death", (process) => {
-    console.error("Shard " + shard.id + " closed unexpectedly! PID: " + process.pid + "; Exit code: " + process.exitCode + ".");
+    console.error("Shard " + shardId + " closed unexpectedly! PID: " + process.pid + "; Exit code: " + process.exitCode + ".");
 
     if(process.exitCode === null)
     {
-      console.warn("WARNING: Shard " + shard.id + " exited with NULL error code. This may be a result of a lack of available system memory. Ensure that there is enough memory allocated to continue.");
+      console.warn("WARNING: Shard " + shardId + " exited with NULL error code. This may be a result of a lack of available system memory. Ensure that there is enough memory allocated to continue.");
     }
   });
 
-  shard.on("disconnect", (event) => {
-    console.warn("Shard " + shard.id + " disconnected. Dumping socket close event...");
-    console.log(event);
+  shard.on("shardDisconnect", () => {
+    console.warn("Shard " + shardId + " disconnected.");
   });
 
-  //shard.on("reconnecting", () => {
-  //  console.warn("Shard " + shard.id + " is reconnecting...");
-  //});
-});
-
-// ## Manager Messages ## //
-manager.on("message", (shard, input) => {
-  if(typeof input.evalStr !== "undefined") {
-    // Eval
-    eval(input.evalStr);
-  }
-  else if(typeof input.stats !== "undefined") {
-    // Update stats
-    // Example: client.shard.send({stats: { test: 123 }});
-    if(Config["fallback-mode"] !== true) {
-      Object.keys(input.stats).forEach((stat) => {
-        stats = stats || {};
-
-        if(typeof stats[stat] !== "number") {
-          // This stat doesn't exist, initialize it.
-          stats[stat] = input.stats[stat];
-        }
-        else {
-          // Increase the stat
-          stats[stat] += input.stats[stat];
-        }
-      });
-
-      fs.writeFile(Config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
-        if(err) {
-          console.error(`Failed to save stats.json with the following err:\n${err}\nMake sure stats.json is not read-only or missing.`);
-        }
-      });
+  // ## Manager Messages ## //
+  shard.on("message", (input) => {
+    if(typeof input.evalStr !== "undefined") {
+      // Eval
+      eval(input.evalStr);
     }
-  }
+    else if(typeof input.stats !== "undefined") {
+      // Update stats
+      // Example: client.shard.send({stats: { test: 123 }});
+      if(Config["fallback-mode"] !== true) {
+        Object.keys(input.stats).forEach((stat) => {
+          stats = stats || {};
+
+          if(typeof stats[stat] !== "number") {
+            // This stat doesn't exist, initialize it.
+            stats[stat] = input.stats[stat];
+          }
+          else {
+            // Increase the stat
+            stats[stat] += input.stats[stat];
+          }
+        });
+
+        fs.writeFile(Config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
+          if(err) {
+            console.error(`Failed to save stats.json with the following err:\n${err}\nMake sure stats.json is not read-only or missing.`);
+          }
+        });
+      }
+    }
+  });
 });
+
 
 // # Console Functions # //
 const evalCmds = require("./lib/eval_cmds.js")(manager);
