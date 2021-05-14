@@ -133,7 +133,7 @@ global.client.on("ready", () => {
   Trivia.restrictedChannels = [];
   if(typeof restrictedChannelsInput !== "undefined" && restrictedChannelsInput.length !== 0) {
     // Can't use for..in here because is isn't supported by Map objects.
-    global.client.channels.forEach((channel) => {
+    global.client.channels.cache.forEach((channel) => {
       for(var i in restrictedChannelsInput) {
         var channelInput = restrictedChannelsInput[i];
 
@@ -235,7 +235,7 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
     if(getConfigVal("auto-delete-msgs", channel) && noDelete !== true) {
       setTimeout(() => {
         msg.delete();
-      }, 15000);
+      }, getConfigVal("auto-delete-msgs-timer", msg.channel));
     }
   });
 };
@@ -487,12 +487,6 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
         Trivia.send(channel, void 0, `Intermission - Game will resume in ${roundTimeout/60000} minute${roundTimeout/1000===1?"":"s"}.`);
         game[id].config.intermissionTime = void 0;
       }
-      else if(game[id].config.customRoundCount <= 0) {
-        setTimeout(() => {
-          Trivia.stopGame(channel, true);
-          return;
-        }, 100);
-      }
     }
   }
 
@@ -516,11 +510,18 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
 
   var gameEndedMsg = "", gameFooter = "";
   var doAutoEnd = 0;
+
   if(game[id].cancelled) {
     gameEndedMsg = "\n\n*Game ended by admin.*";
   }
-  else if(Object.keys(game[id].participants).length === 0 && !game[id].config.customRoundCount) {
+  else if(game[id].config.useFixedRounds && game[id].config.customRoundCount <= 0) {
+    // Custom round count is subtracted above -- If it's reached 0, auto end.
+    gameEndedMsg = "\n\n*Game ended.*";
+    doAutoEnd = 1;
+  }
+  else if(Object.keys(game[id].participants).length === 0 && !game[id].config.useFixedRounds) {
     // If there were no participants...
+    // This is skipped in fixed rounds.
     if(game[id].emptyRoundCount+1 >= getConfigVal("rounds-end-after", channel)) {
       doAutoEnd = 1;
       gameEndedMsg = "\n\n*Game ended.*";
@@ -530,7 +531,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
       // Round end warning after we're halfway through the inactive round cap.
       if(!getConfigVal("round-end-warnings-disabled", channel) && game[id].emptyRoundCount >= Math.ceil(getConfigVal("rounds-end-after", channel)/2) && !game[id].config.customRoundCount) { // DELTA: Added Custom Round config
         var roundEndCount = getConfigVal("rounds-end-after", channel.id)-game[id].emptyRoundCount;
-        gameFooter += `Game will end in ${roundEndCount} round${roundEndCount===1?"":"s"} if nobody participates.`;
+        gameFooter += `Game will end in ${roundEndCount} round${roundEndCount===1?"":"s"} if there is no activity.`;
       }
     }
   } else {
@@ -701,7 +702,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
           triviaEndGame(id);
         }
       }
-    }, true);
+    });
   }
 };
 
@@ -732,7 +733,6 @@ Trivia.parseAnswerHangman = function(str, id, userId, username, scoreValue) {
 
 // # Trivia.parseAnswer # //
 // Parses a user's letter answer and scores it accordingly.
-// TODO: Refactor this to decouple participant counting from answer processing.
 // Str: Letter answer -- id: channel identifier
 // scoreValue: Score value from the config file.
 Trivia.parseAnswer = function (str, id, userId, username, scoreValue) {
@@ -986,9 +986,10 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     "config": typeof game[id]!=="undefined"?game[id].config:config
   };
   // DELTA - Adding fixed number of rounds game
-if(isFirstQuestion && getConfigVal("rounds-fixed-number", channel) !== false) {
+if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) !== false) {
   game[id].config.customRoundCount = getConfigVal("rounds-fixed-number", channel);
-  if(getConfigVal("debug-log")) { console.log(`Setting CustomRoundCount to: ` + game[id].config.customRoundCount);  } // DELTA - Debug output
+  game[id].config.useFixedRounds = 1;
+  if(getConfigVal("debug-log")) { console.log("Setting CustomRoundCount to: " + game[id].config.customRoundCount);  } // DELTA - Debug output
 }
 // DELTA - Adding fixed number of rounds game - END
 
@@ -1063,7 +1064,7 @@ if(isFirstQuestion && getConfigVal("rounds-fixed-number", channel) !== false) {
   }
   else {
     // Sort the answers in reverse alphabetical order.
-    answers.sort();
+    answers.sort((a, b) => a.localeCompare(b));
     answers.reverse();
 
     for(var i = 0; i <= answers.length-1; i++) {
@@ -1101,7 +1102,7 @@ if(isFirstQuestion && getConfigVal("rounds-fixed-number", channel) !== false) {
 
     // Add an extra initial message to let users know the game will insta-end with no answers.
     if(!getConfigVal("round-end-warnings-disabled", channel) && getConfigVal("rounds-end-after", channel) === 1 && !game[id].config.customRoundCount) {
-      infoString += "\nThe game will end automatically if nobody participates.";
+      infoString += "\nThe game will end when there is no activity in a round.";
     }
   }
 
@@ -1152,7 +1153,6 @@ if(isFirstQuestion && getConfigVal("rounds-fixed-number", channel) !== false) {
         game[id].answer = question.correct_answer;
         game[id].date = new Date();
 
-        // if(gameMode === 2) { // DELTA: keeping this for reference
         if(gameMode === 2 && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
           // Show a hint halfway through.
           // No need for special handling here because it will auto-cancel if
@@ -1189,6 +1189,7 @@ Trivia.stopGame = (channel, auto) => {
   let customRoundCount = game[id].config.customRoundCount; // DELTA: This is for fixed round lenght
   let d_totalParticipants = game[id].totalParticipants; // DELTA: For storing scores
   let d_scores = game[id].scores; // DELTA: For storing scores
+  let useFixedRounds = game[id].config.useFixedRounds;
 
   game[id].cancelled = 1;
 
@@ -1202,13 +1203,14 @@ Trivia.stopGame = (channel, auto) => {
       onTimeout();
     }
   }
+
   // If there's still a game, clear it.
   if(typeof game[id] !== "undefined") {
     triviaEndGame(id);
   }
 
   // Display a message if between rounds
-  if(!inRound && typeof customRoundCount === "undefined") { // DELTA: Only if no fixed rounds are played.
+  if(!inRound && !useFixedRounds) { // DELTA: Only if no fixed rounds are played.
     var headerStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
 
     Trivia.send(channel, void 0, {embed: {
@@ -1281,8 +1283,19 @@ function parseCommand(msg, cmd) {
   var id = msg.channel.id;
 
   var isAdmin;
-  if(((msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) || msg.channel.type === "dm" || getConfigVal("command-whitelist", msg.channel).length > 0) && getConfigVal("disable-admin-commands", msg.channel) !== true) {
-    isAdmin = true;
+  if(getConfigVal("disable-admin-commands", msg.channel) !== true) {
+    // Admin if there is a valid member object and they have permission.
+    if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) {
+      isAdmin = true;
+    }
+    else if(msg.channel.type === "dm") {
+      // Admin if the game is run in a DM.
+      isAdmin = true;
+    }
+    else if(getConfigVal("command-whitelist", msg.channel).length > 0) {
+      // Admin if they are whitelisted (No need to check here -- if the command ran, they're whitelisted)
+      isAdmin = true;
+    }
   }
 
   if(cmd === "PING") {
@@ -1487,7 +1500,7 @@ function parseCommand(msg, cmd) {
   }
 
   if(cmd === "CATEGORIES") {
-    commands.triviaCategories(msg, Trivia); // TODO: Refactor
+    commands.triviaCategories(msg, Trivia);
     return;
   }
 }
@@ -1530,6 +1543,7 @@ Trivia.parse = (str, msg) => {
           msg.delete()
           .catch((err) => {
             if(err.message !== "Missing Permissions") {
+              console.log(err);
               console.log("Failed to delete player answer: " + err.message);
             }
           });
@@ -1580,7 +1594,7 @@ Trivia.parse = (str, msg) => {
 
 // triviaResumeGame
 // Restores a game that does not have an active timeout.
-function triviaResumeGame(json, id) {
+async function triviaResumeGame(json, id) {
   var channel;
   if(typeof json.userId !== "undefined") {
     // Find the DM channel
@@ -1596,7 +1610,7 @@ function triviaResumeGame(json, id) {
 
   }
   else {
-    channel = global.client.channels.get(id);
+    channel = await global.client.channels.fetch(id);
   }
 
   if(!json.inProgress) {
@@ -1605,7 +1619,7 @@ function triviaResumeGame(json, id) {
   }
 
   if(channel === null) {
-    console.warn(`Unable to find channel '${id}' on shard ${global.client.shard.id}. Game will not resume.`);
+    console.warn(`Unable to find channel '${id}' on shard ${global.client.shard.ids}. Game will not resume.`);
     delete game[id];
     return;
   }
@@ -1654,7 +1668,7 @@ Trivia.getGame = () => {
 };
 
 // Detect reaction answers
-Trivia.reactionAdd = function(reaction, user) {
+Trivia.reactionAdd = async function(reaction, user) {
   var id = reaction.message.channel.id;
   var str = reaction.emoji.name;
 
@@ -1678,7 +1692,17 @@ Trivia.reactionAdd = function(reaction, user) {
 
     // Get the user's guild nickname, or regular name if in a DM.
     var msg = reaction.message;
-    var username = msg.guild !== null?msg.guild.members.get(user.id).displayName:user.username;
+    var username;
+
+    if(msg.guild !== null) {
+      // Fetch the guild member for this user.
+      var guildMember = await msg.guild.members.fetch({user: user.id});
+      username = guildMember.displayName;
+    }
+    else {
+      username = user.username; 
+    }
+
     Trivia.parseAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
   }
 };
@@ -1712,7 +1736,7 @@ Trivia.exportGame = (file) => {
     }
   });
 
-  file = file || "./game."  + global.client.shard.id + ".json.bak";
+  file = file || "./game."  + global.client.shard.ids + ".json.bak";
   try {
     fs.writeFileSync(file, JSON.stringify(json, null, "\t"), "utf8");
     console.log(`Game exported to ${file}`);
@@ -1727,7 +1751,7 @@ Trivia.exportGame = (file) => {
 // input: file string or valid JSON object
 // unlink (bool): delete file after opening
 Trivia.importGame = (input, unlink) => {
-  console.log(`Importing games to shard ${global.client.shard.id} from file...`);
+  console.log(`Importing games to shard ${global.client.shard.ids} from file...`);
   var json;
   if(typeof input === "string") {
     try {
@@ -1741,7 +1765,7 @@ Trivia.importGame = (input, unlink) => {
 
       json = JSON.parse(file);
     } catch(error) {
-      console.log(`Failed to parse JSON from ./game.${global.client.shard.id}.json.bak`);
+      console.log(`Failed to parse JSON from ./game.${global.client.shard.ids}.json.bak`);
       console.log(error.message);
       return;
     }
@@ -1769,7 +1793,7 @@ Trivia.importGame = (input, unlink) => {
 
 // # Maintenance Shutdown Command #
 Trivia.doMaintenanceShutdown = () => {
-  console.log(`Clearing ${Object.keys(game).length} games on shard ${global.client.shard.id}`);
+  console.log(`Clearing ${Object.keys(game).length} games on shard ${global.client.shard.ids}`);
 
   Object.keys(game).forEach((key) => {
     var channel = game[key].message.channel;
@@ -1787,7 +1811,7 @@ Trivia.doMaintenanceShutdown = () => {
 // # Fallback Mode Functionality #
 if(getConfigVal("fallback-mode") && !getConfigVal("fallback-silent")) {
   global.client.on("message", (msg) => {
-      console.log(`Msg - ${msg.author === global.client.user?"(self)":""} Shard ${global.client.shard.id} - Channel ${msg.channel.id}`);
+      console.log(`Msg - ${msg.author === global.client.user?"(self)":""} Shard ${global.client.shard.ids} - Channel ${msg.channel.id}`);
   });
 }
 
@@ -1806,7 +1830,7 @@ process.on("SIGTERM", function() {
 
 // ## Import on Launch ## //
 global.client.on("ready", () => {
-  var file = `./game.${global.client.shard.id}.json.bak`;
+  var file = `./game.${global.client.shard.ids}.json.bak`;
   if(fs.existsSync(file)) {
     // Import the file, then delete it.
     Trivia.importGame(file, 1);
