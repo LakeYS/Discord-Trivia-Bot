@@ -1116,13 +1116,13 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) !== false) {
           setTimeout(() => {
             doHangmanHint(channel, answer);
           },
-          getConfigVal("round-length", channel)/2);
+          timer/2);
         }
 
         // Reveal the answer after the time is up
         game[id].timeout = setTimeout(() => {
            Trivia.doAnswerReveal(id, channel, question.correct_answer);
-        }, getConfigVal("round-length", channel));
+        }, timer);
       }
     }
   }, true);
@@ -1565,7 +1565,7 @@ async function triviaResumeGame(json, id) {
     game[id].resuming = 1;
 
     // Calculate timeout based on game time
-
+    // TODO: Account for hangman games properly
     date.setMilliseconds(date.getMilliseconds()+getConfigVal("round-length", channel));
     timeout = date-new Date();
 
