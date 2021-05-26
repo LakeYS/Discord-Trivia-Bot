@@ -448,6 +448,13 @@ Trivia.applyBonusMultiplier = (id, channel, userID) => {
   }
 };
 
+Trivia.formatStr = (str) => {
+  str = entities.decode(str);
+  str = str.replace(/_/g, "\\_");
+
+  return str;
+};
+
 // # Trivia.doAnswerReveal #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
 // TODO: Refactor (clean up and fix gameEndedMsg being relied on as a boolean check)
@@ -639,7 +646,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
   var answerStr = "";
 
   if(getConfigVal("reveal-answers", channel) === true) { // DELTA: Answers will be not shown in the Summary
-    answerStr = `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${entities.decode(game[id].answer)}\n\n`;
+    answerStr = `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${Trivia.formatStr(game[id].answer)}\n\n`;
   }
 
   Trivia.send(channel, void 0, {embed: {
@@ -667,7 +674,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
 Trivia.parseAnswerHangman = function(str, id, userId, username, scoreValue) {
   var input = str.toLowerCase();
   // Decode and remove all non-alphabetical characters
-  var answer = entities.decode(game[id].answer).toLowerCase().replace(/\W/g, "");
+  var answer = Trivia.formatStr(game[id].answer).toLowerCase().replace(/\W/g, "");
 
   // Return -1 if the input is a command.
   // If the input is much longer than the actual answer, assume that it is not an attempt to answer.
@@ -826,7 +833,7 @@ function doHangmanHint(channel, answer) {
     return;
   }
 
-  answer = entities.decode(answer);
+  answer = Trivia.formatStr(answer);
 
   // If the total string is too small, skip showing a hint.
   if(answer.length < 4) {
@@ -1006,13 +1013,13 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) !== false) {
 
   var answerString = "";
   if(gameMode === 2) {
-    var answer = entities.decode(correct_answer);
+    var answer = Trivia.formatStr(correct_answer);
 
     var obscuredAnswer = createObscuredAnswer(answer);
     answerString = "**Hint:** " + obscuredAnswer;
 
     if(getConfigVal("debug-mode")) {
-      answerString = `${answerString} *(Answer: ${entities.decode(correct_answer)})*`;
+      answerString = `${answerString} *(Answer: ${Trivia.formatStr(correct_answer)})*`;
     }
 
     game[id].correctId = 0;
@@ -1029,11 +1036,11 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) !== false) {
         game[id].correctId = i;
       }
 
-      answerString = `${answerString}**${Letters[i]}:** ${entities.decode(answers[i])}${getConfigVal("debug-mode")&&i===game[id].correctId?" *(Answer)*":""}\n`;
+      answerString = `${answerString}**${Letters[i]}:** ${Trivia.formatStr(answers[i])}${getConfigVal("debug-mode")&&i===game[id].correctId?" *(Answer)*":""}\n`;
     }
   }
 
-  var categoryString = entities.decode(question.category);
+  var categoryString = Trivia.formatStr(question.category);
 
   var timer = getConfigVal("round-length", channel);
 
@@ -1063,7 +1070,7 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) !== false) {
 
   Trivia.send(channel, author, {embed: {
     color: game[id].color,
-    description: `*${categoryString}*\n**${entities.decode(question.question)}**\n${answerString}${infoString}`
+    description: `*${categoryString}*\n**${Trivia.formatStr(question.question)}**\n${answerString}${infoString}`
   }}, (msg, err) => {
     if(err) {
       game[id].timeout = void 0;
