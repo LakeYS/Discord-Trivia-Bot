@@ -1009,7 +1009,7 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) !== false) {
     var answer = entities.decode(correct_answer);
 
     var obscuredAnswer = createObscuredAnswer(answer);
-    answerString = obscuredAnswer;
+    answerString = "**Hint:** " + obscuredAnswer;
 
     if(getConfigVal("debug-mode")) {
       answerString = `${answerString} *(Answer: ${entities.decode(correct_answer)})*`;
