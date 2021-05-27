@@ -109,7 +109,7 @@ global.client.on("ready", () => {
     global.client.user.setAvatar("./profile.png");
   }
 
-  global.client.user.setPresence({ game: { name: "Trivia! Type '" + Config.prefix + "help' to get started.", type: 0 } });
+  global.client.user.setPresence({ activity: { name: "Trivia! Type '" + Config.prefix + "help' to get started.", type: 0 } });
 
   postBotStats();
 });
