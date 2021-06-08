@@ -11,13 +11,6 @@ global.client = new Client({
 
 global.Trivia = require("./triviabot.js");
 
-if(Config["fallback-mode"] && Config["debug-mode"]) {
-  require("./lib/failover_client.js")(Config);
-}
-else if(Config["debug-mode"]) {
-  require("./lib/failover_server.js");
-}
-
 if(Config["debug-log"]) {
   global.client.on("debug", (info) => {
     console.log("DEBUG [" + global.client.shard.ids + "]: " + info);
