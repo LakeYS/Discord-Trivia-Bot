@@ -1230,7 +1230,7 @@ function parseCommand(msg, cmd) {
       isAdmin = true;
     }
     else if(getConfigVal("command-whitelist", msg.channel).length > 0) {
-      // Admin if they are whitelisted (No need to check here -- if the command ran, they're whitelisted)
+      // By this point, we know this person is whitelisted - auto admin
       isAdmin = true;
     }
   }
@@ -1487,7 +1487,9 @@ Trivia.parse = (str, msg) => {
 
   // Check for command whitelist permissions before proceeding.
   var cmdWhitelist = getConfigVal("command-whitelist", msg.channel);
-  if(typeof cmdWhitelist !== "undefined" && cmdWhitelist.length !== 0 && cmdWhitelist.indexOf(msg.author.tag) === -1) {
+  var whitelistActive = (typeof cmdWhitelist !== "undefined" && cmdWhitelist.length !== 0);
+  var isWhitelisted = (cmdWhitelist.indexOf(msg.author.tag) !== -1 || cmdWhitelist.indexOf(msg.author.id) !== -1);
+  if(whitelistActive && !isWhitelisted) {
     return;
   }
 
