@@ -2,10 +2,8 @@
   "token": "yourtokenhere",
   "botsfordiscord.com-token": "optionaltokenhere",
   "botlist.space-token": "optionaltokenhere",
-  "discordbots.group-token": "optionaltokenhere",
   "discord.bots.gg-token": "optionaltokenhere",
   "discordbots.org-token": "optionaltokenhere",
-  "discordbot.world-token": "optionaltokenhere",
 
   "use-reactions": false,
   "hangman-mode": false,

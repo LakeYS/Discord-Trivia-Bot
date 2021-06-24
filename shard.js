@@ -40,19 +40,12 @@ function postBotStats() {
         "botlist.space": {
           url: `https://botlist.space/api/bots/${id}/`
         },
-        "discordbots.group": {
-          url: `https://discordbots.group/api/bot/${id}`,
-          data: { count: guildCountVal }
-        },
         "discord.bots.gg": {
           url: `https://discord.bots.gg/api/v1/bots/${id}/stats`,
           data: { guildCount: guildCountVal }
         },
         "discordbots.org": {
           url: `https://discordbots.org/api/bots/${id}/stats`
-        },
-        "discordbot.world": {
-          url: `https://discordbot.world/api/bot/${id}/stats`
         }
       };
 
