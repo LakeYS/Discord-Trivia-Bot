@@ -206,7 +206,10 @@ manager.spawn()
 
   console.error(`Discord client login failed - ${err}${warning}`);
 
-  process.exit();
+  // Exit if single shard
+  if(manager.totalShards === 1) {
+    process.exit();
+  }
 });
 
 manager.on("shardCreate", (shard) => {
