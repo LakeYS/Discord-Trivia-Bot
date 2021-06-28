@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
+const Listings = require("./lib/listings_discord");
 const { Client } = Discord;
-const snekfetch = require("snekfetch");
 
 var Config = require("./lib/config.js")(process.argv[2]).config;
 
@@ -17,63 +17,6 @@ if(Config["debug-log"]) {
   });
 }
 
-// # Post to Bot Listings # //
-function postBotStats() {
-  // The following sites only need the total shard count, so we'll only post using the last shard.
-
-  // TODO: Fix this for when shards spawn out of order
-  if(global.client.shard.ids[0] === global.client.shard.count-1) {
-    global.client.shard.fetchClientValues("guilds.size")
-    .then((countArray) => {
-      var guildCountVal = countArray.reduce((prev, val) => prev + val, 0);
-      var id = global.client.user.id;
-
-      if(guildCountVal > 1) {
-        console.log("===== Posting guild count of\x1b[1m " + guildCountVal + "\x1b[0m =====");
-      }
-
-      var listings = {
-        // If 'data' not specified, assume it is this: { server_count: guildCount }
-        "botsfordiscord.com": {
-          url: `https://botsfordiscord.com/api/bot/${id}/`
-        },
-        "botlist.space": {
-          url: `https://botlist.space/api/bots/${id}/`
-        },
-        "discord.bots.gg": {
-          url: `https://discord.bots.gg/api/v1/bots/${id}/stats`,
-          data: { guildCount: guildCountVal }
-        },
-        "discordbots.org": {
-          url: `https://discordbots.org/api/bots/${id}/stats`
-        }
-      };
-
-      for(var site in listings) {
-        if(Config[`${site}-token`] && Config[`${site}-token`] !== "optionaltokenhere") {
-          var data = listings[site].data || { server_count: guildCountVal };
-
-          snekfetch.post(listings[site].url)
-          .set("Authorization", Config[`${site}-token`])
-          .send(data)
-          .catch((err) => {
-            console.log(`Error occurred while posting to ${err.request.connection.servername} on shard ${global.client.shard.ids}:\n${err}`);
-
-            if(typeof err.text !== "undefined") {
-              console.log("Response included with the error: " + err.text);
-            }
-          })
-          .then((res) => {
-            if(typeof res !== "undefined") {
-              console.log(`Posted to site ${res.request.connection.servername}, received response: ${res.text}`);
-            }
-          });
-        }
-      }
-    });
-  }
-}
-
 // # Custom Package Loading # //
 if(typeof Config["additional-packages"] !== "undefined") {
   Config["additional-packages"].forEach((key) => {
@@ -85,7 +28,7 @@ if(typeof Config["additional-packages"] !== "undefined") {
 global.client.login(global.client.token);
 process.title = `Trivia - Shard ${global.client.shard.ids} (Initializing)`;
 
-global.client.on("ready", () => {
+global.client.on("ready", async () => {
   console.log("Shard " + global.client.shard.ids + " connected to\x1b[1m " + global.client.guilds.cache.size + " \x1b[0mserver" + (global.client.guilds.cache.size===1?"":"s") + ".");
 
   process.title = `Trivia - Shard ${global.client.shard.ids}`;
@@ -97,7 +40,20 @@ global.client.on("ready", () => {
 
   global.client.user.setPresence({ activity: { name: "Trivia! Type '" + Config.prefix + "help' to get started.", type: 0 } });
 
-  postBotStats();
+  // # Post Stats # //
+  if(Config["enable-listings"]) {
+    var listings = new Listings(global.client.user.id);
+    for(var site in Config["listing-tokens"]) {
+      listings.setToken(site, Config["listing-tokens"][site]);
+    }
+
+    if(global.client.shard.ids[0] === global.client.shard.count-1) {
+      var countArray = await global.client.shard.fetchClientValues("guilds.cache.size");
+      var guildCount = countArray.reduce((prev, val) => prev + val, 0);
+
+      listings.postBotStats(guildCount, global.client.shard.ids.length);
+    }
+  }
 });
 
 global.client.on("shardDisconnect", (event) => {

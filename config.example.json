@@ -1,9 +1,5 @@
 {
   "token": "yourtokenhere",
-  "botsfordiscord.com-token": "optionaltokenhere",
-  "botlist.space-token": "optionaltokenhere",
-  "discord.bots.gg-token": "optionaltokenhere",
-  "discordbots.org-token": "optionaltokenhere",
 
   "use-reactions": false,
   "hangman-mode": false,
@@ -48,5 +44,13 @@
   "display-ascii-logo": false,
   "fallback-mode": false,
   "fallback-silent": false,
-  "fallback-exceptions": []
+  "fallback-exceptions": [],
+
+  "enable-listings": false,
+  "listing-tokens": {
+    "botsfordiscord.com": "optionaltokenhere",
+    "discord.bots.gg": "optionaltokenhere",
+    "discordlist.space": "optionaltokenhere",
+    "top.gg": "optionaltokenhere"
+  }
 }
