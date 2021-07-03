@@ -22,6 +22,9 @@
   "accept-first-answer-only": false,
   "reveal-answers": true,
 
+  "participant-role": "",
+  "score-threshold": 800,
+
   "prefix": "trivia ",
   "allow-eval": true,
   "shard-count": "auto",
