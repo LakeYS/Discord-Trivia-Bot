@@ -928,6 +928,8 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     "guildId": channel.type==="text"?channel.guild.id:void 0,
     "userId": channel.type!=="dm"?void 0:channel.recipient.id,
 
+    "isDMGame": channel.type==="dm",
+
     gameMode,
     "category": typeof game[id]!=="undefined"?game[id].category:category,
     "difficulty": void 0, // Will be defined later
@@ -1469,7 +1471,7 @@ Trivia.parse = (str, msg) => {
     var parsed = parse(str, id, msg.author.id, name, getConfigVal("score-value", msg.channel));
 
     if(parsed !== -1) {
-      if(getConfigVal("auto-delete-answers", msg.channel)) {
+      if(getConfigVal("auto-delete-answers", msg.channel) && !game[id].isDMGame) {
         setTimeout(() => {
           msg.delete()
           .catch((err) => {
