@@ -82,3 +82,23 @@ global.client.on("message", (msg) => {
 global.client.on("messageReactionAdd", (reaction, user) => {
   global.Trivia.reactionAdd(reaction, user);
 });
+
+global.client.on("guildCreate", () => {
+  if(!Config["stat-guild-recording"]) {
+    return;
+  }
+
+  var date = new Date();
+  var key = "created" + (parseInt(date.getMonth())+1) + "_" + date.getDate();
+  global.client.shard.send({stats: { [key]: 1 }});
+});
+
+global.client.on("guildDelete", () => {
+  if(!Config["stat-guild-recording"]) {
+    return;
+  }
+  
+  var date = new Date();
+  var key = "deleted" + (parseInt(date.getMonth())+1) + "_" + date.getDate();
+  global.client.shard.send({stats: { [key]: 1 }});
+});

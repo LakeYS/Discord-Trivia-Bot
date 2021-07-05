@@ -32,6 +32,7 @@
   "database-merge": false,
   "database-cache-size": 32,
   "stat-file": "./stats.json",
+  "stat-guild-recording": false,
   "embed-color": "006CFF",
   "channel-whitelist": [],
   "config-commands-enabled": false,
