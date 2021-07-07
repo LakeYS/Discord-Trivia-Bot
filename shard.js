@@ -9,7 +9,7 @@ global.client = new Client({
   messageCacheMaxSize: 50
 });
 
-global.Trivia = require("./triviabot.js");
+var Trivia = global.client.Trivia = require("./triviabot.js");
 
 if(Config["fallback-mode"] && Config["debug-mode"]) {
   require("./lib/failover_client.js")(Config);
@@ -91,7 +91,7 @@ function postBotStats() {
 // # Custom Package Loading # //
 if(typeof Config["additional-packages"] !== "undefined") {
   Config["additional-packages"].forEach((key) => {
-    require(key)(global.Trivia);
+    require(key)(Trivia);
   });
 }
 
@@ -125,7 +125,7 @@ global.client.on("shardDisconnect", (event) => {
 global.client.on("error", (err) => {
   console.log("Discord client error: " + err.message);
 
-  global.Trivia.exportGame();
+  Trivia.exportGame();
   process.exit();
 });
 
@@ -133,10 +133,11 @@ global.client.on("message", (msg) => {
   var str = msg.toString().toUpperCase();
 
   if(msg.channel.type === "text" || msg.channel.type === "dm") {
-    global.Trivia.parse(str, msg);
+    Trivia.parse(str, msg);
   }
 });
 
 global.client.on("messageReactionAdd", (reaction, user) => {
-  global.Trivia.reactionAdd(reaction, user);
+  Trivia.reactionAdd(reaction, user);
 });
+
