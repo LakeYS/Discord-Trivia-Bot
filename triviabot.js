@@ -1607,39 +1607,51 @@ Trivia.reactionAdd = async function(reaction, user) {
   var id = reaction.message.channel.id;
   var str = reaction.emoji.name;
 
-  // If a game is in progress, the reaction is on the right message, the game uses reactions, and the reactor isn't the TriviaBot client...
-  if(typeof game[id] !== "undefined" && typeof game[id].message !== "undefined" && reaction.message.id === game[id].message.id && game[id].gameMode === 1 && user !== global.client.user) {
-    if(str === "🇦") {
-      str = "A";
-    }
-    else if(str === "🇧") {
-      str = "B";
-    }
-    else if(str === "🇨") {
-      str = "C";
-    }
-    else if(str === "🇩") {
-      str = "D";
-    }
-    else {
-      return; // The reaction isn't a letter, ignore it.
-    }
+  if(typeof game[id] === "undefined")
+    return;
+  
+  if(typeof game[id].message === "undefined")
+    return;
+  
+  if(game[id].gameMode !== 1) // Reaction mode only
+    return;
 
-    // Get the user's guild nickname, or regular name if in a DM.
-    var msg = reaction.message;
-    var username;
+  if(reaction.message.id !== game[id].message.id)
+    return;
+  
+  if(user === global.client.user) // Ignore our own client
+    return;
 
-    if(msg.guild !== null) {
-      // Fetch the guild member for this user.
-      var guildMember = await msg.guild.members.fetch({user: user.id});
-      username = guildMember.displayName;
-    }
-    else {
-      username = user.username; 
-    }
-
-    Trivia.parseAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
+  if(str === "🇦") {
+    str = "A";
   }
+  else if(str === "🇧") {
+    str = "B";
+  }
+  else if(str === "🇨") {
+    str = "C";
+  }
+  else if(str === "🇩") {
+    str = "D";
+  }
+  else {
+    return; // The reaction isn't a letter, ignore it.
+  }
+
+  // Get the user's guild nickname, or regular name if in a DM.
+  var msg = reaction.message;
+  var username;
+
+  if(msg.guild !== null) {
+    // Fetch the guild member for this user.
+    var guildMember = await msg.guild.members.fetch({user: user.id});
+    username = guildMember.displayName;
+  }
+  else {
+    username = user.username; 
+  }
+
+  Trivia.parseAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
 };
 
 // # Game Exporter #
