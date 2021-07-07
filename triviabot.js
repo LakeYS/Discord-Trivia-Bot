@@ -183,7 +183,8 @@ if(typeof Database === "undefined" || Database.error) {
 
 Trivia.database = Database;
 
-global.questions = [];
+Trivia.questions = [];
+
 
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
@@ -257,7 +258,7 @@ function isFallbackMode(channel) {
 // If initial is set to true, a question will not be returned. (For initializing the cache)
 // If tokenChannel is specified (must be a discord.js TextChannel object), a token will be generated and used.
 Trivia.getTriviaQuestion = async function(initial, tokenChannel, tokenRetry, isFirstQuestion, category, typeInput, difficultyInput) {
-  var length = global.questions.length;
+  var length = Trivia.questions.length;
   var toReturn;
 
   // Check if there are custom arguments
@@ -378,20 +379,20 @@ Trivia.getTriviaQuestion = async function(initial, tokenChannel, tokenRetry, isF
       }
     }
     finally {
-      global.questions = json;
+      Trivia.questions = json;
     }
   }
 
   if(!initial) {
     // Just in case, check the cached question count first.
-    if(global.questions.length < 1) {
+    if(Trivia.questions.length < 1) {
       throw new Error("Received empty response while attempting to retrieve a Trivia question.");
     }
     else {
-      toReturn = global.questions[0];
+      toReturn = Trivia.questions[0];
 
-      delete global.questions[0];
-      global.questions = global.questions.filter((val) => Object.keys(val).length !== 0);
+      delete Trivia.questions[0];
+      Trivia.questions = Trivia.questions.filter((val) => Object.keys(val).length !== 0);
 
       return toReturn;
     }
