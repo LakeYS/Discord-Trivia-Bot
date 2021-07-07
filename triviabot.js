@@ -740,7 +740,7 @@ Trivia.parseAnswer = function (game, str, channelId, userId, username, scoreValu
   }
 };
 
-async function addAnswerReactions(msg, id) {
+async function addAnswerReactions(msg, game) {
   try {
     await msg.react("🇦");
     await msg.react("🇧");
@@ -798,7 +798,7 @@ Trivia.createObscuredAnswer = function(answer, doHint) {
 };
 
 function doHangmanHint(channel, answer) {
-  var id = channel.id;
+  var game = Trivia.gameHandler.getActiveGame(channel.id);
 
   // Verify that the game is still running and that it's the same game.
   if(typeof game === "undefined" || !game.inRound || answer !== game.answer) {
@@ -880,7 +880,7 @@ Trivia.doGame = async function(id, channel, author, question, mode) {
 
   // Add reaction emojis if configured to do so.
   if(game.gameMode === 1) {
-    addAnswerReactions(msg, id);
+    addAnswerReactions(msg, game);
   }
 
   if(game.gameMode === 2 && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
@@ -889,7 +889,7 @@ Trivia.doGame = async function(id, channel, author, question, mode) {
     // the game ends before running.
     var answer = game.question.answer; // Pre-define to avoid errors.
     setTimeout(() => {
-      doHangmanHint(channel, answer);
+      doHangmanHint(game, answer);
     },
     getConfigVal("round-length", channel)/2);
   }
@@ -980,7 +980,7 @@ Trivia.getCategoryFromStr = async (str) => {
 };
 
 function parseCommand(msg, cmd) {
-  var id = msg.channel.id;
+  var game = Trivia.gameHandler.getActiveGame(msg.channel.id);
 
   var isAdmin;
   if(getConfigVal("disable-admin-commands", msg.channel) !== true) {
