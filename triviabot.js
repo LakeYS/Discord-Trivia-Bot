@@ -203,11 +203,11 @@ Trivia.send = async function(channel, author, msg, callback, noDelete) {
       if(channel.type !== "dm") {
         var str = "";
         if(err.message.includes("Missing Permissions")) {
-          str = "\n\nThe bot does not have sufficient permission to send messages in this channel. This bot requires the \"Read Messages\", \"Send Messages\", \"Embed Links\" permissions in order to work.";
+          str = "\n\nThe bot does not have sufficient permission to send messages in this channel. This bot requires the \"Send Messages\" and \"Embed Links\" permissions in order to work.";
         }
 
         if(err.message.includes("Missing Access")) {
-          str = "\n\nThe bot does not have permission to read messages in this channel. This bot requires the \"Read Messages\", \"Send Messages\", \"Embed Links\" permissions in order to work.";
+          str = "\n\nThe bot does not have permission to view this channel. Ensure that TriviaBot has the \"View Channel\" permission for this channel.";
         }
 
         author.send({embed: {
@@ -428,6 +428,13 @@ Trivia.applyBonusMultiplier = (game, channel, userID) => {
   }
 };
 
+Trivia.formatStr = (str) => {
+  str = entities.decode(str);
+  str = str.replace(/_/g, "\\_");
+
+  return str;
+};
+
 // # Trivia.doAnswerReveal #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
 // TODO: Refactor (clean up and fix gameEndedMsg being relied on as a boolean check)
@@ -614,7 +621,7 @@ Trivia.doAnswerReveal = (game, channel, answer, importOverride) => {
   var answerStr = "";
 
   if(getConfigVal("reveal-answers", channel) === true) { // DELTA: Answers will be not shown in the Summary
-    answerStr = `${game.gameMode!==2?`**${Letters[game.question.displayCorrectID]}:** `:""}${entities.decode(game.question.answer)}\n\n`;
+    answerStr = `${game.gameMode!==2?`**${Letters[game.question.displayCorrectID]}:** `:""}${Trivia.formatStr(game.question.answer)}\n\n`;
   }
 
   Trivia.send(channel, void 0, {embed: {
@@ -647,7 +654,7 @@ Trivia.doAnswerReveal = (game, channel, answer, importOverride) => {
 Trivia.parseAnswerHangman = function(game, str, id, userId, username, scoreValue) {
   var input = str.toLowerCase();
   // Decode and remove all non-alphabetical characters
-  var answer = entities.decode(game.question.answer).toLowerCase().replace(/\W/g, "");
+  var answer = Trivia.formatStr(game.question.answer).toLowerCase().replace(/\W/g, "");
 
   // Return -1 if the input is a command.
   // If the input is much longer than the actual answer, assume that it is not an attempt to answer.
@@ -806,7 +813,7 @@ function doHangmanHint(channel, answer) {
     return;
   }
 
-  answer = entities.decode(answer);
+  answer = Trivia.formatStr(answer);
 
   // If the total string is too small, skip showing a hint.
   if(answer.length < 4) {
@@ -994,7 +1001,7 @@ function parseCommand(msg, cmd) {
       isAdmin = true;
     }
     else if(getConfigVal("command-whitelist", msg.channel).length > 0) {
-      // Admin if they are whitelisted (No need to check here -- if the command ran, they're whitelisted)
+      // By this point, we know this person is whitelisted - auto admin
       isAdmin = true;
     }
   }
@@ -1234,7 +1241,7 @@ Trivia.parse = (str, msg) => {
     var parsed = parse(game, str, id, msg.author.id, name, getConfigVal("score-value", msg.channel));
 
     if(parsed !== -1) {
-      if(getConfigVal("auto-delete-answers", msg.channel)) {
+      if(getConfigVal("auto-delete-answers", msg.channel) && !game[id].isDMGame) {
         setTimeout(() => {
           msg.delete()
           .catch((err) => {
@@ -1252,7 +1259,9 @@ Trivia.parse = (str, msg) => {
 
   // Check for command whitelist permissions before proceeding.
   var cmdWhitelist = getConfigVal("command-whitelist", msg.channel);
-  if(typeof cmdWhitelist !== "undefined" && cmdWhitelist.length !== 0 && cmdWhitelist.indexOf(msg.author.tag) === -1) {
+  var whitelistActive = (typeof cmdWhitelist !== "undefined" && cmdWhitelist.length !== 0);
+  var isWhitelisted = (cmdWhitelist.indexOf(msg.author.tag) !== -1 || cmdWhitelist.indexOf(msg.author.id) !== -1);
+  if(whitelistActive && !isWhitelisted) {
     return;
   }
 
@@ -1337,7 +1346,7 @@ async function triviaResumeGame(json, id) {
     game.resuming = 1;
 
     // Calculate timeout based on game time
-
+    // TODO: Account for hangman games properly
     date.setMilliseconds(date.getMilliseconds()+getConfigVal("round-length", channel));
     timeout = date-new Date();
 
@@ -1364,39 +1373,51 @@ Trivia.reactionAdd = async function(reaction, user) {
   var game = Trivia.gameHandler.getActiveGame(id);
   var str = reaction.emoji.name;
 
-  // If a game is in progress, the reaction is on the right message, the game uses reactions, and the reactor isn't the TriviaBot client...
-  if(typeof game !== "undefined" && typeof game.message !== "undefined" && reaction.message.id === game.message.id && game.gameMode === 1 && user !== global.client.user) {
-    if(str === "🇦") {
-      str = "A";
-    }
-    else if(str === "🇧") {
-      str = "B";
-    }
-    else if(str === "🇨") {
-      str = "C";
-    }
-    else if(str === "🇩") {
-      str = "D";
-    }
-    else {
-      return; // The reaction isn't a letter, ignore it.
-    }
+  if(typeof game === "undefined")
+    return;
+  
+  if(typeof game.message === "undefined")
+    return;
+  
+  if(game.gameMode !== 1) // Reaction mode only
+    return;
 
-    // Get the user's guild nickname, or regular name if in a DM.
-    var msg = reaction.message;
-    var username;
+  if(reaction.message.id !== game.message.id)
+    return;
+  
+  if(user === global.client.user) // Ignore our own client
+    return;
 
-    if(msg.guild !== null) {
-      // Fetch the guild member for this user.
-      var guildMember = await msg.guild.members.fetch({user: user.id});
-      username = guildMember.displayName;
-    }
-    else {
-      username = user.username; 
-    }
-
-    Trivia.parseAnswer(game, str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
+  if(str === "🇦") {
+    str = "A";
   }
+  else if(str === "🇧") {
+    str = "B";
+  }
+  else if(str === "🇨") {
+    str = "C";
+  }
+  else if(str === "🇩") {
+    str = "D";
+  }
+  else {
+    return; // The reaction isn't a letter, ignore it.
+  }
+
+  // Get the user's guild nickname, or regular name if in a DM.
+  var msg = reaction.message;
+  var username;
+
+  if(msg.guild !== null) {
+    // Fetch the guild member for this user.
+    var guildMember = await msg.guild.members.fetch({user: user.id});
+    username = guildMember.displayName;
+  }
+  else {
+    username = user.username; 
+  }
+
+  Trivia.parseAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
 };
 
 // # Game Exporter #

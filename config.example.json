@@ -1,11 +1,5 @@
 {
   "token": "yourtokenhere",
-  "botsfordiscord.com-token": "optionaltokenhere",
-  "botlist.space-token": "optionaltokenhere",
-  "discordbots.group-token": "optionaltokenhere",
-  "discord.bots.gg-token": "optionaltokenhere",
-  "discordbots.org-token": "optionaltokenhere",
-  "discordbot.world-token": "optionaltokenhere",
 
   "use-reactions": false,
   "hangman-mode": false,
@@ -38,6 +32,7 @@
   "database-merge": false,
   "database-cache-size": 32,
   "stat-file": "./stats.json",
+  "stat-guild-recording": false,
   "embed-color": "006CFF",
   "channel-whitelist": [],
   "config-commands-enabled": false,
@@ -50,5 +45,13 @@
   "display-ascii-logo": false,
   "fallback-mode": false,
   "fallback-silent": false,
-  "fallback-exceptions": []
+  "fallback-exceptions": [],
+
+  "enable-listings": false,
+  "listing-tokens": {
+    "botsfordiscord.com": "optionaltokenhere",
+    "discord.bots.gg": "optionaltokenhere",
+    "discordlist.space": "optionaltokenhere",
+    "top.gg": "optionaltokenhere"
+  }
 }

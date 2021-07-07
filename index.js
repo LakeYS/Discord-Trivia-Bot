@@ -191,7 +191,7 @@ manager.spawn()
 .catch((err) => {
   var warning = "";
 
-  if(err.message.includes("401 Unauthorized")) {
+  if(err.name === "Error [TOKEN_INVALID]") {
     if(token === "yourtokenhere") {
       warning = "\nIt appears that you have not yet added a token. Please replace \"yourtokenhere\" with a valid token in the config file.";
     }
@@ -204,9 +204,20 @@ manager.spawn()
     }
   }
 
-  console.error(`Discord client login failed - ${err}${warning}`);
+  var str;
+  if(typeof err.status !== "undefined") {
+    str = `${err.status} ${err.statusText}`;
+  }
+  else {
+    str = err.message;
+  }
 
-  process.exit();
+  console.error(`Discord client login failed - ${str}${warning}`);
+
+  // Exit if single shard
+  if(manager.totalShards === 1) {
+    process.exit();
+  }
 });
 
 manager.on("shardCreate", (shard) => {
