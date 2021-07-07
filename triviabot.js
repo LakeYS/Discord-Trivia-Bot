@@ -197,11 +197,11 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
       if(channel.type !== "dm") {
         var str = "";
         if(err.message.includes("Missing Permissions")) {
-          str = "\n\nThe bot does not have sufficient permission to send messages in this channel. This bot requires the \"Read Messages\", \"Send Messages\", \"Embed Links\" permissions in order to work.";
+          str = "\n\nThe bot does not have sufficient permission to send messages in this channel. This bot requires the \"Send Messages\" and \"Embed Links\" permissions in order to work.";
         }
 
         if(err.message.includes("Missing Access")) {
-          str = "\n\nThe bot does not have permission to read messages in this channel. This bot requires the \"Read Messages\", \"Send Messages\", \"Embed Links\" permissions in order to work.";
+          str = "\n\nThe bot does not have permission to view this channel. Ensure that TriviaBot has the \"View Channel\" permission for this channel.";
         }
 
         author.send({embed: {
