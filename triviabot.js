@@ -951,14 +951,14 @@ Trivia.stopGame = (game, channel, auto) => {
 };
 
 Trivia.leaderboard = require("./lib/leaderboard.js")(getConfigVal);
-commands.playAdv = require("./lib/cmd_play_advanced.js")(Trivia, global.client);
+commands.playAdv = require("./lib/commands/play_advanced.js")(Trivia, global.client);
 var parseAdv = commands.playAdv.parseAdv;
-commands.triviaHelp = require("./lib/cmd_help.js")(Config, Trivia);
-commands.triviaCategories = require("./lib/cmd_categories.js")(Config);
-commands.triviaPlay = require("./lib/cmd_play.js")(Config, Trivia, commands, getConfigVal, game);
+commands.triviaHelp = require("./lib/commands/help.js")(Config, Trivia);
+commands.triviaCategories = require("./lib/commands/categories.js")(Config);
+commands.triviaPlay = require("./lib/commands/play.js")(Config, Trivia, commands, getConfigVal, game);
 commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
-commands.triviaPing = require("./lib/cmd_ping.js")(Config, Trivia, Database);
-commands.triviaStop = require("./lib/cmd_stop.js")(Config, Trivia, commands, getConfigVal);
+commands.triviaPing = require("./lib/commands/ping.js")(Config, Trivia, Database);
+commands.triviaStop = require("./lib/commands/stop.js")(Config, Trivia, commands, getConfigVal);
 
 Trivia.buildCategorySearchIndex = async () => {
   Trivia.categorySearchIndex = JSON.parse(JSON.stringify(await Database.getCategories()));
