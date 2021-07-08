@@ -955,6 +955,7 @@ commands.playAdv = require("./lib/cmd_play_advanced.js")(Trivia, global.client);
 var parseAdv = commands.playAdv.parseAdv;
 commands.triviaHelp = require("./lib/cmd_help.js")(Config, Trivia);
 commands.triviaCategories = require("./lib/cmd_categories.js")(Config);
+commands.triviaPlay = require("./lib/cmd_play.js")(Config, Trivia, commands, getConfigVal, game);
 commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
 commands.triviaPing = require("./lib/cmd_ping.js")(Config, Trivia, Database);
 commands.triviaStop = require("./lib/cmd_stop.js")(Config, Trivia, commands, getConfigVal);
@@ -1160,40 +1161,8 @@ function parseCommand(msg, cmd) {
   }
 
   if(cmd.startsWith("PLAY ") || cmd === "PLAY") {
-    if(typeof game !== "undefined" && game.inProgress) {
-      return;
-    }
-
     var categoryInput = cmd.replace("PLAY ","");
-    if(categoryInput !== "PLAY") {
-      Trivia.getCategoryFromStr(categoryInput)
-      .then((category) => {
-        if(typeof category === "undefined") {
-          Trivia.send(msg.channel, msg.author, {embed: {
-            color: 14164000,
-            description: `Unable to find the category you specified.\nType \`${getConfigVal("prefix")}play\` to play in random categories, or type \`${getConfigVal("prefix")}categories\` to see a list of categories.`
-          }});
-          return;
-        }
-        else {
-          Trivia.doGame(msg.channel.id, msg.channel, msg.author, { category: category.id });
-          return;
-        }
-      })
-      .catch((err) => {
-        Trivia.send(msg.channel, msg.author, {embed: {
-          color: 14164000,
-          description: `Failed to retrieve the category list:\n${err}`
-        }});
-        console.log(`Failed to retrieve category list:\n${err}`);
-        return;
-      });
-    }
-    else {
-      // No category specified, start a normal game. (The database will pick a random category for us)
-      Trivia.doGame(msg.channel.id, msg.channel, msg.author);
-      return;
-    }
+    commands.triviaPlay(msg, categoryInput);
   }
 
   if(typeof commands.leagueParse !== "undefined" && cmd.startsWith("LEAGUE ")) {
