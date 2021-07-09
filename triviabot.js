@@ -1188,7 +1188,6 @@ commands.triviaHelp = require("./lib/cmd_help.js")(Config, Trivia);
 commands.triviaCategories = require("./lib/cmd_categories.js")(Config);
 commands.triviaPlay = require("./lib/cmd_play.js")(Config, Trivia, commands, getConfigVal, game);
 commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
-commands.triviaPing = require("./lib/cmd_ping.js")(Config, Trivia, Database);
 commands.triviaStop = require("./lib/cmd_stop.js")(Config, Trivia, commands, getConfigVal);
 
 Trivia.buildCategorySearchIndex = async () => {
@@ -1236,11 +1235,6 @@ function parseCommand(msg, cmd) {
       // By this point, we know this person is whitelisted - auto admin
       isAdmin = true;
     }
-  }
-
-  if(cmd === "PING") {
-    commands.triviaPing(msg);
-    return;
   }
 
   if(cmd.startsWith("STOP")) {
@@ -1476,15 +1470,8 @@ Trivia.parse = (str, msg) => {
   parseAdv(id, msg);
 
   // ## Help Command Parser ##
-  if(str === prefix + "HELP" || str.includes(`<@!${global.client.user.id}>`)) {
-    commands.triviaHelp(msg, Database)
-    .then((res) => {
-
-      Trivia.send(msg.channel, msg.author, {embed: {
-        color: Trivia.embedCol,
-        description: res
-      }});
-    });
+  if(str === prefix + "HELP" || str === prefix + "PING" || str.includes(`<@!${global.client.user.id}>`)) {
+    commands.triviaHelp(msg, Database);
     return;
   }
 
