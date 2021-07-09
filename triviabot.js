@@ -1385,9 +1385,18 @@ function parseCommand(msg, cmd) {
     return;
   }
 
+  var categoryInput;
+
+  if(cmd.startsWith("PLAY HANGMAN ") || cmd === "PLAY HANGMAN") {
+    categoryInput = cmd.replace("PLAY HANGMAN ","");
+    commands.triviaPlay(msg, categoryInput, 2);
+    return;
+  }
+
   if(cmd.startsWith("PLAY ") || cmd === "PLAY") {
-    var categoryInput = cmd.replace("PLAY ","");
+    categoryInput = cmd.replace("PLAY ","");
     commands.triviaPlay(msg, categoryInput);
+    return;
   }
 
   if(typeof commands.leagueParse !== "undefined" && cmd.startsWith("LEAGUE ")) {
