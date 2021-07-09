@@ -957,7 +957,6 @@ commands.triviaHelp = require("./lib/commands/help.js")(Config, Trivia);
 commands.triviaCategories = require("./lib/commands/categories.js")(Config);
 commands.triviaPlay = require("./lib/commands/play.js")(Config, Trivia, commands, getConfigVal, game);
 commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
-commands.triviaPing = require("./lib/commands/ping.js")(Config, Trivia, Database);
 commands.triviaStop = require("./lib/commands/stop.js")(Config, Trivia, commands, getConfigVal);
 
 Trivia.buildCategorySearchIndex = async () => {
@@ -1005,11 +1004,6 @@ function parseCommand(msg, cmd) {
       // By this point, we know this person is whitelisted - auto admin
       isAdmin = true;
     }
-  }
-
-  if(cmd === "PING") {
-    commands.triviaPing(msg);
-    return;
   }
 
   if(cmd.startsWith("STOP")) {
@@ -1160,9 +1154,18 @@ function parseCommand(msg, cmd) {
     return;
   }
 
+  var categoryInput;
+
+  if(cmd.startsWith("PLAY HANGMAN ") || cmd === "PLAY HANGMAN") {
+    categoryInput = cmd.replace("PLAY HANGMAN ","");
+    commands.triviaPlay(msg, categoryInput, 2);
+    return;
+  }
+
   if(cmd.startsWith("PLAY ") || cmd === "PLAY") {
-    var categoryInput = cmd.replace("PLAY ","");
+    categoryInput = cmd.replace("PLAY ","");
     commands.triviaPlay(msg, categoryInput);
+    return;
   }
 
   if(typeof commands.leagueParse !== "undefined" && cmd.startsWith("LEAGUE ")) {
@@ -1246,15 +1249,8 @@ Trivia.parse = (str, msg) => {
   parseAdv(id, msg);
 
   // ## Help Command Parser ##
-  if(str === prefix + "HELP" || str.includes(`<@!${global.client.user.id}>`)) {
-    commands.triviaHelp(msg, Database)
-    .then((res) => {
-
-      Trivia.send(msg.channel, msg.author, {embed: {
-        color: Trivia.embedCol,
-        description: res
-      }});
-    });
+  if(str === prefix + "HELP" || str === prefix + "PING" || str.includes(`<@!${global.client.user.id}>`)) {
+    commands.triviaHelp(msg, Database);
     return;
   }
 
