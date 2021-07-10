@@ -1218,24 +1218,8 @@ Trivia.getCategoryFromStr = async (str) => {
   });
 };
 
-function parseCommand(msg, cmd) {
+function parseCommand(msg, cmd, isAdmin) {
   var id = msg.channel.id;
-
-  var isAdmin;
-  if(getConfigVal("disable-admin-commands", msg.channel) !== true) {
-    // Admin if there is a valid member object and they have permission.
-    if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) {
-      isAdmin = true;
-    }
-    else if(msg.channel.type === "dm") {
-      // Admin if the game is run in a DM.
-      isAdmin = true;
-    }
-    else if(getConfigVal("command-whitelist", msg.channel).length > 0) {
-      // By this point, we know this person is whitelisted - auto admin
-      isAdmin = true;
-    }
-  }
 
   if(cmd.startsWith("STOP")) {
     commands.triviaStop(msg, cmd, isAdmin);
@@ -1475,8 +1459,25 @@ Trivia.parse = (str, msg) => {
     }
   }
 
+  // Admin check
+  var isAdmin;
+  if(getConfigVal("disable-admin-commands", msg.channel) !== true) {
+    // Admin if there is a valid member object and they have permission.
+    if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) {
+      isAdmin = true;
+    }
+    else if(msg.channel.type === "dm") {
+      // Admin if the game is run in a DM.
+      isAdmin = true;
+    }
+    else if(getConfigVal("command-whitelist", msg.channel).length > 0) {
+      // By this point, we know this person is whitelisted - auto admin
+      isAdmin = true;
+    }
+  }
+
   // ## Advanced Game Args ##
-  parseAdv(id, msg);
+  parseAdv(id, msg, isAdmin);
 
   // ## Help Command Parser ##
   if(str === prefix + "HELP" || str === prefix + "PING" || str.includes(`<@!${global.client.user.id}>`)) {
@@ -1488,7 +1489,7 @@ Trivia.parse = (str, msg) => {
   // If the string starts with the specified prefix (converted to uppercase)
   if(str.startsWith(prefix)) {
     var cmd = str.replace(prefix, "");
-    parseCommand(msg, cmd);
+    parseCommand(msg, cmd, isAdmin);
   }
 };
 
