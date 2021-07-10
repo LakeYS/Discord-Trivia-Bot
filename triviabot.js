@@ -32,34 +32,31 @@ function getConfigVal(value, channel, guild) {
 
   var file = `./Options/config_${channel}.json`;
   if(typeof channel !== "undefined" && fs.existsSync(file)) {
-    if(typeof ConfigLocal[channel] === "undefined") {
-      // If the data isn't in the cache, load it from file.
-      if(ConfigData.localOptions.includes(value)) {
-        var currentConfig;
-        try {
-          currentConfig = fs.readFileSync(file).toString();
-
-          currentConfig = JSON.parse(currentConfig);
-
-          // Cache the data so it doesn't need to be re-read.
-          // This also eliminates issues if the file is changed without restarting.
-          ConfigLocal[channel] = currentConfig;
-
-          // If the value doesn't exist, will attempt to fall back to global
-          if(typeof currentConfig[value] !== "undefined") {
-            return currentConfig[value];
-          }
-        } catch(error) {
-          // If this fails, fall back to default config and drop an error in the console.
-          console.log(`Failed to retrieve config option "${value}". Default option will be used instead.`);
-          console.log(error.stack);
-        }
-      }
+    // If data is already in the cache, return it from there.
+    if(typeof ConfigLocal[channel][value] !== "undefined") {
+      return ConfigLocal[channel][value];
     }
-    else {
-      // This data is already in the cache, return it from there.
-      if(typeof ConfigLocal[channel][value] !== "undefined") {
-        return ConfigLocal[channel][value];
+    
+    // If the data isn't in the cache, load it from file.
+    if(ConfigData.localOptions.includes(value)) {
+      var currentConfig;
+      try {
+        currentConfig = fs.readFileSync(file).toString();
+
+        currentConfig = JSON.parse(currentConfig);
+
+        // Cache the data so it doesn't need to be re-read.
+        // This also eliminates issues if the file is changed without restarting.
+        ConfigLocal[channel] = currentConfig;
+
+        // If the value doesn't exist, will attempt to fall back to global
+        if(typeof currentConfig[value] !== "undefined") {
+          return currentConfig[value];
+        }
+      } catch(error) {
+        // If this fails, fall back to default config and drop an error in the console.
+        console.log(`Failed to retrieve config option "${value}". Default option will be used instead.`);
+        console.log(error.stack);
       }
     }
   }
