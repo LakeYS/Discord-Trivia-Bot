@@ -1,12 +1,16 @@
 <img src=http://lakeys.net/triviabot/profile_t.png width=150 height=150>
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2f6bcffc370943d4954606feb26e5873)](https://app.codacy.com/app/Lake/Discord-Trivia-Bot?utm_source=github.com&utm_medium=referral&utm_content=LakeYS/Discord-Trivia-Bot&utm_campaign=badger)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2f6bcffc370943d4954606feb26e5873)](https://app.codacy.com/app/Lake/Discord-Trivia-Bot?utm_source=github.com&utm_medium=referral&utm_content=LakeYS/Discord-Trivia-Bot&utm_campaign=badger) [![top.gg Badge](https://top.gg/api/widget/servers/337654994461261825.svg?noavatar=true)](https://top.gg/bot/337654994461261825)
 
 # TriviaBot
 TriviaBot brings multiplayer trivia games to your Discord server! With over 3,000 questions and 24 categories, TriviaBot offers endless multiplayer trivia fun.
 
 [__Invite TriviaBot to a server__](https://lakeys.net/triviabot/invite) | [Support it on Patreon](https://www.patreon.com/LakeYS) | [View updates & progress on Trello](https://trello.com/b/8QQm4ZPe/triviabot) | [Join the Discord](https://discord.gg/s3vCQba)
 ------------ | ------------- | ------------- | -------------
+
+View TriviaBot on:
+[top.gg](https://top.gg/bot/337654994461261825) | [discord.bots.gg](https://discord.bots.gg/bots/337654994461261825)
+------------ | ------------- 
 
 # Development and Support
 For support, questions, and comments, you can join the Discord server or contact me directly at contact@LakeYS.net. You can also [submit an issue](https://github.com/LakeYS/Discord-Trivia-Bot/issues/new) for bugs and support.
