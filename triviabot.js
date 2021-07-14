@@ -127,6 +127,13 @@ function setConfigVal(value, newValue, skipOverride, localID) {
 }
 Trivia.setConfigVal = setConfigVal;
 
+function debugLog(str) {
+  if(getConfigVal("debug-log")) {
+    console.log(str);
+  }
+}
+Trivia.debugLog = debugLog;
+
 global.client.on("ready", () => {
   // Initialize restricted channels
   var restrictedChannelsInput = getConfigVal("channel-whitelist");
@@ -565,9 +572,7 @@ Trivia.doAnswerReveal = (game, channel, answer, importOverride) => {
           var bonusStr = "";
           var bonus = Trivia.applyBonusMultiplier(game.ID, channel, Object.keys(game.correctUsers)[i]);
 
-          if(getConfigVal("debug-log")) {
-            console.log(`Applied bonus score of ${bonus} to user ${Object.keys(game.correctUsers)[i]}`);
-          }
+          Trivia.debugLog(`Applied bonus score of ${bonus} to user ${Object.keys(game.correctUsers)[i]}`);
 
           if(score !== score+bonus && typeof bonus !== "undefined") {
             bonusStr = ` + ${bonus} bonus`;
@@ -709,30 +714,19 @@ Trivia.parseAnswer = function (game, str, channelId, userId, username, scoreValu
           console.warn(`WARNING: Invalid difficulty value '${game.question.difficulty}' for the current question. User will not be scored.`);
         }
 
-        if(getConfigVal("debug-log")) {
-          console.log(`Updating score of user ${userId} (Current value: ${game.scores[userId]}) + ${scoreChange}.`);
-        }
-
+        Trivia.debugLog(`Updating score of user ${userId} (Current value: ${game.scores[userId]}) + ${scoreChange}.`);
         game.scores[userId] += scoreChange;
-
-        if(getConfigVal("debug-log")) {
-          console.log(`New score for user ${userId}: ${game.scores[userId]}`);
-        }
+        Trivia.debugLog(`New score for user ${userId}: ${game.scores[userId]}`);
       }
     }
     else {
       // If the answer is wrong, remove them from correctUsers if necessary
       if(typeof game.correctUsers[userId] !== "undefined") {
-
-        if(getConfigVal("debug-log")) {
-          console.log(`User ${userId} changed answers, reducing score (Current value: ${game.scores[userId]}) by ${scoreValue[game.question.difficulty]}.`);
-        }
+        Trivia.debugLog(`User ${userId} changed answers, reducing score (Current value: ${game.scores[userId]}) by ${scoreValue[game.question.difficulty]}.`);
 
         game.scores[userId] -= scoreValue[game.question.difficulty];
 
-        if(getConfigVal("debug-log")) {
-          console.log(`New score for user ${userId}: ${game.scores[userId]}`);
-        }
+        Trivia.debugLog(`New score for user ${userId}: ${game.scores[userId]}`);
 
         // Now that the name is removed, we can remove the ID.
         delete game.correctUsers[userId];
