@@ -655,6 +655,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
 
   Trivia.send(channel, void 0, {embed: {
     color: game[id].color,
+    image: {url: game[id].imageAnswer}, // If any is defined
     description: `${answerStr}${correctUsersStr}${gameEndedMsg}${gameFooter}`
   }}, (msg, err) => {
     if(typeof game[id] !== "undefined") {
@@ -1057,8 +1058,6 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
 
   var infoString = "";
   if(!scheduled) {
-    infoString = "\n";
-
     if(gameMode === 2) {
       infoString = `${infoString}\nType your answer! `;
     }
@@ -1074,9 +1073,16 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
     }
   }
 
+  var footerObj;
+  if(infoString !== "") {
+    footerObj = { text: infoString };
+  }
+
   Trivia.send(channel, author, {embed: {
     color: game[id].color,
-    description: `*${categoryString}*\n**${Trivia.formatStr(question.question)}**\n${answerString}${infoString}`
+    image: {url: question.question_image},
+    description: `*${categoryString}*\n**${Trivia.formatStr(question.question)}**\n${answerString}`,
+    footer: footerObj
   }}, (msg, err) => {
     if(err) {
       game[id].timeout = void 0;
@@ -1120,6 +1126,7 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
         game[id].difficulty = question.difficulty;
         game[id].answer = question.correct_answer;
         game[id].answerExtension = question.answer_extension;
+        game[id].imageAnswer = question.answer_image;
         game[id].date = new Date();
 
         if(gameMode === 2 && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
