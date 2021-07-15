@@ -649,6 +649,10 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
     answerStr = `${game[id].gameMode!==2?`**${Letters[game[id].correctId]}:** `:""}${Trivia.formatStr(game[id].answer)}\n\n`;
   }
 
+  if(typeof game[id].answerExtension !== "undefined") {
+    answerStr = `${answerStr}${Trivia.formatStr(game[id].answerExtension)}\n\n`;
+  }
+
   Trivia.send(channel, void 0, {embed: {
     color: game[id].color,
     description: `${answerStr}${correctUsersStr}${gameEndedMsg}${gameFooter}`
@@ -1115,6 +1119,7 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
       if(typeof game[id] !== "undefined") {
         game[id].difficulty = question.difficulty;
         game[id].answer = question.correct_answer;
+        game[id].answerExtension = question.answer_extension;
         game[id].date = new Date();
 
         if(gameMode === 2 && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
