@@ -1,7 +1,5 @@
 const fs = require("fs");
 const JSON = require("circular-json");
-
-const Database = require("./lib/database/Database.js");
 const FileDB = require("./lib/database/filedb.js");
 const MergerDB = require("./lib/database/mergerdb.js");
 const OpenTDB = require("./lib/database/opentdb.js");
