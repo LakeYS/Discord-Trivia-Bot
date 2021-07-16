@@ -1386,6 +1386,7 @@ function parseCommand(msg, cmd, isAdmin) {
   if(cmd.startsWith("PLAY HANGMAN ") || cmd === "PLAY HANGMAN") {
     categoryInput = cmd.replace("PLAY HANGMAN ","");
     commands.triviaPlay(msg, categoryInput, 2);
+    global.client.shard.send({stats: { commandPlayHangmanCount: 1 }});
     return;
   }
 
