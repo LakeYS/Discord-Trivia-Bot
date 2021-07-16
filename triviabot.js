@@ -1,7 +1,14 @@
-const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
+
+const Database = require("./lib/database/Database.js");
+const FileDB = require("./lib/database/filedb.js");
+const MergerDB = require("./lib/database/mergerdb.js");
+const OpenTDB = require("./lib/database/opentdb.js");
+
 const { GameHandler, Game } = require("./lib/game_handler.js");
+
+const entities = require("html-entities").AllHtmlEntities;
 
 var ConfigData = require("./lib/config.js")(process.argv[2]);
 var Config = ConfigData.config;
@@ -165,7 +172,6 @@ const Letters = ["A", "B", "C", "D"];
 // Convert the hex code to decimal so Discord can read it.
 Trivia.embedCol = Buffer.from(getConfigVal("embed-color").padStart(8, "0"), "hex").readInt32BE(0);
 
-var Database = "";
 if(getConfigVal("database-merge")) {
   // TODO: Rather than killing the base process, the manager should
   // do this automatically when an initial error is thrown.
@@ -174,24 +180,31 @@ if(getConfigVal("database-merge")) {
     global.client.shard.send({evalStr: "process.exit();"});
   }
 
-  Database = require("./lib/database/mergerdb.js")(Config);
+  Trivia.database = new MergerDB(Config.databaseURL);
 }
 else {
-  Database = Config.databaseURL.startsWith("file://")?require("./lib/database/filedb.js")(Config):require("./lib/database/opentdb.js")(Config);
+  // Check database protocol
+  if(Config.databaseURL.startsWith("file://")) {
+    Trivia.database = new FileDB(Config.databaseURL);
+  }
+  else {
+    Trivia.database = new OpenTDB(getConfigVal("databaseURL"));
+  }
 }
 
-if(typeof Database === "undefined" || Database.error) {
+// Database events
+Trivia.database.on("debuglog", Trivia.debugLog)
+
+if(typeof Trivia.database === "undefined" || Trivia.database.error) {
   console.error("Failed to load the database.");
   global.client.shard.send({evalStr: "process.exit();"});
 }
 
-Trivia.database = Database;
-
 Trivia.questions = [];
-
 
 // Generic message sending function.
 // This is to avoid repeating the same error catchers throughout the script.
+
 //    channel: Channel ID
 //    author: Author ID (Omit to prevent error messages from going to the author's DMs)
 //    msg: Message Object
@@ -261,6 +274,7 @@ function isFallbackMode(channel) {
 // Returns a promise, fetches a random question from the database.
 // If initial is set to true, a question will not be returned. (For initializing the cache)
 // If tokenChannel is specified (must be a discord.js TextChannel object), a token will be generated and used.
+// TODO: We need to migrate this to event emitter format in order to iron out the tokenChannel usage
 Trivia.getTriviaQuestion = async function(initial, tokenChannel, tokenRetry, isFirstQuestion, category, typeInput, difficultyInput) {
   var length = Trivia.questions.length;
   var toReturn;
@@ -292,7 +306,7 @@ Trivia.getTriviaQuestion = async function(initial, tokenChannel, tokenRetry, isF
     var token;
     if(typeof tokenChannel !== "undefined") {
       try {
-        token = await Database.getTokenByIdentifier(tokenChannel.id);
+        token = await Trivia.database.getTokenByIdentifier(tokenChannel.id);
 
         if(getConfigVal("debug-mode")) {
           Trivia.send(tokenChannel, void 0, `*DB Token: ${token}*`);
@@ -319,7 +333,7 @@ Trivia.getTriviaQuestion = async function(initial, tokenChannel, tokenRetry, isF
     var json = {};
     var err;
     try {
-      json = await Database.fetchQuestions(options);
+      json = await Trivia.database.fetchQuestions(options);
 
       if(getConfigVal("debug-database-flush") && !tokenRetry && typeof token !== "undefined") {
         err = new Error("Token override");
@@ -331,7 +345,7 @@ Trivia.getTriviaQuestion = async function(initial, tokenChannel, tokenRetry, isF
         // Token empty, reset it and start over.
         if(tokenRetry !== 1) {
           try {
-            await Database.resetToken(token);
+            await Trivia.database.resetToken(token);
           } catch(error) {
             console.log(`Failed to reset token - ${error.message}`);
             throw new Error(`Failed to reset token - ${error.message}`);
@@ -375,11 +389,11 @@ Trivia.getTriviaQuestion = async function(initial, tokenChannel, tokenRetry, isF
         // Delete the token so we'll generate a new one next time.
         // This is to fix the game in case the cached token is invalid.
         if(typeof token !== "undefined") {
-          delete Database.tokens[tokenChannel.id];
+          delete Trivia.database.tokens[tokenChannel.id];
         }
 
         // Author is passed through; Trivia.send will handle it if author is undefined.
-        throw new Error(`Failed to query the trivia database with error code ${json.response_code} (${Database.responses[json.response_code]}; ${error.message})`);
+        throw new Error(`Failed to query the trivia database with error code ${json.response_code} (${Trivia.database.responses[json.response_code]}; ${error.message})`);
       }
     }
     finally {
@@ -951,7 +965,7 @@ commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
 commands.triviaStop = require("./lib/commands/stop.js")(Config, Trivia, commands, getConfigVal);
 
 Trivia.buildCategorySearchIndex = async () => {
-  Trivia.categorySearchIndex = JSON.parse(JSON.stringify(await Database.getCategories()));
+  Trivia.categorySearchIndex = JSON.parse(JSON.stringify(await Trivia.database.getCategories()));
 
   for(var el in Trivia.categorySearchIndex) {
     var index = Trivia.categorySearchIndex[el];
@@ -1242,7 +1256,7 @@ Trivia.parse = (str, msg) => {
 
   // ## Help Command Parser ##
   if(str === prefix + "HELP" || str === prefix + "PING" || str.includes(`<@!${global.client.user.id}>`)) {
-    commands.triviaHelp(msg, Database);
+    commands.triviaHelp(msg, Trivia.database);
     return;
   }
 
