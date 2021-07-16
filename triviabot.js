@@ -1289,6 +1289,11 @@ async function triviaResumeGame(json, id) {
   json.resuming = 1;
 
   var date = game.date;
+  if(typeof game.date === "undefined") {
+    delete game;
+    return;
+  }
+
   var timeout;
 
   // If more than 60 seconds have passed, cancel the game entirely.
