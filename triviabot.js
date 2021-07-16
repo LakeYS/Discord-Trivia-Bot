@@ -1,3 +1,4 @@
+// TODO: true/false appear in hangman via file merger db. wtf?
 const fs = require("fs");
 const JSON = require("circular-json");
 const FileDB = require("./lib/database/filedb.js");
@@ -304,7 +305,7 @@ Trivia.getTriviaQuestion = async function(initial, tokenChannel, tokenRetry, isF
     var token;
     if(typeof tokenChannel !== "undefined") {
       try {
-        token = await Trivia.database.getTokenByIdentifier(tokenChannel.id);
+        token = Trivia.database.getTokenByIdentifier(tokenChannel.id);
 
         if(getConfigVal("debug-mode")) {
           Trivia.send(tokenChannel, void 0, `*DB Token: ${token}*`);
