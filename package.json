@@ -1,6 +1,6 @@
 {
   "name": "discord-trivia-bot",
-  "version": "1.6.7",
+  "version": "1.7.0",
   "description": "Play trivia in Discord! Featuring three modes of play and 24 categories, including Anime & Manga, Video Games, Sports, Science, and more.",
   "main": "index.js",
   "isGitBuild": true,
