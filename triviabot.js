@@ -639,8 +639,13 @@ Trivia.doAnswerReveal = (game, channel, answer, importOverride) => {
     answerStr = `${game.gameMode!==2?`**${Letters[game.question.displayCorrectID]}:** `:""}${Trivia.formatStr(game.question.answer)}\n\n`;
   }
 
+  if(typeof game.answerExtension !== "undefined") {
+    answerStr = `${answerStr}${Trivia.formatStr(game.answerExtension)}\n\n`;
+  }
+
   Trivia.send(channel, void 0, {embed: {
     color: game.color,
+    image: {url: game.imageAnswer}, // If any is defined
     description: `${answerStr}${correctUsersStr}${gameEndedMsg}${gameFooter}`
   }})
   .catch(() => {
@@ -878,6 +883,7 @@ Trivia.doGame = async function(id, channel, author, question, mode) {
   try {
     msg = await Trivia.send(channel, author, {embed: {
       color: game.color,
+      image: { url: game.imageQuestion }, // If any is defined
       description: finalString
     }});
 
@@ -898,7 +904,7 @@ Trivia.doGame = async function(id, channel, author, question, mode) {
   if(game.gameMode === 2 && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
     // Show a hint halfway through.
     // No need for special handling here because it will auto-cancel if
-    // the game ends before running.
+    // the game ends before rRunning.
     var answer = game.question.answer; // Pre-define to avoid errors.
     setTimeout(() => {
       doHangmanHint(game, answer);
@@ -1147,6 +1153,7 @@ function parseCommand(msg, cmd, isAdmin) {
   if(cmd.startsWith("PLAY HANGMAN ") || cmd === "PLAY HANGMAN") {
     categoryInput = cmd.replace("PLAY HANGMAN ","");
     commands.triviaPlay(msg, categoryInput, 2);
+    global.client.shard.send({stats: { commandPlayHangmanCount: 1 }});
     return;
   }
 
@@ -1201,7 +1208,7 @@ Trivia.parse = (str, msg) => {
     var parsed = parse(game, str, id, msg.author.id, name, getConfigVal("score-value", msg.channel));
 
     if(parsed !== -1) {
-      if(getConfigVal("auto-delete-answers", msg.channel) && !game[id].isDMGame) {
+      if(getConfigVal("auto-delete-answers", msg.channel) && !game[id].isDMGame) { // TODO
         setTimeout(() => {
           msg.delete()
           .catch((err) => {
