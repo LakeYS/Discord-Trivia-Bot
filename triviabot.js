@@ -171,6 +171,62 @@ const Letters = ["A", "B", "C", "D"];
 // Convert the hex code to decimal so Discord can read it.
 Trivia.embedCol = Buffer.from(getConfigVal("embed-color").padStart(8, "0"), "hex").readInt32BE(0);
 
+// General game functions
+Trivia.gameHandler.on("game_create", (game) => {
+  var channel = global.client.channels.cache.find((obj) => (obj.id === game.ID));
+
+  // Channel no-longer exists -- either something went wrong or the channel was deleted.
+  if(typeof channel === "undefined") {
+    game.endGame();
+  }
+
+  game.on("game_error", (err) => {
+    if(err.code !== -1) {
+      console.log("Database query error:");
+      console.log(err);
+    }
+    Trivia.send(channel, void 0, {embed: {
+      color: 14164000,
+      description: `An error occurred while querying the trivia database: ${err}`
+    }});
+  });
+
+  game.on("round_initialize", async (game, finalString) => {
+    var msg;
+    try {
+      msg = await Trivia.send(channel, void 0, {embed: {
+        color: game.color,
+        image: { url: game.imageQuestion }, // If any is defined
+        description: finalString
+      }});
+
+    } catch(err) {
+      game.timeout = void 0;
+      game.endGame();
+      throw err;
+    }
+
+    game.startRound();
+    game.message = msg;
+
+    // Add reaction emojis if configured to do so.
+    if(game.gameMode === 1) {
+      addAnswerReactions(msg, game);
+    }
+
+    if(game.gameMode === 2 && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
+      // Show a hint halfway through.
+      // No need for special handling here because it will auto-cancel if
+      // the game ends before rRunning.
+      var answer = game.question.answer; // Pre-define to avoid errors.
+      setTimeout(() => {
+        doHangmanHint(game, answer);
+      },
+      getConfigVal("round-length", channel)/2);
+    }
+  });
+});
+
 if(getConfigVal("database-merge")) {
   // TODO: Rather than killing the base process, the manager should
   // do this automatically when an initial error is thrown.
@@ -455,8 +511,10 @@ Trivia.formatStr = (str) => {
 // # Trivia.doAnswerReveal #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
 // TODO: Refactor (clean up and fix gameEndedMsg being relied on as a boolean check)
-Trivia.doAnswerReveal = (game, channel, answer, importOverride) => {
+Trivia.doAnswerReveal = (game, answer, importOverride) => {
   game.roundCount++;
+  var channel = global.client.channels.cache.find((obj) => (obj.id === game.ID)); // TODO: Temporary
+
   if(typeof game === "undefined" || !game.inProgress) {
     return;
   }
@@ -654,7 +712,6 @@ Trivia.doAnswerReveal = (game, channel, answer, importOverride) => {
   })
   .then((msg) => {
     if(typeof game !== "undefined" && !doAutoEnd && !game.cancelled) {
-      // NOTE: Participants check is repeated below in Trivia.doGame
       game.timeout = setTimeout(() => {
         if(getConfigVal("auto-delete-msgs", channel)) {
           msg.delete()
@@ -662,7 +719,8 @@ Trivia.doAnswerReveal = (game, channel, answer, importOverride) => {
             console.log(`Failed to delete message - ${err.message}`);
           });
         }
-        Trivia.doGame(game.ID, channel, void 0, 1);
+        
+        game.initializeRound();        
       }, roundTimeout);
     }
   });
@@ -836,89 +894,6 @@ function doHangmanHint(channel, answer) {
     description: `Hint: ${hintStr}`
   }});
 }
-
-// # Trivia.doGame #
-// - id: The unique identifier for the channel that the game is in.
-// - channel: The channel object that correlates with the game.
-// - author: The user that started the game. Can be left 'undefined'
-//           if the game is scheduled.
-// - scheduled: Set to true if starting a game scheduled by the bot.
-//              Keep false if starting on a user's command. (must
-//              already have a game initialized to start)
-Trivia.doGame = async function(id, channel, author, question, mode) {
-  if(commands.playAdv.advGameExists(id)) {
-    return;
-  }
-
-  var authorId;
-  if(typeof author === "undefined") {
-    authorId = void 0;
-  }
-  else {
-    authorId = author.id;
-  }
-
-  // ## Game ##
-  // Define the variables for the new game.
-  // NOTE: This is run between rounds, plan accordingly.
-  var game = Trivia.gameHandler.getActiveGame(channel.id);
-
-  if(typeof game === "undefined") {
-    game = new Game(Trivia.gameHandler, channel.id, channel.guild.id, authorId, question, mode);
-
-    game.on("game_error", (err) => {
-      if(err.code !== -1) {
-        console.log("Database query error:");
-        console.log(err);
-      }
-      Trivia.send(channel, author, {embed: {
-        color: 14164000,
-        description: `An error occurred while querying the trivia database: ${err}`
-      }});
-    });
-  }
-
-  var finalString = await game.initializeRound();
-  var msg;
-  try {
-    msg = await Trivia.send(channel, author, {embed: {
-      color: game.color,
-      image: { url: game.imageQuestion }, // If any is defined
-      description: finalString
-    }});
-
-  } catch(err) {
-    game.timeout = void 0; // TODO
-    game.endGame();
-    throw err;
-  }
-
-  game.startRound();
-  game.message = msg;
-
-  // Add reaction emojis if configured to do so.
-  if(game.gameMode === 1) {
-    addAnswerReactions(msg, game);
-  }
-
-  if(game.gameMode === 2 && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
-    // Show a hint halfway through.
-    // No need for special handling here because it will auto-cancel if
-    // the game ends before rRunning.
-    var answer = game.question.answer; // Pre-define to avoid errors.
-    setTimeout(() => {
-      doHangmanHint(game, answer);
-    },
-    getConfigVal("round-length", channel)/2);
-  }
-
-  // Reveal the answer after the time is up
-  game.timeout = setTimeout(() => {
-    Trivia.doAnswerReveal(game, channel, game.question.answer);
-  }, getConfigVal("round-length", channel));
-  
-  return game;
-};
 
 Trivia.stopGame = (game, channel, auto) => {
   if(auto !== 1) {
@@ -1342,8 +1317,9 @@ async function triviaResumeGame(json, id) {
       date.setMilliseconds(date.getMilliseconds()+getConfigVal("round-timeout", channel)+getConfigVal("round-length", channel));
       timeout = date-new Date();
 
+      var options = { category: json.category };
       game.timeout = setTimeout(() => {
-        Trivia.doGame(id, channel, void 0, { category: json.category });
+        new Game(Trivia.gameHandler, channel.id, channel.guild.id, void 0, options, mode).initializeRound();
       }, timeout);
     }
   }
