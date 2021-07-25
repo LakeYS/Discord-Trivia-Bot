@@ -330,9 +330,11 @@ function isFallbackMode(channel) {
 // If initial is set to true, a question will not be returned. (For initializing the cache)
 // If tokenChannel is specified (must be a discord.js TextChannel object), a token will be generated and used.
 // TODO: We need to migrate this to event emitter format in order to iron out the tokenChannel usage
-Trivia.getTriviaQuestion = async function(initial, tokenChannel, tokenRetry, isFirstQuestion, category, typeInput, difficultyInput) {
+Trivia.getTriviaQuestion = async function(initial, tokenChannelID, tokenRetry, isFirstQuestion, category, typeInput, difficultyInput) {
   var length = Trivia.questions.length;
   var toReturn;
+
+  var tokenChannel = global.client.channels.cache.find((obj) => (obj.id === tokenChannelID)); // TODO: Temporary
 
   // Check if there are custom arguments
   var isCustom = false;
@@ -361,7 +363,7 @@ Trivia.getTriviaQuestion = async function(initial, tokenChannel, tokenRetry, isF
     var token;
     if(typeof tokenChannel !== "undefined") {
       try {
-        token = Trivia.database.getTokenByIdentifier(tokenChannel.id);
+        token = await Trivia.database.getTokenByIdentifier(tokenChannel.id);
 
         if(getConfigVal("debug-mode")) {
           Trivia.send(tokenChannel, void 0, `*DB Token: ${token}*`);
@@ -416,7 +418,7 @@ Trivia.getTriviaQuestion = async function(initial, tokenChannel, tokenRetry, isF
           }
 
           // Start over now that we have a token.
-          return await Trivia.getTriviaQuestion(initial, tokenChannel, 1, isFirstQuestion, category, typeInput, difficultyInput);
+          return await Trivia.getTriviaQuestion(initial, tokenChannelID, 1, isFirstQuestion, category, typeInput, difficultyInput);
         }
         else {
           if(isFirstQuestion) {
