@@ -201,7 +201,6 @@ Trivia.gameHandler.on("game_create", (game) => {
       }});
 
     } catch(err) {
-      game.timeout = void 0;
       game.endGame();
       throw err;
     }
