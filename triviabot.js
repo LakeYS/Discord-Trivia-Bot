@@ -1117,7 +1117,7 @@ async function triviaResumeGame(json, id) {
     timeout = date-new Date();
 
     game.timeout = setTimeout(() => {
-      game.endRound(channel, void 0, 1); // TODO
+      game.endRound();
     }, timeout);
   }
   else {
