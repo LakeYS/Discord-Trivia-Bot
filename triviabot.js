@@ -191,7 +191,7 @@ Trivia.gameHandler.on("game_create", (game) => {
     }});
   });
 
-  game.on("round_initialize", async (game, finalString) => {
+  game.on("round_initialize", async (finalString) => {
     var msg;
     try {
       msg = await Trivia.send(channel, void 0, {embed: {
