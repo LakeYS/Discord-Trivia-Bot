@@ -224,6 +224,35 @@ Trivia.gameHandler.on("game_create", (game) => {
       getConfigVal("round-length", channel)/2);
     }
   });
+
+  game.on("round_end", (finalStr, autoEnd, roundTimeout) => {
+    Trivia.send(channel, void 0, {embed: {
+      color: game.color,
+      image: {url: game.imageAnswer}, // If any is defined
+      description: finalStr
+    }})
+    .catch(() => {
+      game.endGame();
+    })
+    .then((msg) => {
+      if(typeof game !== "undefined" && !autoEnd && !game.cancelled) {
+        setTimeout(() => {
+          if(getConfigVal("auto-delete-msgs", channel)) {
+            msg.delete()
+            .catch((err) => {
+              console.log(`Failed to delete message - ${err.message}`);
+            });
+          }          
+        }, roundTimeout);
+      }
+    });
+  });
+
+  game.on("game_msg", (game, msg) => {
+    Trivia.send(channel, void 0, msg);
+  });
+
+  // TODO: Support for game message deletion
 });
 
 if(getConfigVal("database-merge")) {
@@ -247,7 +276,7 @@ else {
 }
 
 // Database events
-Trivia.database.on("debuglog", Trivia.debugLog)
+Trivia.database.on("debuglog", Trivia.debugLog);
 
 if(typeof Trivia.database === "undefined" || Trivia.database.error) {
   console.error("Failed to load the database.");
@@ -481,12 +510,10 @@ if(!Config.databaseURL.startsWith("file://")) {
   });
 }
 
-Trivia.applyBonusMultiplier = (game, channel, userID) => {
-  var score = getConfigVal("score-value", channel)[game.question.difficulty];
-
+Trivia.applyBonusMultiplier = (game, scoreBase, multiplierMax, userID) => {
   var multiplier;
 
-  var multiplierBase = getConfigVal("score-multiplier-max", channel);
+  var multiplierBase = multiplierMax;
   if(multiplierBase !== 0) {
     var index = Object.keys(game.activeParticipants).indexOf(userID)+1;
 
@@ -495,7 +522,7 @@ Trivia.applyBonusMultiplier = (game, channel, userID) => {
 
     // Don't apply if the number is negative or passive.
     if(multiplier > 1) {
-      var bonus = Math.floor((score*multiplier)-score);
+      var bonus = Math.floor((scoreBase*multiplier)-scoreBase);
 
       return bonus;
     }
@@ -507,224 +534,6 @@ Trivia.formatStr = (str) => {
   str = str.replace(/_/g, "\\_");
 
   return str;
-};
-
-// # Trivia.doAnswerReveal #
-// Ends the round, reveals the answer, and schedules a new round if necessary.
-// TODO: Refactor (clean up and fix gameEndedMsg being relied on as a boolean check)
-Trivia.doAnswerReveal = (game, answer, importOverride) => {
-  game.roundCount++;
-  var channel = global.client.channels.cache.find((obj) => (obj.id === game.ID)); // TODO: Temporary
-
-  if(typeof game === "undefined" || !game.inProgress) {
-    return;
-  }
-
-  var roundTimeout = getConfigVal("round-timeout", channel);
-
-  if(typeof game.message !== "undefined" && getConfigVal("auto-delete-msgs", channel)) {
-    game.message.delete()
-    .catch((err) => {
-      console.log(`Failed to delete message - ${err.message}`);
-    });
-  }
-
-  // Quick fix for timeouts not clearing correctly.
-  if(answer !== game.question.answer && !importOverride) {
-    console.warn(`WARNING: Mismatched answers in timeout for game ${game.ID} (${answer}||${game.question.answer})`);
-    return;
-  }
-
-  game.inRound = false;
-
-  // Custom options
-  // Custom round count subtracts by 1 until reaching 0, then the game ends.
-  if(typeof game.options.customRoundCount !== "undefined") {
-    game.options.customRoundCount = game.options.customRoundCount-1;
-
-    if(typeof game.options.intermissionTime !== "undefined" && game.options.customRoundCount <= game.options.totalRoundCount/2) {
-      roundTimeout = game.options.intermissionTime;
-
-      Trivia.send(channel, void 0, `Intermission - Game will resume in ${roundTimeout/60000} minute${roundTimeout/1000===1?"":"s"}.`);
-      game.options.intermissionTime = void 0;
-    }
-    else if(game.options.customRoundCount <= 0) {
-      setTimeout(() => {
-        Trivia.stopGame(game, channel, true);
-        return;
-      }, 100);
-    }
-  }
-
-  var correctUsersStr = "**Correct answer:**\n";
-
-  var scoreStr = "";
-
-  // If only one participant, we'll only need the first user's score.
-  if(!getConfigVal("disable-score-display", channel)) {
-    var scoreVal = game.scores[Object.keys(game.correctUsers)[0]];
-
-    if(typeof scoreVal !== "undefined") {
-      if(isNaN(game.scores[ Object.keys(game.correctUsers)[0] ])) {
-        console.log("WARNING: NaN score detected, dumping game data...");
-      }
-
-      scoreStr = `(${scoreVal.toLocaleString()} points)`;
-    }
-  }
-
-  var gameEndedMsg = "", gameFooter = "";
-  var doAutoEnd = 0;
-  if(game.cancelled) {
-    gameEndedMsg = "\n\n*Game ended by admin.*";
-  }
-  else if(Object.keys(game.activeParticipants).length === 0 && !game.options.customRoundCount) {
-    // If there were no participants...
-    if(game.emptyRoundCount+1 >= getConfigVal("rounds-end-after", channel)) {
-      doAutoEnd = 1;
-      gameEndedMsg = "\n\n*Game ended.*";
-    } else {
-      game.emptyRoundCount++;
-
-      // Round end warning after we're halfway through the inactive round cap.
-      if(!getConfigVal("round-end-warnings-disabled", channel) && game.emptyRoundCount >= Math.ceil(getConfigVal("rounds-end-after", channel)/2)) {
-        var roundEndCount = getConfigVal("rounds-end-after", channel.id)-game.emptyRoundCount;
-        gameFooter += `Game will end in ${roundEndCount} round${roundEndCount===1?"":"s"} if there is no activity.`;
-      }
-    }
-  } else {
-    // If there are participants and the game wasn't force-cancelled...
-    game.emptyRoundCount = 0;
-    doAutoEnd = 0;
-  }
-
-  if((gameEndedMsg === "" || getConfigVal("disable-score-display", channel)) && !getConfigVal("full-score-display", channel) ) {
-    var truncateList = 0;
-
-    if(Object.keys(game.correctUsers).length > 32) {
-      truncateList = 1;
-    }
-
-    // ## Normal Score Display ## //
-    if(Object.keys(game.correctUsers).length === 0) {
-      if(Object.keys(game.activeParticipants).length === 1) {
-        correctUsersStr = `Incorrect, ${Object.values(game.activeParticipants)[0]}!`;
-      }
-      else {
-        correctUsersStr = correctUsersStr + "Nobody!";
-      }
-    }
-    else {
-      if(Object.keys(game.activeParticipants).length === 1) {
-        // Only one player overall, simply say "Correct!"
-        // Bonus multipliers don't apply for single-player games
-        correctUsersStr = `Correct, ${Object.values(game.correctUsers)[0]}! ${scoreStr}`;
-      }
-      else  {
-        // More than 10 correct players, player names are separated by comma to save space.
-        var comma = ", ";
-        var correctCount = Object.keys(game.correctUsers).length;
-
-        // Only show the first 32 scores if there are a lot of players.
-        // This prevents the bot from potentially overflowing the embed character limit.
-        if(truncateList) {
-          correctCount = 32;
-        }
-
-        for(var i = 0; i <= correctCount-1; i++) {
-          if(i === correctCount-1) {
-            comma = "";
-          }
-          else if(correctCount <= 10) {
-            comma = "\n";
-          }
-
-          var score = game.scores[ Object.keys(game.correctUsers)[i] ];
-
-          var bonusStr = "";
-          var bonus = Trivia.applyBonusMultiplier(game.ID, channel, Object.keys(game.correctUsers)[i]);
-
-          Trivia.debugLog(`Applied bonus score of ${bonus} to user ${Object.keys(game.correctUsers)[i]}`);
-
-          if(score !== score+bonus && typeof bonus !== "undefined") {
-            bonusStr = ` + ${bonus} bonus`;
-          }
-          else {
-            bonus = 0;
-          }
-
-          if(!getConfigVal("disable-score-display", channel)) {
-            scoreStr = ` (${score.toLocaleString()} pts${bonusStr})`;
-          }
-
-          // Apply bonus after setting the string.
-          game.scores[ Object.keys(game.correctUsers)[i] ] = score+bonus;
-
-          correctUsersStr = `${correctUsersStr}${Object.values(game.correctUsers)[i]}${scoreStr}${comma}`;
-        }
-
-        if(truncateList) {
-          var truncateCount = Object.keys(game.correctUsers).length-32;
-          correctUsersStr = `${correctUsersStr}\n*+ ${truncateCount} more*`;
-        }
-      }
-    }
-  }
-  else {
-    // ## Game-Over Score Display ## //
-    var totalParticipantCount = Object.keys(game.totalParticipants).length;
-
-    if(gameEndedMsg === "") {
-      correctUsersStr = `**Score${totalParticipantCount!==1?"s":""}:**`;
-    } else {
-      correctUsersStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
-    }
-
-    if(totalParticipantCount === 0) {
-      correctUsersStr = `${correctUsersStr}\nNone`;
-    }
-    else {
-      correctUsersStr = `${correctUsersStr}\n${Trivia.leaderboard.makeScoreStr(game.scores, game.totalParticipants)}`;
-    }
-  }
-
-  if(gameFooter !== "") {
-    gameFooter = "\n\n" + gameFooter;
-  }
-
-  var answerStr = "";
-
-  if(getConfigVal("reveal-answers", channel) === true) { // DELTA: Answers will be not shown in the Summary
-    answerStr = `${game.gameMode!==2?`**${Letters[game.question.displayCorrectID]}:** `:""}${Trivia.formatStr(game.question.answer)}\n\n`;
-  }
-
-  if(typeof game.answerExtension !== "undefined") {
-    answerStr = `${answerStr}${Trivia.formatStr(game.answerExtension)}\n\n`;
-  }
-
-  Trivia.send(channel, void 0, {embed: {
-    color: game.color,
-    image: {url: game.imageAnswer}, // If any is defined
-    description: `${answerStr}${correctUsersStr}${gameEndedMsg}${gameFooter}`
-  }})
-  .catch(() => {
-    game.timeout = void 0;
-    game.endGame();
-  })
-  .then((msg) => {
-    if(typeof game !== "undefined" && !doAutoEnd && !game.cancelled) {
-      game.timeout = setTimeout(() => {
-        if(getConfigVal("auto-delete-msgs", channel)) {
-          msg.delete()
-          .catch((err) => {
-            console.log(`Failed to delete message - ${err.message}`);
-          });
-        }
-        
-        game.initializeRound();        
-      }, roundTimeout);
-    }
-  });
 };
 
 // # parseAnswerHangman # //
@@ -1286,7 +1095,6 @@ async function triviaResumeGame(json, id) {
 
   var date = game.date;
   if(typeof game.date === "undefined") {
-    delete game;
     return;
   }
 
@@ -1309,7 +1117,7 @@ async function triviaResumeGame(json, id) {
     timeout = date-new Date();
 
     game.timeout = setTimeout(() => {
-      Trivia.doAnswerReveal(game, channel, void 0, 1);
+      game.endRound(channel, void 0, 1); // TODO
     }, timeout);
   }
   else {
