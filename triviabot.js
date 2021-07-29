@@ -399,6 +399,7 @@ Trivia.getTriviaQuestion = async function(initial, tokenChannelID, tokenRetry, i
       } catch(error) {
         // Something went wrong. We'll display a warning but we won't cancel the game.
         console.log(`Failed to generate token for channel ${tokenChannel.id}: ${error.message}`);
+        console.log(error.stack);
 
         // Skip display of session token messages if a pre-defined error message has been written.
         if(typeof Trivia.maintenanceMsg !== "string") {
