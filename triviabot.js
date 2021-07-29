@@ -554,16 +554,14 @@ Trivia.parseAnswerHangman = function(game, str, id, userId, username, scoreValue
     return Trivia.parseAnswer(game, Letters[game.question.displayCorrectID], id, userId, username, scoreValue);
   }
   else {
-    // The string doesn't match, so we'll pass the first incorrect answer.
-    var incorrect = Letters.slice(0); // Copy to avoid modifying it
-    incorrect.splice(game.question.displayCorrectID, 1);
-    return Trivia.parseAnswer(game, incorrect[0], id, userId, username, scoreValue);
+    // The string doesn't match, so we'll pass as an incorrect answer.
+    return Trivia.parseAnswer(game, null, id, userId, username, scoreValue);
   }
 };
 
 // # Trivia.parseAnswer # //
 // Parses a user's letter answer and scores it accordingly.
-// Str: Letter answer -- id: channel identifier
+// Str: Letter answer -- id: channel identifier. If null, automatically considered incorrect.
 // scoreValue: Score value from the config file.
 Trivia.parseAnswer = function (game, str, channelId, userId, username, scoreValue) {
   if(!game.inRound) {
@@ -576,7 +574,7 @@ Trivia.parseAnswer = function (game, str, channelId, userId, username, scoreValu
     return;
   }
 
-  if((str === "A" || str === "B" || game.isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
+  if(str === null || str === "A" || str === "B" || (game.isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
     // Add to participants if they aren't already on the list
     if(game.inProgress && typeof game.activeParticipants[userId] === "undefined") {
       game.activeParticipants[userId] = username;
@@ -587,7 +585,8 @@ Trivia.parseAnswer = function (game, str, channelId, userId, username, scoreValu
     // If their score doesn't exist, intialize it.
     game.scores[userId] = game.scores[userId] || 0;
 
-    if(str === Letters[game.question.displayCorrectID]) {
+    // Check if the answer is not null and is correct. (null is automatically considered incorrect)
+    if(str !== null && str === Letters[game.question.displayCorrectID]) {
       if(typeof game.correctUsers[userId] === "undefined") {
         game.correctUsers[userId] = username;
 
