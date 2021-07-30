@@ -248,7 +248,7 @@ Trivia.gameHandler.on("game_create", (game) => {
     });
   });
 
-  game.on("game_msg", (game, msg) => {
+  game.on("game_msg", (msg) => {
     Trivia.send(channel, void 0, msg);
   });
 
