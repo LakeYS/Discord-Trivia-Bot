@@ -219,7 +219,7 @@ Trivia.gameHandler.on("game_create", (game) => {
       // the game ends before rRunning.
       var answer = game.question.answer; // Pre-define to avoid errors.
       setTimeout(() => {
-        doHangmanHint(game, answer);
+        game.doHangmanHint(answer);
       },
       getConfigVal("round-length", channel)/2);
     }
@@ -646,63 +646,6 @@ async function addAnswerReactions(msg, game) {
     game.endGame();
     return;
   }
-}
-
-Trivia.createObscuredAnswer = function(answer, doHint) {
-  var obscuredAnswer = "";
-  var skipChars = [];
-
-  if(doHint) {
-    // Randomly reveal up to 1/3 of the answer.
-    var charsToReveal = answer.length/3;
-    for(var i = 0; i <= charsToReveal; i++) {
-      var skipChar = Math.floor(Math.random() * answer.length);
-      skipChars.push(skipChar);
-    }
-  }
-
-  for(var charI = 0; charI <= answer.length-1; charI++) {
-    var char = answer.charAt(charI);
-
-    if(char === " ") {
-      obscuredAnswer = `${obscuredAnswer} `;
-    }
-    else if(skipChars.includes(charI) || char === "," || char === "\"" || char === "'" || char === ":" || char === "(" || char === ")") {
-      // If this character is set to be revealed or contains an exception, show it.
-      obscuredAnswer = `${obscuredAnswer}${char}`;
-    }
-    else {
-      // A thin space character (U+2009) is used so the underscores have
-      // a small distinguishing space between them.
-      // ESLint really doesn't like this, but it works great!
-      obscuredAnswer = `${obscuredAnswer}\\_ `;
-    }
-  }
-
-  return obscuredAnswer;
-};
-
-function doHangmanHint(channel, answer) {
-  var game = Trivia.gameHandler.getActiveGame(channel.id);
-
-  // Verify that the game is still running and that it's the same game.
-  if(typeof game === "undefined" || !game.inRound || answer !== game.answer) {
-    return;
-  }
-
-  answer = Trivia.formatStr(answer);
-
-  // If the total string is too small, skip showing a hint.
-  if(answer.length < 4) {
-    return;
-  }
-
-  var hintStr = Trivia.createObscuredAnswer(answer, true);
-
-  Trivia.send(channel, void 0, {embed: {
-    color: Trivia.embedCol,
-    description: `Hint: ${hintStr}`
-  }});
 }
 
 Trivia.stopGame = (game, channel, auto) => {
