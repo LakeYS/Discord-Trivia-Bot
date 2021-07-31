@@ -552,17 +552,21 @@ Trivia.parseAnswerHangman = function(game, str, id, userId, username, scoreValue
   }
 
   if(input.replace(/\W/g, "") === answer) {
-    return Trivia.parseAnswer(game, Letters[game.question.displayCorrectID], id, userId, username, scoreValue);
+    // null = Automatic correct answer
+    console.log("Passing null!");
+    return Trivia.parseAnswer(game, null, id, userId, username, scoreValue);
   }
   else {
     // The string doesn't match, so we'll pass as an incorrect answer.
-    return Trivia.parseAnswer(game, null, id, userId, username, scoreValue);
+    return Trivia.parseAnswer(game, void 0, id, userId, username, scoreValue);
   }
 };
 
 // # Trivia.parseAnswer # //
 // Parses a user's letter answer and scores it accordingly.
-// Str: Letter answer -- id: channel identifier. If null, automatically considered incorrect.
+// TODO: Separate string parsing from scoring.
+// Str: Letter answer -- id: channel identifier.
+//    If undefined, automatically considered incorrect. If null, automatically considered correct.
 // scoreValue: Score value from the config file.
 Trivia.parseAnswer = function (game, str, channelId, userId, username, scoreValue) {
   if(!game.inRound) {
@@ -575,7 +579,8 @@ Trivia.parseAnswer = function (game, str, channelId, userId, username, scoreValu
     return;
   }
 
-  if(str === null || str === "A" || str === "B" || (game.isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
+  // undefined, null, or A-D are considered valid inputs for parsing
+  if(typeof str === "undefined" || str === null || str === "A" || str === "B" || (game.isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
     // Add to participants if they aren't already on the list
     if(game.inProgress && typeof game.activeParticipants[userId] === "undefined") {
       game.activeParticipants[userId] = username;
@@ -586,8 +591,8 @@ Trivia.parseAnswer = function (game, str, channelId, userId, username, scoreValu
     // If their score doesn't exist, intialize it.
     game.scores[userId] = game.scores[userId] || 0;
 
-    // Check if the answer is not null and is correct. (null is automatically considered incorrect)
-    if(str !== null && str === Letters[game.question.displayCorrectID]) {
+    // Check if the answer is not undefined and is correct. (undefined is automatically considered incorrect)
+    if((typeof str !== "undefined" && str === Letters[game.question.displayCorrectID]) || str === null) {
       if(typeof game.correctUsers[userId] === "undefined") {
         game.correctUsers[userId] = username;
 
