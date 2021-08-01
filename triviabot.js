@@ -16,11 +16,11 @@ var Trivia = exports;
 function getConfigVal(value, channel, guild) {
   if(typeof channel !== "undefined") {
     // discord.js class auto-detection
-    if(channel.type === "text") {
+    if(channel.type === "GUILD_TEXT") {
       guild = channel.guild.id;
       channel = channel.id;
     }
-    else if(channel.type === "dm") {
+    else if(channel.type === "DM") {
       channel = channel.id;
     }
   }
@@ -191,10 +191,14 @@ global.questions = [];
 //    callback: Callback Function (Can be used to detect error/success and react)
 //    noDelete: If enabled, message will not auto-delete even if configured to
 Trivia.send = function(channel, author, msg, callback, noDelete) {
+  if(typeof msg.embed !== "undefined") {
+    msg = {embeds: [ msg.embed ]};
+  }
+
   channel.send(msg)
   .catch((err) => {
     if(typeof author !== "undefined") {
-      if(channel.type !== "dm") {
+      if(channel.type !== "DM") {
         var str = "";
         if(err.message.includes("Missing Permissions")) {
           str = "\n\nThe bot does not have sufficient permission to send messages in this channel. This bot requires the \"Send Messages\" and \"Embed Links\" permissions in order to work.";
@@ -897,7 +901,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
   // Start with the game value if defined, otherwise default to 0.
   var gameMode = 0;
 
-  if(channel.type !== "dm" && typeof modeInput === "undefined") {
+  if(channel.type !== "DM" && typeof modeInput === "undefined") {
     if(getConfigVal("use-reactions", channel)) {
       gameMode = 1;
     }
@@ -930,10 +934,10 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     "inProgress": 1,
     "inRound": 1,
 
-    "guildId": channel.type==="text"?channel.guild.id:void 0,
-    "userId": channel.type!=="dm"?void 0:channel.recipient.id,
+    "guildId": channel.type==="GUILD_TEXT"?channel.guild.id:void 0,
+    "userId": channel.type!=="DM"?void 0:channel.recipient.id,
 
-    "isDMGame": channel.type==="dm",
+    "isDMGame": channel.type==="DM",
 
     gameMode,
     "category": typeof game[id]!=="undefined"?game[id].category:category,
@@ -1279,7 +1283,7 @@ function parseCommand(msg, cmd, isAdmin) {
         }
 
 
-        if(msg.channel.type !== "dm") {
+        if(msg.channel.type !== "DM") {
           Trivia.send(msg.channel, void 0, "Config has been sent to you via DM.");
         }
 
@@ -1479,7 +1483,7 @@ Trivia.parse = (str, msg) => {
     if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) {
       isAdmin = true;
     }
-    else if(msg.channel.type === "dm") {
+    else if(msg.channel.type === "DM") {
       // Admin if the game is run in a DM.
       isAdmin = true;
     }
@@ -1736,7 +1740,7 @@ Trivia.doMaintenanceShutdown = () => {
 
 // # Fallback Mode Functionality #
 if(getConfigVal("fallback-mode") && !getConfigVal("fallback-silent")) {
-  global.client.on("message", (msg) => {
+  global.client.on("messageCreate", (msg) => {
       console.log(`Msg - ${msg.author === global.client.user?"(self)":""} Shard ${global.client.shard.ids} - Channel ${msg.channel.id}`);
   });
 }
