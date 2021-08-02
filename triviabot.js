@@ -1,4 +1,6 @@
 // TODO: true/false appear in hangman via file merger db. wtf?
+const { MessageActionRow, MessageButton } = require("discord.js");
+const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
 const FileDB = require("./lib/database/filedb.js");
@@ -6,8 +8,6 @@ const MergerDB = require("./lib/database/mergerdb.js");
 const OpenTDB = require("./lib/database/opentdb.js");
 
 const GameHandler = require("./lib/game_handler.js");
-
-const entities = require("html-entities").AllHtmlEntities;
 
 var ConfigData = require("./lib/config.js")(process.argv[2]);
 var Config = ConfigData.config;
@@ -25,11 +25,11 @@ var game = Trivia.gameHandler.activeGames;
 function getConfigVal(value, channel, guild) {
   if(typeof channel !== "undefined") {
     // discord.js class auto-detection
-    if(channel.type === "text") {
+    if(channel.type === "GUILD_TEXT") {
       guild = channel.guild.id;
       channel = channel.id;
     }
-    else if(channel.type === "dm") {
+    else if(channel.type === "DM") {
       channel = channel.id;
     }
   }
@@ -193,12 +193,18 @@ Trivia.gameHandler.on("game_create", (game) => {
 
   game.on("round_initialize", async (finalString) => {
     var msg;
+
+    var components;
+    if(game.gameMode === -1) {
+      components = buildButtons(game.question.answersDisplay, game.question.type === "boolean");
+    }
+
     try {
       msg = await Trivia.send(channel, void 0, {embed: {
         color: game.color,
         image: { url: game.imageQuestion }, // If any is defined
         description: finalString
-      }});
+      }, components});
 
     } catch(err) {
       game.endGame();
@@ -207,7 +213,7 @@ Trivia.gameHandler.on("game_create", (game) => {
 
     game.startRound();
     game.message = msg;
-    game.roundId = msg.id;
+    game.roundID = msg.channel.id;
 
     // Add reaction emojis if configured to do so.
     if(game.gameMode === 1) {
@@ -296,12 +302,17 @@ Trivia.questions = [];
 // TODO rewrite
 Trivia.send = async function(channel, author, msg, callback, noDelete) {
   try {
+    if(typeof msg.embed !== "undefined") {
+      msg.embeds = [ msg.embed ];
+      delete msg.embed;
+    }
+    
     msg = await channel.send(msg);
   } catch(err) {
     console.warn("Message send error: " + err);
     console.trace();
     if(typeof author !== "undefined") {
-      if(channel.type !== "dm") {
+      if(channel.type !== "DM") {
         var str = "";
         if(err.message.includes("Missing Permissions")) {
           str = "\n\nThe bot does not have sufficient permission to send messages in this channel. This bot requires the \"Send Messages\" and \"Embed Links\" permissions in order to work.";
@@ -315,8 +326,9 @@ Trivia.send = async function(channel, author, msg, callback, noDelete) {
           color: 14164000,
           description: `TriviaBot is unable to send messages in this channel:\n${err.message.replace("DiscordAPIError: ","")} ${str}`
         }})
-        .catch(() => {
+        .catch((err) => {
           console.warn(`Failed to send message to user ${author.id}, DM failed. Dumping message data...`);
+          console.log(err);
           console.log(msg);
           console.log("Dumped message data.");
         });
@@ -654,6 +666,32 @@ async function addAnswerReactions(msg, game) {
   }
 }
 
+function buildButtons(answers, isTrueFalse) {
+  const button = new MessageActionRow();
+  const labels = [ "SUCCESS", "DANGER" ];
+
+  for(var i = 0; i <= answers.length-1; i++) {
+    var style, text;
+
+    text = `${Letters[i]}: ${answers[i]}`;
+    if(isTrueFalse) {
+      style = labels[i];
+    }
+    else {
+      style = "PRIMARY";
+    }
+
+    button.addComponents(
+      new MessageButton()
+      .setCustomId("answer_" + Letters[i])
+      .setLabel(Trivia.formatStr(text))
+      .setStyle(style),
+    );
+  }
+
+  return [ button ];
+}
+
 Trivia.stopGame = (game, channel, auto) => {
   if(auto !== 1) {
     global.client.shard.send({stats: { commandStopCount: 1 }});
@@ -780,7 +818,7 @@ function parseCommand(msg, cmd, isAdmin) {
         }
 
 
-        if(msg.channel.type !== "dm") {
+        if(msg.channel.type !== "DM") {
           Trivia.send(msg.channel, void 0, "Config has been sent to you via DM.");
         }
 
@@ -929,7 +967,7 @@ Trivia.parse = (str, msg) => {
 
   // ## Answers ##
   // Check for letters if not using reactions
-  if(gameExists && game.gameMode !== 1) {
+  if(gameExists && game.gameMode !== 1 && game.gameMode !== -1) {
     var name = msg.member !== null?msg.member.displayName:msg.author.username;
     var parse;
 
@@ -981,7 +1019,7 @@ Trivia.parse = (str, msg) => {
     if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) {
       isAdmin = true;
     }
-    else if(msg.channel.type === "dm") {
+    else if(msg.channel.type === "DM") {
       // Admin if the game is run in a DM.
       isAdmin = true;
     }
@@ -1136,6 +1174,21 @@ Trivia.reactionAdd = async function(reaction, user) {
   Trivia.parseAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
 };
 
+// Detect button answers
+Trivia.buttonPress = (message, answer, userId, username) => {
+  var id = message.channel.id;
+  var game = Trivia.gameHandler.getActiveGame(id);
+  console.log(message.id);
+
+  // Return -1 to indicate that this is not a valid round.
+  if(typeof game === "undefined" || id !== game.roundID)
+    return -1;
+
+  Trivia.parseAnswer(game, answer, id, userId, username, getConfigVal("score-value", message.channel));
+
+  return Object.keys(game.activeParticipants).length;
+};
+
 // # Game Exporter #
 // Export the current game data to a file.
 Trivia.exportGame = (file) => {
@@ -1239,7 +1292,7 @@ Trivia.doMaintenanceShutdown = () => {
 
 // # Fallback Mode Functionality #
 if(getConfigVal("fallback-mode") && !getConfigVal("fallback-silent")) {
-  global.client.on("message", (msg) => {
+  global.client.on("messageCreate", (msg) => {
       console.log(`Msg - ${msg.author === global.client.user?"(self)":""} Shard ${global.client.shard.ids} - Channel ${msg.channel.id}`);
   });
 }
