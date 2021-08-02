@@ -207,6 +207,7 @@ Trivia.gameHandler.on("game_create", (game) => {
 
     game.startRound();
     game.message = msg;
+    game.roundId = msg.id;
 
     // Add reaction emojis if configured to do so.
     if(game.gameMode === 1) {
