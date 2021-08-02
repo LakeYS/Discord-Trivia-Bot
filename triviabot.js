@@ -1087,6 +1087,11 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
     }
   }
 
+  // Hide answers in button mode
+  if(gameMode === -1) {
+    answerString = "";
+  }
+
   var categoryString = Trivia.formatStr(question.category);
 
   var timer = getConfigVal("round-length", channel);
