@@ -1,3 +1,4 @@
+const { MessageActionRow, MessageButton } = require("discord.js");
 const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
@@ -192,7 +193,8 @@ global.questions = [];
 //    noDelete: If enabled, message will not auto-delete even if configured to
 Trivia.send = function(channel, author, msg, callback, noDelete) {
   if(typeof msg.embed !== "undefined") {
-    msg = {embeds: [ msg.embed ]};
+    msg.embeds = [ msg.embed ];
+    delete msg.embed;
   }
 
   channel.send(msg)
@@ -858,6 +860,21 @@ function doHangmanHint(channel, answer) {
   }});
 }
 
+function buildButtons(answers) {
+  const button = new MessageActionRow();
+
+  for(var i = 0; i <= answers.length-1; i++) {
+    button.addComponents(
+      new MessageButton()
+      .setCustomId("answer_" + Letters[i])
+      .setLabel(Letters[i])
+      .setStyle("SECONDARY"),
+    );
+  }
+
+  return [ button ];
+}
+
 // # Trivia.doGame #
 // TODO: Refactor and reduce args
 // - id: The unique identifier for the channel that the game is in.
@@ -900,7 +917,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
 
   // ## Permission Checks ##
   // Start with the game value if defined, otherwise default to 0.
-  var gameMode = 0;
+  var gameMode = -1;
 
   if(channel.type !== "DM" && typeof modeInput === "undefined") {
     if(getConfigVal("use-reactions", channel)) {
@@ -911,6 +928,9 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     }
   }
 
+  if(modeInput === 0) {
+    gameMode = 0;
+  }
   if(modeInput === 1) {
     gameMode = 1;
   }
@@ -1066,7 +1086,7 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
     if(gameMode === 2) {
       infoString = `${infoString}\nType your answer! `;
     }
-    else if(gameMode !== 1) {
+    else if(gameMode === 0) {
       infoString = `${infoString}Type a letter to answer! `;
     }
 
@@ -1083,12 +1103,17 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
     footerObj = { text: infoString };
   }
 
+  var components;
+  if(gameMode === -1) {
+    components = buildButtons(answers);
+  }
+
   Trivia.send(channel, author, {embed: {
     color: game[id].color,
     image: {url: question.question_image},
     description: `*${categoryString}*\n**${Trivia.formatStr(question.question)}**\n${answerString}`,
     footer: footerObj
-  }}, (msg, err) => {
+  }, components}, (msg, err) => {
     if(err) {
       game[id].timeout = void 0;
       triviaEndGame(id);
@@ -1432,7 +1457,7 @@ Trivia.parse = (str, msg) => {
 
   // ## Answers ##
   // Check for letters if not using reactions
-  if(gameExists && game[id].gameMode !== 1) {
+  if(gameExists && game[id].gameMode !== 1 && game[id].gameMode !== -1) {
     var name = msg.member !== null?msg.member.displayName:msg.author.username;
     var parse;
 
@@ -1636,6 +1661,19 @@ Trivia.reactionAdd = async function(reaction, user) {
   }
 
   Trivia.parseAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
+};
+
+// Detect button answers
+Trivia.buttonPress = (message, answer, userId, username) => {
+  var id = message.channel.id;
+
+  // Return -1 to indicate that this is not a valid round.
+  if(typeof game[id] === "undefined" || message.id !== game[id].message.id)
+    return -1;
+
+  Trivia.parseAnswer(answer, id, userId, username, getConfigVal("score-value", message.channel));
+
+  return Object.keys(game[id].participants).length;
 };
 
 // # Game Exporter #

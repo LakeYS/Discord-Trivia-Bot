@@ -85,6 +85,22 @@ global.client.on("messageReactionAdd", (reaction, user) => {
   global.Trivia.reactionAdd(reaction, user);
 });
 
+global.client.on("interactionCreate", interaction => {
+	if (!interaction.isButton()) return;
+
+  if(interaction.customId.startsWith("answer_")) {
+    var answer = interaction.customId.replace("answer_", "");
+    var participants = global.Trivia.buttonPress(interaction.message, answer, interaction.user.id, interaction.member.displayName);
+
+    if(participants === -1) {
+      interaction.reply({ content: "This round has already ended.", ephemeral: true});
+      return;
+    }
+    interaction.update(`${participants} answer${participants!==1?"s":""} received`);
+  }
+
+});
+
 global.client.on("guildCreate", () => {
   if(!Config["stat-guild-recording"]) {
     return;
