@@ -918,32 +918,36 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
   // ## Permission Checks ##
   // Start with the game value if defined, otherwise default to 0.
   var gameMode = -1;
-
-  if(channel.type !== "DM" && typeof modeInput === "undefined") {
-    if(getConfigVal("use-reactions", channel)) {
-      gameMode = 1;
-    }
-    else if(getConfigVal("hangman-mode", channel)) {
-      gameMode = 2;
-    }
-  }
-
-  if(modeInput === 0) {
-    gameMode = 0;
-  }
-  if(modeInput === 1) {
-    gameMode = 1;
-  }
-  else if(modeInput === 2) {
-    gameMode = 2;
-  }
-
-  if(gameMode === 2) {
-    typeInput = "multiple"; // Override to get rid of T/F questions
-  }
-
+  
   if(typeof game[id] !== "undefined") {
-    gameMode = game[id].gameMode || gameMode;
+    // If no pre-defined game-mode...
+    if(typeof game[id].gameMode === "undefined") {
+      if(channel.type !== "DM" && typeof modeInput === "undefined") {
+        if(getConfigVal("use-reactions", channel)) {
+          gameMode = 1;
+        }
+        else if(getConfigVal("hangman-mode", channel)) {
+          gameMode = 2;
+        }
+      }
+    
+      if(modeInput === 0) {
+        gameMode = 0;
+      }
+      if(modeInput === 1) {
+        gameMode = 1;
+      }
+      else if(modeInput === 2) {
+        gameMode = 2;
+      }
+    
+      if(gameMode === 2) {
+        typeInput = "multiple"; // Override to get rid of T/F questions
+      }
+    }
+    else {
+      gameMode = game[id].gameMode;
+    }
   }
 
   var isFirstQuestion = typeof game[id] === "undefined";
