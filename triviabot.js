@@ -860,15 +860,26 @@ function doHangmanHint(channel, answer) {
   }});
 }
 
-function buildButtons(answers) {
+function buildButtons(answers, isTrueFalse) {
   const button = new MessageActionRow();
+  const labels = [ "SUCCESS", "DANGER" ];
 
   for(var i = 0; i <= answers.length-1; i++) {
+    var style, text;
+
+    text = `${Letters[i]}: ${answers[i]}`;
+    if(isTrueFalse) {
+      style = labels[i];
+    }
+    else {
+      style = "PRIMARY";
+    }
+
     button.addComponents(
       new MessageButton()
       .setCustomId("answer_" + Letters[i])
-      .setLabel(Letters[i])
-      .setStyle("PRIMARY"),
+      .setLabel(text)
+      .setStyle(style),
     );
   }
 
@@ -1109,7 +1120,7 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
 
   var components;
   if(gameMode === -1) {
-    components = buildButtons(answers);
+    components = buildButtons(answers, game[id].isTrueFalse);
   }
 
   Trivia.send(channel, author, {embed: {
