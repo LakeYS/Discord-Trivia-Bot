@@ -1,10 +1,12 @@
 const Discord = require("discord.js");
 const Listings = require("./lib/listings_discord");
-const { Client } = Discord;
+const { Client, Intents } = Discord;
 
 var Config = require("./lib/config.js")(process.argv[2]).config;
+var intents = new Intents(["GUILDS", "GUILD_MESSAGES", "GUILD_MESSAGE_REACTIONS", "DIRECT_MESSAGES", "DIRECT_MESSAGE_REACTIONS"]);
 
 global.client = new Client({
+  intents: intents,
   retryLimit: 3,
   messageCacheMaxSize: 50
 });
@@ -38,7 +40,7 @@ global.client.on("ready", async () => {
     global.client.user.setAvatar("./profile.png");
   }
 
-  global.client.user.setPresence({ activity: { name: "Trivia! Type '" + Config.prefix + "help' to get started.", type: 0 } });
+  global.client.user.setPresence({ activities: [{ name: "Trivia! Type '" + Config.prefix + "help' to get started.", type: 0 }] });
 
   // # Post Stats # //
   if(Config["enable-listings"]) {
@@ -71,16 +73,32 @@ global.client.on("error", (err) => {
   process.exit();
 });
 
-global.client.on("message", (msg) => {
+global.client.on("messageCreate", (msg) => {
   var str = msg.toString().toUpperCase();
 
-  if(msg.channel.type === "text" || msg.channel.type === "dm") {
+  if(msg.channel.type === "GUILD_TEXT" || msg.channel.type === "DM") {
     global.Trivia.parse(str, msg);
   }
 });
 
 global.client.on("messageReactionAdd", (reaction, user) => {
   global.Trivia.reactionAdd(reaction, user);
+});
+
+global.client.on("interactionCreate", interaction => {
+	if (!interaction.isButton()) return;
+
+  if(interaction.customId.startsWith("answer_")) {
+    var answer = interaction.customId.replace("answer_", "");
+    var participants = global.Trivia.buttonPress(interaction.message, answer, interaction.user.id, interaction.member.displayName);
+
+    if(participants === -1) {
+      interaction.reply({ content: "This round has already ended.", ephemeral: true});
+      return;
+    }
+    interaction.update(`${participants} answer${participants!==1?"s":""} received`);
+  }
+
 });
 
 global.client.on("guildCreate", () => {

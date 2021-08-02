@@ -1,3 +1,4 @@
+const { MessageActionRow, MessageButton } = require("discord.js");
 const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
@@ -16,11 +17,11 @@ var Trivia = exports;
 function getConfigVal(value, channel, guild) {
   if(typeof channel !== "undefined") {
     // discord.js class auto-detection
-    if(channel.type === "text") {
+    if(channel.type === "GUILD_TEXT") {
       guild = channel.guild.id;
       channel = channel.id;
     }
-    else if(channel.type === "dm") {
+    else if(channel.type === "DM") {
       channel = channel.id;
     }
   }
@@ -191,10 +192,15 @@ global.questions = [];
 //    callback: Callback Function (Can be used to detect error/success and react)
 //    noDelete: If enabled, message will not auto-delete even if configured to
 Trivia.send = function(channel, author, msg, callback, noDelete) {
+  if(typeof msg.embed !== "undefined") {
+    msg.embeds = [ msg.embed ];
+    delete msg.embed;
+  }
+
   channel.send(msg)
   .catch((err) => {
     if(typeof author !== "undefined") {
-      if(channel.type !== "dm") {
+      if(channel.type !== "DM") {
         var str = "";
         if(err.message.includes("Missing Permissions")) {
           str = "\n\nThe bot does not have sufficient permission to send messages in this channel. This bot requires the \"Send Messages\" and \"Embed Links\" permissions in order to work.";
@@ -208,8 +214,9 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
           color: 14164000,
           description: `TriviaBot is unable to send messages in this channel:\n${err.message.replace("DiscordAPIError: ","")} ${str}`
         }})
-        .catch(() => {
+        .catch((err) => {
           console.warn(`Failed to send message to user ${author.id}, DM failed. Dumping message data...`);
+          console.log(err);
           console.log(msg);
           console.log("Dumped message data.");
         });
@@ -853,6 +860,32 @@ function doHangmanHint(channel, answer) {
   }});
 }
 
+function buildButtons(answers, isTrueFalse) {
+  const button = new MessageActionRow();
+  const labels = [ "SUCCESS", "DANGER" ];
+
+  for(var i = 0; i <= answers.length-1; i++) {
+    var style, text;
+
+    text = `${Letters[i]}: ${answers[i]}`;
+    if(isTrueFalse) {
+      style = labels[i];
+    }
+    else {
+      style = "PRIMARY";
+    }
+
+    button.addComponents(
+      new MessageButton()
+      .setCustomId("answer_" + Letters[i])
+      .setLabel(text)
+      .setStyle(style),
+    );
+  }
+
+  return [ button ];
+}
+
 // # Trivia.doGame #
 // TODO: Refactor and reduce args
 // - id: The unique identifier for the channel that the game is in.
@@ -895,30 +928,37 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
 
   // ## Permission Checks ##
   // Start with the game value if defined, otherwise default to 0.
-  var gameMode = 0;
-
-  if(channel.type !== "dm" && typeof modeInput === "undefined") {
-    if(getConfigVal("use-reactions", channel)) {
-      gameMode = 1;
-    }
-    else if(getConfigVal("hangman-mode", channel)) {
-      gameMode = 2;
-    }
-  }
-
-  if(modeInput === 1) {
-    gameMode = 1;
-  }
-  else if(modeInput === 2) {
-    gameMode = 2;
-  }
-
-  if(gameMode === 2) {
-    typeInput = "multiple"; // Override to get rid of T/F questions
-  }
-
+  var gameMode = -1;
+  
   if(typeof game[id] !== "undefined") {
-    gameMode = game[id].gameMode || gameMode;
+    // If no pre-defined game-mode...
+    if(typeof game[id].gameMode === "undefined") {
+      if(channel.type !== "DM" && typeof modeInput === "undefined") {
+        if(getConfigVal("use-reactions", channel)) {
+          gameMode = 1;
+        }
+        else if(getConfigVal("hangman-mode", channel)) {
+          gameMode = 2;
+        }
+      }
+    
+      if(modeInput === 0) {
+        gameMode = 0;
+      }
+      if(modeInput === 1) {
+        gameMode = 1;
+      }
+      else if(modeInput === 2) {
+        gameMode = 2;
+      }
+    
+      if(gameMode === 2) {
+        typeInput = "multiple"; // Override to get rid of T/F questions
+      }
+    }
+    else {
+      gameMode = game[id].gameMode;
+    }
   }
 
   var isFirstQuestion = typeof game[id] === "undefined";
@@ -930,10 +970,10 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     "inProgress": 1,
     "inRound": 1,
 
-    "guildId": channel.type==="text"?channel.guild.id:void 0,
-    "userId": channel.type!=="dm"?void 0:channel.recipient.id,
+    "guildId": channel.type==="GUILD_TEXT"?channel.guild.id:void 0,
+    "userId": channel.type!=="DM"?void 0:channel.recipient.id,
 
-    "isDMGame": channel.type==="dm",
+    "isDMGame": channel.type==="DM",
 
     gameMode,
     "category": typeof game[id]!=="undefined"?game[id].category:category,
@@ -1047,6 +1087,11 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
     }
   }
 
+  // Hide answers in button mode
+  if(gameMode === -1) {
+    answerString = "";
+  }
+
   var categoryString = Trivia.formatStr(question.category);
 
   var timer = getConfigVal("round-length", channel);
@@ -1061,7 +1106,7 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
     if(gameMode === 2) {
       infoString = `${infoString}\nType your answer! `;
     }
-    else if(gameMode !== 1) {
+    else if(gameMode === 0) {
       infoString = `${infoString}Type a letter to answer! `;
     }
 
@@ -1078,12 +1123,17 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
     footerObj = { text: infoString };
   }
 
+  var components;
+  if(gameMode === -1) {
+    components = buildButtons(answers, game[id].isTrueFalse);
+  }
+
   Trivia.send(channel, author, {embed: {
     color: game[id].color,
     image: {url: question.question_image},
     description: `*${categoryString}*\n**${Trivia.formatStr(question.question)}**\n${answerString}`,
     footer: footerObj
-  }}, (msg, err) => {
+  }, components}, (msg, err) => {
     if(err) {
       game[id].timeout = void 0;
       triviaEndGame(id);
@@ -1279,7 +1329,7 @@ function parseCommand(msg, cmd, isAdmin) {
         }
 
 
-        if(msg.channel.type !== "dm") {
+        if(msg.channel.type !== "DM") {
           Trivia.send(msg.channel, void 0, "Config has been sent to you via DM.");
         }
 
@@ -1427,7 +1477,7 @@ Trivia.parse = (str, msg) => {
 
   // ## Answers ##
   // Check for letters if not using reactions
-  if(gameExists && game[id].gameMode !== 1) {
+  if(gameExists && game[id].gameMode !== 1 && game[id].gameMode !== -1) {
     var name = msg.member !== null?msg.member.displayName:msg.author.username;
     var parse;
 
@@ -1479,7 +1529,7 @@ Trivia.parse = (str, msg) => {
     if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) {
       isAdmin = true;
     }
-    else if(msg.channel.type === "dm") {
+    else if(msg.channel.type === "DM") {
       // Admin if the game is run in a DM.
       isAdmin = true;
     }
@@ -1633,6 +1683,19 @@ Trivia.reactionAdd = async function(reaction, user) {
   Trivia.parseAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
 };
 
+// Detect button answers
+Trivia.buttonPress = (message, answer, userId, username) => {
+  var id = message.channel.id;
+
+  // Return -1 to indicate that this is not a valid round.
+  if(typeof game[id] === "undefined" || message.id !== game[id].message.id)
+    return -1;
+
+  Trivia.parseAnswer(answer, id, userId, username, getConfigVal("score-value", message.channel));
+
+  return Object.keys(game[id].participants).length;
+};
+
 // # Game Exporter #
 // Export the current game data to a file.
 Trivia.exportGame = (file) => {
@@ -1736,7 +1799,7 @@ Trivia.doMaintenanceShutdown = () => {
 
 // # Fallback Mode Functionality #
 if(getConfigVal("fallback-mode") && !getConfigVal("fallback-silent")) {
-  global.client.on("message", (msg) => {
+  global.client.on("messageCreate", (msg) => {
       console.log(`Msg - ${msg.author === global.client.user?"(self)":""} Shard ${global.client.shard.ids} - Channel ${msg.channel.id}`);
   });
 }
