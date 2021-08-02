@@ -868,7 +868,7 @@ function buildButtons(answers) {
       new MessageButton()
       .setCustomId("answer_" + Letters[i])
       .setLabel(Letters[i])
-      .setStyle("SECONDARY"),
+      .setStyle("PRIMARY"),
     );
   }
 
