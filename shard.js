@@ -7,6 +7,7 @@ var intents = new Intents(["GUILDS", "GUILD_MESSAGES", "GUILD_MESSAGE_REACTIONS"
 
 global.client = new Client({
   intents: intents,
+  partials: [ "CHANNEL" ],
   retryLimit: 3,
   messageCacheMaxSize: 50
 });
@@ -73,7 +74,11 @@ global.client.on("error", (err) => {
   process.exit();
 });
 
-global.client.on("messageCreate", (msg) => {
+global.client.on("messageCreate", async (msg) => {
+  if (msg.channel.partial) {
+    msg = await msg.channel.fetch();
+  }
+
   var str = msg.toString().toUpperCase();
 
   if(msg.channel.type === "GUILD_TEXT" || msg.channel.type === "DM") {
