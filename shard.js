@@ -95,7 +95,9 @@ global.client.on("interactionCreate", interaction => {
 
   if(interaction.customId.startsWith("answer_")) {
     var answer = interaction.customId.replace("answer_", "");
-    var participants = global.Trivia.buttonPress(interaction.message, answer, interaction.user.id, interaction.member.displayName);
+    var name = interaction.member !== null?interaction.member.displayName:interaction.user.username;
+    
+    var participants = global.Trivia.buttonPress(interaction.message, answer, interaction.user.id, name);
 
     if(participants === -1) {
       interaction.reply({ content: "This round has already ended.", ephemeral: true});
