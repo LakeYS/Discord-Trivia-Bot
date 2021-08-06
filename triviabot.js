@@ -931,34 +931,34 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
   // Start with the game value if defined, otherwise default to 0.
   var gameMode = -1;
   
-  if(typeof game[id] !== "undefined") {
-    // If no pre-defined game-mode...
-    if(typeof game[id].gameMode === "undefined") {
-      if(channel.type !== "DM" && typeof modeInput === "undefined") {
-        if(getConfigVal("use-reactions", channel)) {
-          gameMode = 1;
-        }
-        else if(getConfigVal("hangman-mode", channel)) {
-          gameMode = 2;
-        }
-      }
-    
-      if(modeInput === 0) {
-        gameMode = 0;
-      }
-      if(modeInput === 1) {
+  if(typeof game[id] !== "undefined" && typeof game[id].gameMode !== "undefined") {
+    gameMode = game[id].gameMode;
+  }
+  else {
+    if(channel.type !== "DM" && typeof modeInput === "undefined") {
+      if(getConfigVal("use-reactions", channel)) {
         gameMode = 1;
       }
-      else if(modeInput === 2) {
+      else if(getConfigVal("hangman-mode", channel)) {
         gameMode = 2;
       }
-    
-      if(gameMode === 2) {
-        typeInput = "multiple"; // Override to get rid of T/F questions
-      }
     }
-    else {
-      gameMode = game[id].gameMode;
+  
+    if(modeInput === -1) {
+      gameMode = -1;
+    }
+    if(modeInput === 0) {
+      gameMode = 0;
+    }
+    else if(modeInput === 1) {
+      gameMode = 1;
+    }
+    else if(modeInput === 2) {
+      gameMode = 2;
+    }
+  
+    if(gameMode === 2) {
+      typeInput = "multiple"; // Override to get rid of T/F questions
     }
   }
 
