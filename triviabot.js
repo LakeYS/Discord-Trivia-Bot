@@ -867,7 +867,7 @@ function buildButtons(answers, isTrueFalse) {
   for(var i = 0; i <= answers.length-1; i++) {
     var style, text;
 
-    text = `${Letters[i]}: ${answers[i]}`;
+    text = `${Letters[i]}: ${Trivia.formatStr(answers[i])}`;
     if(isTrueFalse) {
       style = labels[i];
     }
