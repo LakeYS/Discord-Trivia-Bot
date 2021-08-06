@@ -96,7 +96,13 @@ global.client.on("interactionCreate", interaction => {
       interaction.reply({ content: "This round has already ended.", ephemeral: true});
       return;
     }
-    interaction.update(`${participants} answer${participants!==1?"s":""} received`);
+
+    if(participants === 1) {
+      interaction.update("Answered!");
+    }
+    else {
+      interaction.update(`${participants} answers received`);
+    }
   }
 
 });
