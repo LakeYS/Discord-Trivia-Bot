@@ -1682,7 +1682,7 @@ Trivia.buttonPress = (message, answer, userId, username) => {
   var id = message.channel.id;
 
   // Return -1 to indicate that this is not a valid round.
-  if(typeof game[id] === "undefined" || message.id !== game[id].message.id)
+  if(typeof game[id] === "undefined" || message.id !== game[id].message.id || !game[id].inRound)
     return -1;
 
   Trivia.parseAnswer(answer, id, userId, username, getConfigVal("score-value", message.channel));
