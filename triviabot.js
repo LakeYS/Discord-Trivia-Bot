@@ -863,6 +863,7 @@ function doHangmanHint(channel, answer) {
 function buildButtons(answers, isTrueFalse) {
   const button = new MessageActionRow();
   const labels = [ "SUCCESS", "DANGER" ];
+  const styles = [ "PRIMARY", "SECONDARY" ];
 
   for(var i = 0; i <= answers.length-1; i++) {
     var style, text;
@@ -872,7 +873,7 @@ function buildButtons(answers, isTrueFalse) {
       style = labels[i];
     }
     else {
-      style = "PRIMARY";
+      style = styles[i % 2]; // Alternate between colors
     }
 
     button.addComponents(
