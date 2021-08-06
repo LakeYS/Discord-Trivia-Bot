@@ -108,7 +108,7 @@ global.client.on("interactionCreate", interaction => {
       interaction.update("Answered!");
     }
     else {
-      interaction.update(`${participants} answers received`);
+      interaction.update(`${participants} answers`);
     }
   }
 
