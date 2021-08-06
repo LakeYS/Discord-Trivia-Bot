@@ -860,21 +860,14 @@ function doHangmanHint(channel, answer) {
   }});
 }
 
-function buildButtons(answers, isTrueFalse) {
+function buildButtons(answers) {
   const button = new MessageActionRow();
-  const labels = [ "SUCCESS", "DANGER" ];
-  const styles = [ "PRIMARY", "SECONDARY" ];
 
   for(var i = 0; i <= answers.length-1; i++) {
     var style, text;
 
     text = `${Letters[i]}: ${Trivia.formatStr(answers[i])}`;
-    if(isTrueFalse) {
-      style = labels[i];
-    }
-    else {
-      style = styles[i % 2]; // Alternate between colors
-    }
+    style = "SECONDARY";
 
     button.addComponents(
       new MessageButton()
