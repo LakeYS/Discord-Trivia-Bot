@@ -1429,6 +1429,7 @@ function parseCommand(msg, cmd, isAdmin) {
 
   if(cmd.startsWith("PLAY HANGMAN ") || cmd === "PLAY HANGMAN") {
     categoryInput = cmd.replace("PLAY HANGMAN ","");
+    Trivia.send(msg.channel, msg.author, "*(Beware: Some questions from OpenTDB are not designed for hangman-style gameplay)*");
     commands.triviaPlay(msg, categoryInput, 2);
     global.client.shard.send({stats: { commandPlayHangmanCount: 1 }});
     return;
