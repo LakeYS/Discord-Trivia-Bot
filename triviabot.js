@@ -210,10 +210,10 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
           str = "\n\nThe bot does not have permission to view this channel. Ensure that TriviaBot has the \"View Channel\" permission for this channel.";
         }
 
-        author.send({embed: {
+        author.send({embeds: [{
           color: 14164000,
           description: `TriviaBot is unable to send messages in this channel:\n${err.message.replace("DiscordAPIError: ","")} ${str}`
-        }})
+        }]})
         .catch((err) => {
           console.warn(`Failed to send message to user ${author.id}, DM failed. Dumping message data...`);
           console.log(err);
