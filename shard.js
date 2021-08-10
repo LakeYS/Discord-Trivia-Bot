@@ -96,6 +96,7 @@ global.client.on("messageReactionAdd", (reaction, user) => {
 
 global.client.on("interactionCreate", interaction => {
 	if (!interaction.isButton()) return;
+  if (global.Trivia.isFallbackMode(interaction.channel.id)) return;
 
   if(interaction.customId.startsWith("answer_")) {
     var answer = interaction.customId.replace("answer_", "");

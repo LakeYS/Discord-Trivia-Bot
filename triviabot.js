@@ -250,7 +250,7 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
 Trivia.commands = {};
 var commands = Trivia.commands;
 
-function isFallbackMode(channel) {
+Trivia.isFallbackMode = (channel) => {
   if(getConfigVal("fallback-mode")) {
     if(typeof getConfigVal("fallback-exceptions") !== "undefined" && getConfigVal("fallback-exceptions").indexOf(channel) !== -1) {
       // Return if specified channel is an exception
@@ -260,7 +260,7 @@ function isFallbackMode(channel) {
       return true;
     }
   }
-}
+};
 
 // getTriviaQuestion
 // Returns a promise, fetches a random question from the database.
@@ -1459,7 +1459,7 @@ function parseCommand(msg, cmd, isAdmin) {
 // # trivia.parse #
 Trivia.parse = (str, msg) => {
   // No games in fallback mode
-  if(isFallbackMode(msg.channel.id)) {
+  if(Trivia.isFallbackMode(msg.channel.id)) {
     return;
   }
 
