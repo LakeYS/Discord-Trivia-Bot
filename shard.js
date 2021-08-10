@@ -3,10 +3,14 @@ const Listings = require("./lib/listings_discord");
 const { Client, Intents } = Discord;
 
 var Config = require("./lib/config.js")(process.argv[2]).config;
-var intents = new Intents(["GUILDS", "GUILD_MESSAGES", "GUILD_MESSAGE_REACTIONS", "DIRECT_MESSAGES", "DIRECT_MESSAGE_REACTIONS"]);
+var intents = ["GUILDS", "GUILD_MESSAGE_REACTIONS", "DIRECT_MESSAGE_REACTIONS"];
+
+if(!Config["fallback-intents"]) {
+  intents.push("GUILD_MESSAGES", "DIRECT_MESSAGES");
+}
 
 global.client = new Client({
-  intents: intents,
+  intents: new Intents(intents),
   partials: [ "CHANNEL" ],
   retryLimit: 3,
   messageCacheMaxSize: 50
