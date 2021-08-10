@@ -3,10 +3,15 @@ const Listings = require("./lib/listings_discord");
 const { Client, Intents } = Discord;
 
 var Config = require("./lib/config.js")(process.argv[2]).config;
-var intents = new Intents(["GUILDS", "GUILD_MESSAGES", "GUILD_MESSAGE_REACTIONS", "DIRECT_MESSAGES", "DIRECT_MESSAGE_REACTIONS"]);
+var intents = ["GUILDS", "GUILD_MESSAGE_REACTIONS", "DIRECT_MESSAGE_REACTIONS"];
+
+if(!Config["fallback-intents"]) {
+  intents.push("GUILD_MESSAGES", "DIRECT_MESSAGES");
+}
 
 global.client = new Client({
-  intents: intents,
+  intents: new Intents(intents),
+  partials: [ "CHANNEL" ],
   retryLimit: 3,
   messageCacheMaxSize: 50
 });
@@ -73,7 +78,11 @@ global.client.on("error", (err) => {
   process.exit();
 });
 
-global.client.on("messageCreate", (msg) => {
+global.client.on("messageCreate", async (msg) => {
+  if (msg.channel.partial) {
+    msg = await msg.channel.fetch();
+  }
+
   var str = msg.toString().toUpperCase();
 
   if(msg.channel.type === "GUILD_TEXT" || msg.channel.type === "DM") {
@@ -87,16 +96,25 @@ global.client.on("messageReactionAdd", (reaction, user) => {
 
 global.client.on("interactionCreate", interaction => {
 	if (!interaction.isButton()) return;
+  if (global.Trivia.isFallbackMode(interaction.channel.id)) return;
 
   if(interaction.customId.startsWith("answer_")) {
     var answer = interaction.customId.replace("answer_", "");
-    var participants = Trivia.buttonPress(interaction.message, answer, interaction.user.id, interaction.member.displayName);
+    var name = interaction.member !== null?interaction.member.displayName:interaction.user.username;
+    
+    var participants = Trivia.buttonPress(interaction.message, answer, interaction.user.id, name);
 
     if(participants === -1) {
       interaction.reply({ content: "This round has already ended.", ephemeral: true});
       return;
     }
-    interaction.update(`${participants} answer${participants!==1?"s":""} received`);
+
+    if(participants === 1) {
+      interaction.update("Answered!");
+    }
+    else {
+      interaction.update(`${participants} answers`);
+    }
   }
 
 });

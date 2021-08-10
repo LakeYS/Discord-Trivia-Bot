@@ -322,10 +322,10 @@ Trivia.send = async function(channel, author, msg, callback, noDelete) {
           str = "\n\nThe bot does not have permission to view this channel. Ensure that TriviaBot has the \"View Channel\" permission for this channel.";
         }
 
-        author.send({embed: {
+        author.send({embeds: [{
           color: 14164000,
           description: `TriviaBot is unable to send messages in this channel:\n${err.message.replace("DiscordAPIError: ","")} ${str}`
-        }})
+        }]})
         .catch((err) => {
           console.warn(`Failed to send message to user ${author.id}, DM failed. Dumping message data...`);
           console.log(err);
@@ -354,7 +354,7 @@ Trivia.send = async function(channel, author, msg, callback, noDelete) {
 Trivia.commands = {};
 var commands = Trivia.commands;
 
-function isFallbackMode(channel) {
+Trivia.isFallbackMode = (channel) => {
   if(getConfigVal("fallback-mode")) {
     if(typeof getConfigVal("fallback-exceptions") !== "undefined" && getConfigVal("fallback-exceptions").indexOf(channel) !== -1) {
       // Return if specified channel is an exception
@@ -364,7 +364,7 @@ function isFallbackMode(channel) {
       return true;
     }
   }
-}
+};
 
 // getTriviaQuestion
 // Returns a promise, fetches a random question from the database.
@@ -624,20 +624,14 @@ async function addAnswerReactions(msg, game) {
   }
 }
 
-function buildButtons(answers, isTrueFalse) {
+function buildButtons(answers) {
   const button = new MessageActionRow();
-  const labels = [ "SUCCESS", "DANGER" ];
 
   for(var i = 0; i <= answers.length-1; i++) {
     var style, text;
 
-    text = `${Letters[i]}: ${answers[i]}`;
-    if(isTrueFalse) {
-      style = labels[i];
-    }
-    else {
-      style = "PRIMARY";
-    }
+    text = `${Letters[i]}: ${Trivia.formatStr(answers[i])}`;
+    style = "SECONDARY";
 
     button.addComponents(
       new MessageButton()
@@ -882,6 +876,11 @@ function parseCommand(msg, cmd, isAdmin) {
 
   if(cmd.startsWith("PLAY HANGMAN ") || cmd === "PLAY HANGMAN") {
     categoryInput = cmd.replace("PLAY HANGMAN ","");
+
+    if(getConfigVal("databaseURL") === "https://opentdb.com") {
+      Trivia.send(msg.channel, msg.author, "*(Beware: Some questions from OpenTDB are not designed for hangman-style gameplay)*");
+    }
+    
     commands.triviaPlay(msg, categoryInput, 2);
     global.client.shard.send({stats: { commandPlayHangmanCount: 1 }});
     return;
@@ -907,7 +906,7 @@ function parseCommand(msg, cmd, isAdmin) {
 // # trivia.parse #
 Trivia.parse = (str, msg) => {
   // No games in fallback mode
-  if(isFallbackMode(msg.channel.id)) {
+  if(Trivia.isFallbackMode(msg.channel.id)) {
     return;
   }
 
@@ -1136,10 +1135,9 @@ Trivia.reactionAdd = async function(reaction, user) {
 Trivia.buttonPress = (message, answer, userId, username) => {
   var id = message.channel.id;
   var game = Trivia.gameHandler.getActiveGame(id);
-  console.log(message.id);
 
   // Return -1 to indicate that this is not a valid round.
-  if(typeof game === "undefined" || id !== game.roundID)
+  if(typeof game === "undefined" || message.id !== game.message.id || !game.inRound)
     return -1;
 
   Trivia.parseAnswer(game, answer, id, userId, username, getConfigVal("score-value", message.channel));

@@ -1,6 +1,6 @@
 {
   "name": "discord-trivia-bot",
-  "version": "1.7.0",
+  "version": "1.8.1",
   "description": "Play trivia in Discord! Featuring three modes of play and 24 categories, including Anime & Manga, Video Games, Sports, Science, and more.",
   "main": "index.js",
   "isGitBuild": true,
@@ -21,7 +21,7 @@
   "homepage": "http://lakeys.net/triviabot",
   "dependencies": {
     "circular-json": "^0.5.9",
-    "discord.js": "^13.0.0-dev.t1627831263.774f5b7",
+    "discord.js": "^13.0.1",
     "html-entities": "^1.4.0",
     "https": "^1.0.0",
     "js-yaml": "^3.14.1",
