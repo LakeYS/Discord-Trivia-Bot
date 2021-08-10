@@ -551,9 +551,7 @@ Trivia.formatStr = (str) => {
 };
 
 // # parseAnswerHangman # //
-// This works by parsing the string, and if it matches the answer, passing it
-// to parseAnswer as the correct letter.
-Trivia.parseAnswerHangman = function(game, str, id, userId, username, scoreValue) {
+Trivia.parseAnswerHangman = function(game, str, id, userId, username) {
   var input = str.toLowerCase();
   // Decode and remove all non-alphabetical characters
   var answer = Trivia.formatStr(game.question.answer).toLowerCase().replace(/\W/g, "");
@@ -564,15 +562,8 @@ Trivia.parseAnswerHangman = function(game, str, id, userId, username, scoreValue
     return -1;
   }
 
-  if(input.replace(/\W/g, "") === answer) {
-    // null = Automatic correct answer
-    console.log("Passing null!");
-    return Trivia.parseAnswer(game, null, id, userId, username, scoreValue);
-  }
-  else {
-    // The string doesn't match, so we'll pass as an incorrect answer.
-    return Trivia.parseAnswer(game, void 0, id, userId, username, scoreValue);
-  }
+  // Pass whether or not the answer is a match.
+  return game.submitAnswer(userId, username, input.replace(/\W/g, "") === answer);
 };
 
 // # Trivia.parseAnswer # //
@@ -581,7 +572,7 @@ Trivia.parseAnswerHangman = function(game, str, id, userId, username, scoreValue
 // Str: Letter answer -- id: channel identifier.
 //    If undefined, automatically considered incorrect. If null, automatically considered correct.
 // scoreValue: Score value from the config file.
-Trivia.parseAnswer = function (game, str, channelId, userId, username, scoreValue) {
+Trivia.parseAnswer = function (game, str, channelId, userId, username) {
   if(!game.inRound) {
     // Return -1 since there is no game.
     return -1;
@@ -594,48 +585,15 @@ Trivia.parseAnswer = function (game, str, channelId, userId, username, scoreValu
 
   // undefined, null, or A-D are considered valid inputs for parsing
   if(typeof str === "undefined" || str === null || str === "A" || str === "B" || (game.isTrueFalse !== 1 && (str === "C"|| str === "D"))) {
-    // Add to participants if they aren't already on the list
-    if(game.inProgress && typeof game.activeParticipants[userId] === "undefined") {
-      game.activeParticipants[userId] = username;
+    var isCorrect = false;
 
-      game.totalParticipants[userId] = username;
+    // Check if the answer is not undefined and is correct.
+    // undefined or an invalid value are automatically considered incorrect. null is automatically correct.
+    if(str === Letters[game.question.displayCorrectID] || str === null) {
+      isCorrect = true;
     }
 
-    // If their score doesn't exist, intialize it.
-    game.scores[userId] = game.scores[userId] || 0;
-
-    // Check if the answer is not undefined and is correct. (undefined is automatically considered incorrect)
-    if((typeof str !== "undefined" && str === Letters[game.question.displayCorrectID]) || str === null) {
-      if(typeof game.correctUsers[userId] === "undefined") {
-        game.correctUsers[userId] = username;
-
-        var scoreChange = 0;
-        if(typeof scoreValue[game.question.difficulty] === "number") {
-          scoreChange = scoreValue[game.question.difficulty];
-        }
-        else {
-          // Leave the score change at 0, display a warning.
-          console.warn(`WARNING: Invalid difficulty value '${game.question.difficulty}' for the current question. User will not be scored.`);
-        }
-
-        Trivia.debugLog(`Updating score of user ${userId} (Current value: ${game.scores[userId]}) + ${scoreChange}.`);
-        game.scores[userId] += scoreChange;
-        Trivia.debugLog(`New score for user ${userId}: ${game.scores[userId]}`);
-      }
-    }
-    else {
-      // If the answer is wrong, remove them from correctUsers if necessary
-      if(typeof game.correctUsers[userId] !== "undefined") {
-        Trivia.debugLog(`User ${userId} changed answers, reducing score (Current value: ${game.scores[userId]}) by ${scoreValue[game.question.difficulty]}.`);
-
-        game.scores[userId] -= scoreValue[game.question.difficulty];
-
-        Trivia.debugLog(`New score for user ${userId}: ${game.scores[userId]}`);
-
-        // Now that the name is removed, we can remove the ID.
-        delete game.correctUsers[userId];
-      }
-    }
+    game.submitAnswer(userId, username, isCorrect);
   }
   else {
     // Return -1 to indicate that the input is NOT a valid answer
@@ -977,7 +935,7 @@ Trivia.parse = (str, msg) => {
     else {
       parse = Trivia.parseAnswer;
     }
-    var parsed = parse(game, str, id, msg.author.id, name, getConfigVal("score-value", msg.channel));
+    var parsed = parse(game, str, id, msg.author.id, name);
 
     if(parsed !== -1) {
       if(getConfigVal("auto-delete-answers", msg.channel) && !game[id].isDMGame) { // TODO
@@ -1171,7 +1129,7 @@ Trivia.reactionAdd = async function(reaction, user) {
     username = user.username; 
   }
 
-  Trivia.parseAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
+  Trivia.parseAnswer(str, id, user.id, username);
 };
 
 // Detect button answers
