@@ -91,7 +91,7 @@ const manager = new ShardingManager(`${__dirname}/shard.js`, {
   totalShards: Config["shard-count"],
   token,
   shardArgs: [configFile],
-  respawn: !Config["shard-count"]
+  respawn: true
 });
 
 // # Custom Package Loading # //
