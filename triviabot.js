@@ -72,6 +72,18 @@ function getConfigVal(value, channel, guild) {
 }
 Trivia.getConfigVal = getConfigVal;
 
+Trivia.postStat = (stat, value) => {
+  try {
+    var post = { stats: {}};
+    post.stats[stat] = value;
+    global.client.shard.send(post);
+  }
+  catch(err) {
+    console.warn(`Failed to post stat ${stat}: ${err}`);
+  }
+
+};
+
 function setConfigVal(value, newValue, skipOverride, localID) {
   var isLocal = typeof localID !== "undefined";
   if(skipOverride !== true || !getConfigVal("config-commands-enabled")) {
@@ -1136,26 +1148,26 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
 
       if(game[id].category) {
         // Stat: Rounds played - custom
-        global.client.shard.send({stats: { roundsPlayedCustom: 1 }});
+        Trivia.postStat("roundsPlayedCustom", 1);
 
         // Stat: Rounds played - this category
-        global.client.shard.send( JSON.parse(`{"stats": { "roundsPlayedCat${game[id].category}": 1 }}`) );
+        Trivia.postStat(`roundsPlayedCat${game[id].category}`, 1);
 
         if(!scheduled) {
           // Stat: Games played - custom
-          global.client.shard.send({stats: { gamesPlayedCustom: 1 }});
+          Trivia.postStat("gamesPlayedCustom", 1);
 
           // Stat: Games played - this category
-          global.client.shard.send( JSON.parse(`{"stats": { "gamesPlayedCat${game[id].category}": 1 }}`) );
+          Trivia.postStat(`gamesPlayedCat${game[id].category}`, 1);
         }
       }
       else {
         // Stat: Rounds played - normal
-        global.client.shard.send({stats: { roundsPlayedNormal: 1 }});
+        Trivia.postStat("roundsPlayedNormal", 1);
 
         if(!scheduled) {
           // Stat: Games played - normal
-          global.client.shard.send({stats: { gamesPlayedNormal: 1 }});
+          Trivia.postStat("gamesPlayedNormal", 1);
         }
       }
 
@@ -1197,7 +1209,7 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
 
 Trivia.stopGame = (channel, auto) => {
   if(auto !== 1) {
-    global.client.shard.send({stats: { commandStopCount: 1 }});
+    Trivia.postStat("commandStopCount", 1);
   }
 
   // These are defined beforehand so we can refer to them after the game is deleted.
@@ -1435,7 +1447,7 @@ function parseCommand(msg, cmd, isAdmin) {
     }
     
     commands.triviaPlay(msg, categoryInput, 2);
-    global.client.shard.send({stats: { commandPlayHangmanCount: 1 }});
+    Trivia.postStat("commandPlayHangmanCount", 1);
     return;
   }
 
