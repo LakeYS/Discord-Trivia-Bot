@@ -207,7 +207,7 @@ Trivia.gameHandler.on("game_create", (game) => {
     var msg;
 
     var components;
-    if(game.gameMode === -1) {
+    if(game.gameMode === "standard") {
       components = buildButtons(game.question.answersDisplay, game.question.type === "boolean");
     }
 
@@ -228,11 +228,11 @@ Trivia.gameHandler.on("game_create", (game) => {
     game.roundID = msg.channel.id;
 
     // Add reaction emojis if configured to do so.
-    if(game.gameMode === 1) {
+    if(game.gameMode === "reaction") {
       addAnswerReactions(msg, game);
     }
 
-    if(game.gameMode === 2 && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
+    if(game.gameMode === "hangman" && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
       // Show a hint halfway through.
       // No need for special handling here because it will auto-cancel if
       // the game ends before rRunning.
@@ -893,7 +893,7 @@ function parseCommand(msg, cmd, isAdmin) {
       Trivia.send(msg.channel, msg.author, "*(Beware: Some questions from OpenTDB are not designed for hangman-style gameplay)*");
     }
     
-    commands.triviaPlay(msg, categoryInput, 2);
+    commands.triviaPlay(msg, categoryInput, "hangman");
     Trivia.postStat("commandPlayHangmanCount", 1);
     return;
   }
@@ -936,11 +936,11 @@ Trivia.parse = (str, msg) => {
 
   // ## Answers ##
   // Check for letters if not using reactions
-  if(gameExists && game.gameMode !== 1 && game.gameMode !== -1) {
+  if(gameExists && game.gameMode !== "reaction" && game.gameMode !== "standard") {
     var name = msg.member !== null?msg.member.displayName:msg.author.username;
     var parse;
 
-    if(game.gameMode === 2) {
+    if(game.gameMode === "hangman") {
       parse = Trivia.parseAnswerHangman;
     }
     else {
@@ -1102,7 +1102,7 @@ Trivia.reactionAdd = async function(reaction, user) {
   if(typeof game.message === "undefined")
     return;
   
-  if(game.gameMode !== 1) // Reaction mode only
+  if(game.gameMode !== "reaction") // Reaction mode only
     return;
 
   if(reaction.message.id !== game.message.id)
