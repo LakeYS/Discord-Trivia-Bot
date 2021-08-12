@@ -77,6 +77,18 @@ function getConfigVal(value, channel, guild) {
 }
 Trivia.getConfigVal = getConfigVal;
 
+Trivia.postStat = (stat, value) => {
+  try {
+    var post = { stats: {}};
+    post.stats[stat] = value;
+    global.client.shard.send(post);
+  }
+  catch(err) {
+    console.warn(`Failed to post stat ${stat}: ${err}`);
+  }
+
+};
+
 function setConfigVal(value, newValue, skipOverride, localID) {
   var isLocal = typeof localID !== "undefined";
   if(skipOverride !== true || !getConfigVal("config-commands-enabled")) {
@@ -646,7 +658,7 @@ function buildButtons(answers) {
 
 Trivia.stopGame = (game, channel, auto) => {
   if(auto !== 1) {
-    global.client.shard.send({stats: { commandStopCount: 1 }});
+    Trivia.postStat("commandStopCount", 1);
   }
 
   // These are defined beforehand so we can refer to them after the game is deleted.
@@ -882,7 +894,7 @@ function parseCommand(msg, cmd, isAdmin) {
     }
     
     commands.triviaPlay(msg, categoryInput, 2);
-    global.client.shard.send({stats: { commandPlayHangmanCount: 1 }});
+    Trivia.postStat("commandPlayHangmanCount", 1);
     return;
   }
 

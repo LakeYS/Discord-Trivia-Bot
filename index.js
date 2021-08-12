@@ -252,7 +252,7 @@ manager.on("shardCreate", (shard) => {
     }
     else if(typeof input.stats !== "undefined") {
       // Update stats
-      // Example: client.shard.send({stats: { test: 123 }});
+
       if(Config["fallback-mode"] !== true) {
         Object.keys(input.stats).forEach((stat) => {
           stats = stats || {};
