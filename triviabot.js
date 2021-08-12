@@ -1084,7 +1084,7 @@ async function triviaResumeGame(json, id) {
 
       var options = { category: json.category };
       game.timeout = setTimeout(() => {
-        Trivia.gameHandler.createGame(Trivia.gameHandler, channel.id, channel.guild.id, void 0, options, mode).initializeRound();
+        Trivia.gameHandler.createGame(Trivia.gameHandler, channel.id, channel.guild.id, void 0, options).initializeRound();
       }, timeout);
     }
   }
