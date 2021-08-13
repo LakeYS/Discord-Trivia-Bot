@@ -1172,6 +1172,7 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
       }
 
       game[id].message = msg;
+      game[id].messageId = msg.id;
 
       // Add reaction emojis if configured to do so.
       if(gameMode === 1) {
@@ -1656,7 +1657,7 @@ Trivia.reactionAdd = async function(reaction, user) {
   if(game[id].gameMode !== 1) // Reaction mode only
     return;
 
-  if(reaction.message.id !== game[id].message.id)
+  if(reaction.message.id !== game[id].messageId)
     return;
   
   if(user === global.client.user) // Ignore our own client
@@ -1699,7 +1700,7 @@ Trivia.buttonPress = (message, answer, userId, username) => {
   var id = message.channel.id;
 
   // Return -1 to indicate that this is not a valid round.
-  if(typeof game[id] === "undefined" || message.id !== game[id].message.id || !game[id].inRound)
+  if(typeof game[id] === "undefined" || message.id !== game[id].messageId || !game[id].inRound)
     return -1;
 
   Trivia.parseAnswer(answer, id, userId, username, getConfigVal("score-value", message.channel));
