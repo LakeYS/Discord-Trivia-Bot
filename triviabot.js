@@ -535,25 +535,6 @@ if(!Config.databaseURL.startsWith("file://")) {
   });
 }
 
-Trivia.applyBonusMultiplier = (game, scoreBase, multiplierMax, userID) => {
-  var multiplier;
-
-  var multiplierBase = multiplierMax;
-  if(multiplierBase !== 0) {
-    var index = Object.keys(game.activeParticipants).indexOf(userID)+1;
-
-    // Score multiplier equation
-    multiplier = multiplierBase/index+1;
-
-    // Don't apply if the number is negative or passive.
-    if(multiplier > 1) {
-      var bonus = Math.floor((scoreBase*multiplier)-scoreBase);
-
-      return bonus;
-    }
-  }
-};
-
 Trivia.formatStr = (str) => {
   str = entities.decode(str);
   str = str.replace(/_/g, "\\_");
