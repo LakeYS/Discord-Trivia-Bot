@@ -1,4 +1,3 @@
-// TODO: true/false appear in hangman via file merger db. wtf?
 const { MessageActionRow, MessageButton } = require("discord.js");
 const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
