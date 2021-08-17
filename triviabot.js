@@ -224,6 +224,7 @@ Trivia.gameHandler.on("game_create", (game) => {
 
     game.startRound();
     game.message = msg;
+    game.messageId = msg.id;
     game.roundID = msg.channel.id;
 
     // Add reaction emojis if configured to do so.
@@ -961,7 +962,7 @@ Trivia.reactionAdd = async function(reaction, user) {
   if(game.gameMode !== "reaction") // Reaction mode only
     return;
 
-  if(reaction.message.id !== game.message.id)
+  if(reaction.message.id !== game.messageId)
     return;
   
   if(user === global.client.user) // Ignore our own client
@@ -1005,7 +1006,7 @@ Trivia.buttonPress = (message, answer, userId, username) => {
   var game = Trivia.gameHandler.getActiveGame(id);
 
   // Return -1 to indicate that this is not a valid round.
-  if(typeof game === "undefined" || message.id !== game.message.id || !game.inRound)
+  if(typeof game === "undefined" || message.id !== game.messageId || !game.inRound)
     return -1;
 
   Trivia.parseAnswer(game, answer, id, userId, username, getConfigVal("score-value", message.channel));

@@ -126,7 +126,7 @@ global.client.on("guildCreate", () => {
 
   var date = new Date();
   var key = "created" + (parseInt(date.getMonth())+1) + "_" + date.getDate();
-  global.client.shard.send({stats: { [key]: 1 }});
+  global.Trivia.postStat(key, 1);
 });
 
 global.client.on("guildDelete", () => {
@@ -136,5 +136,5 @@ global.client.on("guildDelete", () => {
   
   var date = new Date();
   var key = "deleted" + (parseInt(date.getMonth())+1) + "_" + date.getDate();
-  global.client.shard.send({stats: { [key]: 1 }});
+  global.Trivia.postStat(key, 1);
 });
