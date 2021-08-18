@@ -226,7 +226,7 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
         }
 
         if(!known) {
-          console.error(`Error sending a message: ${err.message`)
+          console.error(`Error sending a message: ${err.message}`);
         }
 
         author.send({embeds: [{
