@@ -208,6 +208,7 @@ Trivia.gameHandler.on("game_create", (game) => {
     var components;
     if(game.gameMode === "standard") {
       components = buildButtons(game.question.answersDisplay, game.question.type === "boolean");
+      game.buttons = components[0];
     }
 
     try {
@@ -264,6 +265,27 @@ Trivia.gameHandler.on("game_create", (game) => {
           }          
         }, roundTimeout);
       }
+
+      if(typeof game.buttons !== "undefined") {
+        // Button handling
+        for(let i in game.buttons.components) {
+          var style = parseInt(i) === game.question.displayCorrectID?"SUCCESS":"SECONDARY";
+    
+          game.buttons.components[i].setDisabled(true);
+          game.buttons.components[i].setStyle(style);
+        }
+    
+        var edit = { components: [ game.buttons ] };
+        if(game.message.content !== "") {
+          edit.content = game.message.content;
+        }
+        
+        if(game.message.embeds.length !== 0) {
+          edit.embeds = game.message.embeds;
+        }
+    
+        game.message.edit(edit);
+      }
     });
   });
 
@@ -314,7 +336,7 @@ Trivia.questions = [];
 // TODO rewrite
 Trivia.send = async function(channel, author, msg, callback, noDelete) {
   try {
-    if(typeof msg.embed !== "undefined") {
+    if(typeof msg !== "undefined" && typeof msg.embed !== "undefined") {
       msg.embeds = [ msg.embed ];
       delete msg.embed;
     }
@@ -617,8 +639,10 @@ async function addAnswerReactions(msg, game) {
   }
 }
 
+// Creates button components.
+// Returns the button action row, and an array of the button components, with the one for the correct answer first.
 function buildButtons(answers) {
-  const button = new MessageActionRow();
+  var buttons = new MessageActionRow();
 
   for(var i = 0; i <= answers.length-1; i++) {
     var style, text;
@@ -626,7 +650,7 @@ function buildButtons(answers) {
     text = `${Letters[i]}: ${Trivia.formatStr(answers[i])}`;
     style = "SECONDARY";
 
-    button.addComponents(
+    buttons.addComponents(
       new MessageButton()
       .setCustomId("answer_" + Letters[i])
       .setLabel(Trivia.formatStr(text))
@@ -634,7 +658,7 @@ function buildButtons(answers) {
     );
   }
 
-  return [ button ];
+  return [ buttons ];
 }
 
 Trivia.stopGame = (game, channel, auto) => {
@@ -686,6 +710,7 @@ commands.triviaPlay = require("./lib/commands/play.js")(Config, Trivia, commands
 commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
 commands.triviaStop = require("./lib/commands/stop.js")(Config, Trivia, commands, getConfigVal);
 commands.triviaConfig = require("./lib/commands/config.js")(Trivia, ConfigData, Config);
+commands.triviaPing = require("./lib/commands/ping.js")(Trivia);
 
 Trivia.buildCategorySearchIndex = async () => {
   Trivia.categorySearchIndex = JSON.parse(JSON.stringify(await Trivia.database.getCategories()));
@@ -770,6 +795,17 @@ function parseCommand(msg, cmd, isAdmin) {
     commands.triviaCategories(msg, Trivia);
     return;
   }
+
+  if(cmd === "PING") {
+    commands.triviaPing(msg);
+    return;
+  }
+  
+  if(cmd === "PONG") {
+    commands.triviaPing(msg, true);
+    return;
+  }
+
 }
 
 // # trivia.parse #
@@ -859,7 +895,7 @@ Trivia.parse = (str, msg) => {
   parseAdv(id, msg, isAdmin);
 
   // ## Help Command Parser ##
-  if(str === prefix + "HELP" || str === prefix + "PING" || str.includes(`<@!${global.client.user.id}>`)) {
+  if(str === prefix + "HELP" || str.includes(`<@!${global.client.user.id}>`)) {
     commands.triviaHelp(msg, Trivia.database);
     return;
   }
