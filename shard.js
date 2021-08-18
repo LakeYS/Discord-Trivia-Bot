@@ -105,7 +105,11 @@ global.client.on("interactionCreate", interaction => {
     var participants = global.Trivia.buttonPress(interaction.message, answer, interaction.user.id, name);
 
     if(participants === -1) {
-      console.warn(`Received late response for a round that has already ended. Source: ${interaction.user.username} (${interaction.user.id})`);
+      // If this was a recent round, display a warning.
+      if(new Date().getTime() < interaction.message.createdAt.getTime()+60000) {
+        console.warn(`Received late response for a recent round that has already ended. Source: ${interaction.user.username} (${interaction.user.id})`);
+      }
+
       interaction.reply({ content: "This round has already ended.", ephemeral: true});
       return;
     }
