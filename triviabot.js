@@ -204,7 +204,7 @@ global.questions = [];
 //    callback: Callback Function (Can be used to detect error/success and react)
 //    noDelete: If enabled, message will not auto-delete even if configured to
 Trivia.send = function(channel, author, msg, callback, noDelete) {
-  if(typeof msg.embed !== "undefined") {
+  if(typeof msg !== "undefined" && typeof msg.embed !== "undefined") {
     msg.embeds = [ msg.embed ];
     delete msg.embed;
   }
