@@ -214,12 +214,19 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
     if(typeof author !== "undefined") {
       if(channel.type !== "DM") {
         var str = "";
+        var known = false;
         if(err.message.includes("Missing Permissions")) {
           str = "\n\nThe bot does not have sufficient permission to send messages in this channel. This bot requires the \"Send Messages\" and \"Embed Links\" permissions in order to work.";
+          known = true;
         }
 
         if(err.message.includes("Missing Access")) {
           str = "\n\nThe bot does not have permission to view this channel. Ensure that TriviaBot has the \"View Channel\" permission for this channel.";
+          known = true;
+        }
+
+        if(!known) {
+          console.error(`Error sending a message: ${err.message`)
         }
 
         author.send({embeds: [{
