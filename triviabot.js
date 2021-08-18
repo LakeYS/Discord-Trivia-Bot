@@ -72,7 +72,7 @@ function getConfigVal(value, channel, guild) {
 }
 Trivia.getConfigVal = getConfigVal;
 
-Trivia.postStat = (stat, value) => {
+Trivia.postStat = async (stat, value) => {
   try {
     var post = { stats: {}};
     post.stats[stat] = value;
