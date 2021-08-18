@@ -1282,6 +1282,7 @@ commands.triviaCategories = require("./lib/cmd_categories.js")(Config);
 commands.triviaPlay = require("./lib/cmd_play.js")(Config, Trivia, commands, getConfigVal, game);
 commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
 commands.triviaStop = require("./lib/cmd_stop.js")(Config, Trivia, commands, getConfigVal);
+commands.triviaPing = require("./lib/cmd_ping.js")(Trivia);
 
 Trivia.buildCategorySearchIndex = async () => {
   Trivia.categorySearchIndex = JSON.parse(JSON.stringify(await Database.getCategories()));
@@ -1491,6 +1492,17 @@ function parseCommand(msg, cmd, isAdmin) {
     commands.triviaCategories(msg, Trivia);
     return;
   }
+
+  if(cmd === "PING") {
+    commands.triviaPing(msg);
+    return;
+  }
+  
+  if(cmd === "PONG") {
+    commands.triviaPing(msg, true);
+    return;
+  }
+
 }
 
 // # trivia.parse #
@@ -1579,7 +1591,7 @@ Trivia.parse = (str, msg) => {
   parseAdv(id, msg, isAdmin);
 
   // ## Help Command Parser ##
-  if(str === prefix + "HELP" || str === prefix + "PING" || str.includes(`<@!${global.client.user.id}>`)) {
+  if(str === prefix + "HELP" || str.includes(`<@!${global.client.user.id}>`)) {
     commands.triviaHelp(msg, Database);
     return;
   }
