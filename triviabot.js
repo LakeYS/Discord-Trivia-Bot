@@ -492,7 +492,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
       console.log(`Failed to delete message - ${err.message}`);
     });
   }
-  else {
+  else if(typeof game[id].buttons !== "undefined") {
     // Button handling
     for(let i in game[id].buttons.components) {
       var style = parseInt(i) === game[id].correctId?"SUCCESS":"SECONDARY";
@@ -1154,9 +1154,8 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
 
   if(gameMode === -1) {
     components = buildButtons(answers, correct_answer);
+    game[id].buttons = components[0];
   }
-  
-  game[id].buttons = components[0];
 
   Trivia.send(channel, author, {embed: {
     color: game[id].color,
