@@ -492,6 +492,26 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
       console.log(`Failed to delete message - ${err.message}`);
     });
   }
+  else {
+    // Button handling
+    for(let i in game[id].buttons.components) {
+      var style = parseInt(i) === game[id].correctId?"SUCCESS":"SECONDARY";
+
+      game[id].buttons.components[i].setDisabled(true);
+      game[id].buttons.components[i].setStyle(style);
+    }
+
+    var edit = { components: [ game[id].buttons ] };
+    if(game[id].message.content !== "") {
+      edit.content = game[id].message.content;
+    }
+    
+    if(game[id].message.embeds.length !== 0) {
+      edit.embeds = game[id].message.embeds;
+    }
+
+    game[id].message.edit(edit);
+  }
 
   // Quick fix for timeouts not clearing correctly.
   if(answer !== game[id].answer && !importOverride) {
@@ -872,8 +892,10 @@ function doHangmanHint(channel, answer) {
   }});
 }
 
+// Creates button components.
+// Returns the button action row, and an array of the button components, with the one for the correct answer first.
 function buildButtons(answers) {
-  const button = new MessageActionRow();
+  var buttons = new MessageActionRow();
 
   for(var i = 0; i <= answers.length-1; i++) {
     var style, text;
@@ -881,7 +903,7 @@ function buildButtons(answers) {
     text = `${Letters[i]}: ${Trivia.formatStr(answers[i])}`;
     style = "SECONDARY";
 
-    button.addComponents(
+    buttons.addComponents(
       new MessageButton()
       .setCustomId("answer_" + Letters[i])
       .setLabel(text)
@@ -889,7 +911,7 @@ function buildButtons(answers) {
     );
   }
 
-  return [ button ];
+  return [ buttons ];
 }
 
 // # Trivia.doGame #
@@ -1125,14 +1147,16 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
   }
 
   var footerObj;
+  var components;
   if(infoString !== "") {
     footerObj = { text: infoString };
   }
 
-  var components;
   if(gameMode === -1) {
-    components = buildButtons(answers, game[id].isTrueFalse);
+    components = buildButtons(answers, correct_answer);
   }
+  
+  game[id].buttons = components[0];
 
   Trivia.send(channel, author, {embed: {
     color: game[id].color,
