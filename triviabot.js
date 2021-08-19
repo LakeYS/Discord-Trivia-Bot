@@ -910,6 +910,11 @@ function buildButtons(answers) {
     text = `${Letters[i]}: ${Trivia.formatStr(answers[i])}`;
     style = "SECONDARY";
 
+    if(text.length > 80) {
+      text = text.slice(0, 77);
+      text = `${text}...`;
+    }
+
     buttons.addComponents(
       new MessageButton()
       .setCustomId("answer_" + Letters[i])
