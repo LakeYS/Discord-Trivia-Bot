@@ -76,7 +76,7 @@ function getConfigVal(value, channel, guild) {
 }
 Trivia.getConfigVal = getConfigVal;
 
-Trivia.postStat = (stat, value) => {
+Trivia.postStat = async (stat, value) => {
   try {
     var post = { stats: {}};
     post.stats[stat] = value;
@@ -270,20 +270,20 @@ Trivia.gameHandler.on("game_create", (game) => {
         // Button handling
         for(let i in game.buttons.components) {
           var style = parseInt(i) === game.question.displayCorrectID?"SUCCESS":"SECONDARY";
-    
+
           game.buttons.components[i].setDisabled(true);
           game.buttons.components[i].setStyle(style);
         }
-    
+
         var edit = { components: [ game.buttons ] };
         if(game.message.content !== "") {
           edit.content = game.message.content;
         }
-        
+
         if(game.message.embeds.length !== 0) {
           edit.embeds = game.message.embeds;
         }
-    
+
         game.message.edit(edit);
       }
     });
@@ -348,12 +348,19 @@ Trivia.send = async function(channel, author, msg, callback, noDelete) {
     if(typeof author !== "undefined") {
       if(channel.type !== "DM") {
         var str = "";
+        var known = false;
         if(err.message.includes("Missing Permissions")) {
           str = "\n\nThe bot does not have sufficient permission to send messages in this channel. This bot requires the \"Send Messages\" and \"Embed Links\" permissions in order to work.";
+          known = true;
         }
 
         if(err.message.includes("Missing Access")) {
           str = "\n\nThe bot does not have permission to view this channel. Ensure that TriviaBot has the \"View Channel\" permission for this channel.";
+          known = true;
+        }
+
+        if(!known) {
+          console.error(`Error sending a message: ${err.message}`);
         }
 
         author.send({embeds: [{
@@ -649,6 +656,11 @@ function buildButtons(answers) {
 
     text = `${Letters[i]}: ${Trivia.formatStr(answers[i])}`;
     style = "SECONDARY";
+
+    if(text.length > 80) {
+      text = text.slice(0, 77);
+      text = `${text}...`;
+    }
 
     buttons.addComponents(
       new MessageButton()
