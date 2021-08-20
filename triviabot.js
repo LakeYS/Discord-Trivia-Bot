@@ -502,6 +502,11 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
   else if(typeof game[id].buttons !== "undefined") {
     // Button handling
     for(let i in game[id].buttons.components) {
+      if(typeof game[id].buttons.components[i] === "undefined") {
+        console.warn(`Failed to retrieve component ${i} for game ${id}. Buttons may not appear correctly.`);
+        break;
+      }
+
       var style = parseInt(i) === game[id].correctId?"SUCCESS":"SECONDARY";
 
       game[id].buttons.components[i].setDisabled(true);
