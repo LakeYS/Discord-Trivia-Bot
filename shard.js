@@ -36,7 +36,13 @@ global.client.login(global.client.token);
 process.title = `Trivia - Shard ${global.client.shard.ids} (Initializing)`;
 
 global.client.on("ready", async () => {
-  console.log("Shard " + global.client.shard.ids + " connected to\x1b[1m " + global.client.guilds.cache.size + " \x1b[0mserver" + (global.client.guilds.cache.size===1?"":"s") + ".");
+  var clientStr = `Shard ${global.client.shard.ids}`;
+
+  if(global.client.shard.count === 1) {
+    clientStr = "TriviaBot";
+  }
+
+  console.log(clientStr + " connected to\x1b[1m " + global.client.guilds.cache.size + " \x1b[0mserver" + (global.client.guilds.cache.size===1?"":"s") + ".");
 
   process.title = `Trivia - Shard ${global.client.shard.ids}`;
 
