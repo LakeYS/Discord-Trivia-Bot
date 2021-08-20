@@ -269,7 +269,7 @@ Trivia.gameHandler.on("game_create", (game) => {
         // Button handling
         for(let i in game.buttons.components) {
           if(typeof game.buttons.components[i] === "undefined") {
-            console.warn(`Failed to retrieve component ${i} for game ${id}. Buttons may not appear correctly.`);
+            console.warn(`Failed to retrieve component ${i} for game ${game.ID}. Buttons may not appear correctly.`);
             break;
           }
 
