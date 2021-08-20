@@ -36,7 +36,13 @@ global.client.login(global.client.token);
 process.title = `Trivia - Shard ${global.client.shard.ids} (Initializing)`;
 
 global.client.on("ready", async () => {
-  console.log("Shard " + global.client.shard.ids + " connected to\x1b[1m " + global.client.guilds.cache.size + " \x1b[0mserver" + (global.client.guilds.cache.size===1?"":"s") + ".");
+  var clientStr = `Shard ${global.client.shard.ids}`;
+
+  if(global.client.shard.count === 1) {
+    clientStr = "TriviaBot";
+  }
+
+  console.log(clientStr + " connected to\x1b[1m " + global.client.guilds.cache.size + " \x1b[0mserver" + (global.client.guilds.cache.size===1?"":"s") + ".");
 
   process.title = `Trivia - Shard ${global.client.shard.ids}`;
 
@@ -105,9 +111,11 @@ global.client.on("interactionCreate", interaction => {
     var participants = Trivia.buttonPress(interaction.message, answer, interaction.user.id, name);
 
     if(participants === -1) {
+      var now = new Date();
       // If this was a recent round, display a warning.
-      if(new Date().getTime() < interaction.message.createdAt.getTime()+60000) {
-        console.warn(`Received late response for a recent round that has already ended. Source: ${interaction.user.username} (${interaction.user.id})`);
+      if(now.getTime() < interaction.message.createdAt.getTime()+60000) {
+        console.warn(`Received late response for a recent round that has already ended. Source: ${interaction.user.username} (${interaction.user.id})`
+        + `\nTiming (curr | message): ${now} | ${interaction.message.createdAt}`);
       }
 
       interaction.reply({ content: "This round has already ended.", ephemeral: true});

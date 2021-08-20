@@ -268,6 +268,11 @@ Trivia.gameHandler.on("game_create", (game) => {
       if(typeof game.buttons !== "undefined") {
         // Button handling
         for(let i in game.buttons.components) {
+          if(typeof game.buttons.components[i] === "undefined") {
+            console.warn(`Failed to retrieve component ${i} for game ${id}. Buttons may not appear correctly.`);
+            break;
+          }
+
           var style = parseInt(i) === game.question.displayCorrectID?"SUCCESS":"SECONDARY";
 
           game.buttons.components[i].setDisabled(true);
