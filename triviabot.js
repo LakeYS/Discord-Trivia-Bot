@@ -5,7 +5,6 @@ const JSON = require("circular-json");
 const FileDB = require("./lib/database/filedb.js");
 const MergerDB = require("./lib/database/mergerdb.js");
 const OpenTDB = require("./lib/database/opentdb.js");
-
 const GameHandler = require("./lib/game_handler.js");
 
 var ConfigData = require("./lib/config.js")(process.argv[2]);
@@ -681,7 +680,7 @@ Trivia.stopGame = (game, channel, auto) => {
   // These are defined beforehand so we can refer to them after the game is deleted.
   let timeout = game.timeout;
   let inRound = game.inRound;
-  let finalScoreStr = Trivia.leaderboard.makeScoreStr(game.scores, game.totalParticipants);
+  let finalScoreStr = Trivia.gameHandler.leaderboard.makeScoreStr(game.scores, game.totalParticipants);
   let totalParticipantCount = Object.keys(game.totalParticipants).length;
 
   game.cancelled = 1;
@@ -713,7 +712,6 @@ Trivia.stopGame = (game, channel, auto) => {
   }
 };
 
-Trivia.leaderboard = require("./lib/leaderboard.js")(getConfigVal);
 commands.playAdv = require("./lib/commands/play_advanced.js")(Trivia, global.client);
 var parseAdv = commands.playAdv.parseAdv;
 commands.triviaHelp = require("./lib/commands/help.js")(Config, Trivia);
