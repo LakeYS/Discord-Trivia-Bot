@@ -87,6 +87,13 @@ Trivia.postStat = async (stat, value) => {
 
 };
 
+Trivia.filterName = (name) => {
+  // Pass an escape character to Discord for this set of characters
+  name = name.replace(/https:\/\//g, "https\\://");
+  name = name.replace(/http:\/\//g, "http\\://");
+  return name.replace(/[@*_`<>[\]<>]/g, "\\$&");
+};
+
 function setConfigVal(value, newValue, skipOverride, localID) {
   var isLocal = typeof localID !== "undefined";
   if(skipOverride !== true || !getConfigVal("config-commands-enabled")) {
@@ -845,7 +852,7 @@ Trivia.parse = (str, msg) => {
   // ## Answers ##
   // Check for letters if not using reactions
   if(gameExists && game.gameMode !== "reaction" && game.gameMode !== "standard") {
-    var name = msg.member !== null?msg.member.displayName:msg.author.username;
+    var name = Trivia.filterName(msg.member !== null?msg.member.displayName:msg.author.username);
     var parse;
 
     if(game.gameMode === "hangman") {
@@ -1047,6 +1054,8 @@ Trivia.reactionAdd = async function(reaction, user) {
   else {
     username = user.username; 
   }
+
+  username = Trivia.filterName(username);
 
   Trivia.parseAnswer(str, id, user.id, username);
 };
