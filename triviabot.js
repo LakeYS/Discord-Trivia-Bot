@@ -1175,13 +1175,6 @@ Trivia.doMaintenanceShutdown = () => {
   return;
 };
 
-// # Fallback Mode Functionality #
-if(getConfigVal("fallback-mode") && !getConfigVal("fallback-silent")) {
-  global.client.on("messageCreate", (msg) => {
-      console.log(`Msg - ${msg.author === global.client.user?"(self)":""} Shard ${global.client.shard.ids} - Channel ${msg.channel.id}`);
-  });
-}
-
 process.on("exit", (code) => {
   if(code !== 0) {
     console.log("Exit with non-zero code, exporting game data...");
