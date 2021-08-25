@@ -13,7 +13,6 @@ var ConfigLocal = {};
 
 var Trivia = exports;
 Trivia.gameHandler = new GameHandler(Trivia);
-var game = Trivia.gameHandler.activeGames;
 
 // getConfigValue(value, channel, guild)
 // channel: Unique identifier for the channel. If blank, falls back to guild.
@@ -728,7 +727,7 @@ commands.playAdv = require("./lib/commands/play_advanced.js")(Trivia, global.cli
 var parseAdv = commands.playAdv.parseAdv;
 commands.triviaHelp = require("./lib/commands/help.js")(Config, Trivia);
 commands.triviaCategories = require("./lib/commands/categories.js")(Config);
-commands.triviaPlay = require("./lib/commands/play.js")(Config, Trivia, commands, getConfigVal, game);
+commands.triviaPlay = require("./lib/commands/play.js")(Config, Trivia, commands, getConfigVal);
 commands.triviaPlayAdvanced = commands.playAdv.triviaPlayAdvanced;
 commands.triviaStop = require("./lib/commands/stop.js")(Config, Trivia, commands, getConfigVal);
 commands.triviaConfig = require("./lib/commands/config.js")(Trivia, ConfigData, Config);
@@ -934,6 +933,7 @@ Trivia.parse = (str, msg) => {
 // Restores a game that does not have an active timeout.
 async function triviaResumeGame(json, id) {
   var channel;
+  var game = Trivia.gameHandler.getActiveGame(id);
   if(typeof json.userId !== "undefined") {
     // Find the DM channel
     channel = global.client.users.get(json.userId);
@@ -1078,7 +1078,7 @@ Trivia.buttonPress = (message, answer, userId, username) => {
 // Export the current game data to a file.
 Trivia.exportGame = (file) => {
   // Copy the data so we don't modify the actual game object.
-  var json = JSON.parse(JSON.stringify(game));
+  var json = JSON.parse(JSON.stringify(Trivia.gameHandler.dumpGames()));
 
   // Remove the timeout so the game can be exported.
   Object.keys(json).forEach((key) => {
@@ -1144,26 +1144,16 @@ Trivia.importGame = (input, unlink) => {
     throw new Error("Attempting to import an invalid or undefined object as a game!");
   }
 
-  Object.keys(json).forEach((key) => {
-    if(typeof game[key] === "undefined") {
-      // Create a holder game object to complete what is left of the timeout.
-      game[key] = json[key];
-
-      // Mark it as imported so the exporter doesn't re-export it
-      game[key].imported = 1;
-
-      json[key].date = new Date(json[key].date);
-      triviaResumeGame(json[key], key);
-    }
-  });
+  console.log("Game importing WIP");
 };
 
 // # Maintenance Shutdown Command #
 Trivia.doMaintenanceShutdown = () => {
-  console.log(`Clearing ${Object.keys(game).length} games on shard ${global.client.shard.ids}`);
+  console.log(`Clearing ${Trivia.gameHandler.getGameCount()} games on shard ${global.client.shard.ids}`);
+  var gameDump = this.gameHandler.dumpGames();
 
-  Object.keys(this.gameHandler.activeGames).forEach((key) => {
-    var channel = game.message.channel;
+  Object.keys(gameDump).forEach((key) => {
+    var channel = Trivia.gameHandler.getActiveGame(key);
     Trivia.stopGame(key, 1);
 
     Trivia.send(channel, void 0, {embed: {
