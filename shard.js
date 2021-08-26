@@ -63,8 +63,9 @@ global.client.on("ready", async () => {
     if(global.client.shard.ids[0] === global.client.shard.count-1) {
       var countArray = await global.client.shard.fetchClientValues("guilds.cache.size");
       var guildCount = countArray.reduce((prev, val) => prev + val, 0);
+      var shardCount = global.client.shard.ids.length;
 
-      listings.postBotStats(guildCount, global.client.shard.ids.length);
+      listings.postBotStats(guildCount, shardCount);
     }
   }
 });
