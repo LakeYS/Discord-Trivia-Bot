@@ -1882,12 +1882,6 @@ Trivia.postStats = async () => {
     var guildCount = countArray.reduce((prev, val) => prev + val, 0);
     var shardCount = global.client.shard.ids.length;
 
-    console.log("Gathered guild count of " + guildCount);
-    console.log("Spoofing to 57552");
-    guildCount = 57552;
-    shardCount = 32;
-    
-
     listings.postBotStats(guildCount, shardCount);
   }
 };
