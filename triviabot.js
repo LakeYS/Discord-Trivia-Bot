@@ -2,8 +2,9 @@ const { MessageActionRow, MessageButton } = require("discord.js");
 const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
-
+const Listings = require("./lib/listings_discord");
 var ConfigData = require("./lib/config.js")(process.argv[2]);
+
 var Config = ConfigData.config;
 var ConfigLocal = {};
 
@@ -1870,6 +1871,27 @@ Trivia.doMaintenanceShutdown = () => {
   return;
 };
 
+Trivia.postStats = async () => {
+  var listings = new Listings(global.client.user.id);
+  for(var site in Config["listing-tokens"]) {
+    listings.setToken(site, Config["listing-tokens"][site]);
+  }
+
+  if(global.client.shard.ids[0] === global.client.shard.count-1) {
+    var countArray = await global.client.shard.fetchClientValues("guilds.cache.size");
+    var guildCount = countArray.reduce((prev, val) => prev + val, 0);
+    var shardCount = global.client.shard.ids.length;
+
+    console.log("Gathered guild count of " + guildCount);
+    console.log("Spoofing to 57552");
+    guildCount = 57552;
+    shardCount = 32;
+    
+
+    listings.postBotStats(guildCount, shardCount);
+  }
+};
+
 // # Fallback Mode Functionality #
 if(getConfigVal("fallback-mode") && !getConfigVal("fallback-silent")) {
   global.client.on("messageCreate", (msg) => {
@@ -1898,3 +1920,4 @@ global.client.on("ready", () => {
     Trivia.importGame(file, 1);
   }
 });
+
