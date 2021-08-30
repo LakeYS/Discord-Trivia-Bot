@@ -304,6 +304,8 @@ Trivia.gameHandler.on("game_create", (game) => {
   });
 });
 
+var allowLongAnswers = getConfigVal("database-allow-long-answers") || getConfigVal("hangman-mode");
+
 if(getConfigVal("database-merge")) {
   // TODO: Rather than killing the base process, the manager should
   // do this automatically when an initial error is thrown.
@@ -312,12 +314,12 @@ if(getConfigVal("database-merge")) {
     global.client.shard.send({evalStr: "process.exit();"});
   }
 
-  Trivia.database = new MergerDB(Config.databaseURL);
+  Trivia.database = new MergerDB(Config.databaseURL, allowLongAnswers);
 }
 else {
   // Check database protocol
   if(Config.databaseURL.startsWith("file://")) {
-    Trivia.database = new FileDB(Config.databaseURL);
+    Trivia.database = new FileDB(Config.databaseURL, allowLongAnswers);
   }
   else {
     Trivia.database = new OpenTDB(getConfigVal("databaseURL"));
