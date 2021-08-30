@@ -106,7 +106,7 @@ global.client.on("interactionCreate", interaction => {
 
   if(interaction.customId.startsWith("answer_")) {
     var answer = interaction.customId.replace("answer_", "");
-    var name = global.Trivia.filterName(interaction.member !== null?interaction.member.displayName:interaction.user.username);
+    var name = Trivia.filterName(interaction.member !== null?interaction.member.displayName:interaction.user.username);
     
     var participants = Trivia.buttonPress(interaction.message, answer, interaction.user.id, name);
 
