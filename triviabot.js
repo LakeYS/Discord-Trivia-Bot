@@ -302,8 +302,6 @@ Trivia.gameHandler.on("game_create", (game) => {
   game.on("game_msg", (msg) => {
     Trivia.send(channel, void 0, msg);
   });
-
-  // TODO: Support for game message deletion
 });
 
 if(getConfigVal("database-merge")) {
