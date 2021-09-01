@@ -51,8 +51,8 @@
 
   "enable-listings": false,
   "listing-tokens": {
-    "botsfordiscord.com": "optionaltokenhere",
     "discord.bots.gg": "optionaltokenhere",
+    "discords.com": "optionaltokenhere",
     "discordlist.space": "optionaltokenhere",
     "top.gg": "optionaltokenhere"
   }
