@@ -241,7 +241,7 @@ Trivia.gameHandler.on("game_create", (game) => {
     if(game.gameMode === "hangman" && getConfigVal("hangman-hints", channel) === true) {  // DELTA: Added deactivatable hangman hints
       // Show a hint halfway through.
       // No need for special handling here because it will auto-cancel if
-      // the game ends before rRunning.
+      // the game ends before running.
       var answer = game.question.answer; // Pre-define to avoid errors.
       setTimeout(() => {
         game.doHangmanHint(answer);
@@ -250,7 +250,11 @@ Trivia.gameHandler.on("game_create", (game) => {
     }
   });
 
-  game.on("round_end", (finalStr, autoEnd, roundTimeout) => {
+  game.on("round_end", (finalStr, roundTimeout) => {
+    if(finalStr === "") {
+      return;
+    }
+
     Trivia.send(channel, void 0, {embed: {
       color: game.color,
       image: {url: game.imageAnswer}, // If any is defined
@@ -260,7 +264,7 @@ Trivia.gameHandler.on("game_create", (game) => {
       game.endGame();
     })
     .then((msg) => {
-      if(typeof game !== "undefined" && !autoEnd && !game.cancelled) {
+      if(typeof game !== "undefined" && !game.cancelled) {
         setTimeout(() => {
           if(getConfigVal("auto-delete-msgs", channel)) {
             msg.delete()
@@ -709,7 +713,7 @@ Trivia.stopGame = (game, channel, auto) => {
 
   // If there's still a game, clear it.
   if(typeof game !== "undefined") {
-    game.endGame();
+    game.endGame(true);
   }
 
   // Display a message if between rounds
