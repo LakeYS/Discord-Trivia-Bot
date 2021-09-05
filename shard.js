@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-const Listings = require("./lib/listings_discord");
 const { Client, Intents } = Discord;
 
 var Config = require("./lib/config.js")(process.argv[2]).config;
@@ -55,17 +54,7 @@ global.client.on("ready", async () => {
 
   // # Post Stats # //
   if(Config["enable-listings"]) {
-    var listings = new Listings(global.client.user.id);
-    for(var site in Config["listing-tokens"]) {
-      listings.setToken(site, Config["listing-tokens"][site]);
-    }
-
-    if(global.client.shard.ids[0] === global.client.shard.count-1) {
-      var countArray = await global.client.shard.fetchClientValues("guilds.cache.size");
-      var guildCount = countArray.reduce((prev, val) => prev + val, 0);
-
-      listings.postBotStats(guildCount, global.client.shard.ids.length);
-    }
+    global.Trivia.postStats();
   }
 });
 

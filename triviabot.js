@@ -7,7 +7,9 @@ const MergerDB = require("./lib/database/mergerdb.js");
 const OpenTDB = require("./lib/database/opentdb.js");
 const GameHandler = require("./lib/game_handler.js");
 
+const Listings = require("./lib/listings_discord");
 var ConfigData = require("./lib/config.js")(process.argv[2]);
+
 var Config = ConfigData.config;
 var ConfigLocal = {};
 
@@ -1061,7 +1063,7 @@ Trivia.reactionAdd = async function(reaction, user) {
 
   username = Trivia.filterName(username);
 
-  Trivia.parseAnswer(str, id, user.id, username);
+  Trivia.parseAnswer(str, id, user.id, username, getConfigVal("score-value", reaction.message.channel));
 };
 
 // Detect button answers
@@ -1169,6 +1171,21 @@ Trivia.doMaintenanceShutdown = () => {
   return;
 };
 
+Trivia.postStats = async () => {
+  var listings = new Listings(global.client.user.id);
+  for(var site in Config["listing-tokens"]) {
+    listings.setToken(site, Config["listing-tokens"][site]);
+  }
+
+  if(global.client.shard.ids[0] === global.client.shard.count-1) {
+    var countArray = await global.client.shard.fetchClientValues("guilds.cache.size");
+    var guildCount = countArray.reduce((prev, val) => prev + val, 0);
+    var shardCount = global.client.shard.ids.length;
+
+    listings.postBotStats(guildCount, shardCount);
+  }
+};
+
 process.on("exit", (code) => {
   if(code !== 0) {
     console.log("Exit with non-zero code, exporting game data...");
@@ -1190,3 +1207,4 @@ global.client.on("ready", () => {
     Trivia.importGame(file, 1);
   }
 });
+
