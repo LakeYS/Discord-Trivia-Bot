@@ -492,7 +492,7 @@ Trivia.formatStr = (str) => {
 // # Trivia.doAnswerReveal #
 // Ends the round, reveals the answer, and schedules a new round if necessary.
 // TODO: Refactor (clean up and fix gameEndedMsg being relied on as a boolean check)
-Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
+Trivia.doAnswerReveal = async (id, channel, answer, importOverride) => {
   if(typeof game[id] === "undefined" || !game[id].inProgress) {
     return;
   }
@@ -530,7 +530,13 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
       edit.embeds = game[id].message.embeds;
     }
 
-    game[id].message.edit(edit);
+    // Wait for the message to edit, up to a timeout of 1000ms. After which, we will display a warning and continue.
+    var timeout = new Promise((resolve) => { setTimeout(() => { resolve("TIMEDOUT"); }, 1000);});
+    var editDone = await Promise.race([timeout, game[id].message.edit(edit)]);
+
+    if(editDone === "TIMEDOUT") {
+      console.warn(`Timed out while ending round for game ${id}.`);
+    }
   }
 
   // Quick fix for timeouts not clearing correctly.
