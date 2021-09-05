@@ -626,7 +626,7 @@ Trivia.parseAnswer = function (game, str, channelId, userId, username) {
   }
 
   // If they already answered and configured to do so, don't accept subsquent answers.
-  if(getConfigVal("accept-first-answer-only", channelId) && typeof game.activeParticipants[userId] !== "undefined") {
+  if(getConfigVal("accept-first-answer-only", channelId) && typeof game.usersActive[userId] !== "undefined") {
     return;
   }
 
@@ -967,7 +967,7 @@ async function triviaResumeGame(json, id) {
     }, timeout);
   }
   else {
-    if(Object.keys(json.activeParticipants).length !== 0) {
+    if(Object.keys(json.usersActive).length !== 0) {
       // Since date doesn't update between rounds, we'll have to add both the round's length and timeout
       date.setMilliseconds(date.getMilliseconds()+getConfigVal("round-timeout", channel)+getConfigVal("round-length", channel));
       timeout = date-new Date();
@@ -1046,7 +1046,7 @@ Trivia.buttonPress = (message, answer, userId, username) => {
 
   Trivia.parseAnswer(game, answer, id, userId, username, getConfigVal("score-value", message.channel));
 
-  return Object.keys(game.activeParticipants).length;
+  return Object.keys(game.usersActive).length;
 };
 
 // # Game Exporter #
