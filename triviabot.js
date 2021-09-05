@@ -1162,10 +1162,7 @@ Trivia.doMaintenanceShutdown = () => {
     var channel = Trivia.gameHandler.getActiveGame(key);
     Trivia.stopGame(key, 1);
 
-    Trivia.send(channel, void 0, {embed: {
-      color: Trivia.embedCol,
-      description: "TriviaBot is being temporarily shut down for maintenance. Please try again in a few minutes."
-    }});
+    game.broadcast("TriviaBot is being temporarily shut down for maintenance. Please try again in a few minutes.");
   });
 
   return;
