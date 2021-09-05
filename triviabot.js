@@ -305,6 +305,15 @@ Trivia.gameHandler.on("game_create", (game) => {
     });
   });
 
+  game.on("game_end", (msg) => {
+    if(typeof msg !== "undefined") {
+      Trivia.send(channel, void 0, {embed: {
+        color: Trivia.embedCol,
+        description: msg
+      }});
+    }
+  });
+
   game.on("game_msg", (msg) => {
     Trivia.send(channel, void 0, msg);
   });
@@ -689,46 +698,6 @@ function buildButtons(answers) {
   return [ buttons ];
 }
 
-Trivia.stopGame = (game, channel, auto) => {
-  if(auto !== 1) {
-    Trivia.postStat("commandStopCount", 1);
-  }
-
-  // These are defined beforehand so we can refer to them after the game is deleted.
-  let timeout = game.timeout;
-  let inRound = game.inRound;
-  let finalScoreStr = Trivia.gameHandler.leaderboard.makeScoreStr(game.scores, game.totalParticipants);
-  let totalParticipantCount = Object.keys(game.totalParticipants).length;
-
-  game.cancelled = 1;
-
-  if(typeof timeout !== "undefined" && typeof timeout._onTimeout === "function") {
-    var onTimeout = timeout._onTimeout;
-    clearTimeout(timeout);
-
-    // If a round is in progress, display the answers before cancelling the game.
-    // The game will detect "cancelled" and display the proper message.
-    if(game.inRound && typeof timeout !== "undefined") {
-      onTimeout();
-    }
-  }
-
-  // If there's still a game, clear it.
-  if(typeof game !== "undefined") {
-    game.endGame(true);
-  }
-
-  // Display a message if between rounds
-  if(!inRound && !game.getConfig("use-fixed-rounds")) { // DELTA: Only if no fixed rounds are played.
-    var headerStr = `**Final score${totalParticipantCount!==1?"s":""}:**`;
-
-    Trivia.send(channel, void 0, {embed: {
-      color: Trivia.embedCol,
-      description: `Game ended by admin.${finalScoreStr!==""?`\n\n${headerStr}\n`:""}${finalScoreStr}`
-    }});
-  }
-};
-
 commands.playAdv = require("./lib/commands/play_advanced.js")(Trivia, global.client);
 var parseAdv = commands.playAdv.parseAdv;
 commands.triviaHelp = require("./lib/commands/help.js")(Config, Trivia);
@@ -958,13 +927,13 @@ async function triviaResumeGame(json, id) {
   }
 
   if(!json.inProgress) {
-    game.stopGame();
+    game.endGame();
     return;
   }
 
   if(channel === null) {
     console.warn(`Unable to find channel '${id}' on shard ${global.client.shard.ids}. Game will not resume.`);
-    game.stopGame();
+    game.endGame();
     return;
   }
 
@@ -980,7 +949,7 @@ async function triviaResumeGame(json, id) {
   // If more than 60 seconds have passed, cancel the game entirely.
   if(new Date().getTime() > date.getTime()+60000) {
     console.log(`Imported game in channel ${id} is more than one minute old, aborting...`);
-    game.stopGame();
+    game.endGame();
     return;
   }
 
@@ -1157,10 +1126,10 @@ Trivia.importGame = (input, unlink) => {
 Trivia.doMaintenanceShutdown = () => {
   console.log(`Clearing ${Trivia.gameHandler.getGameCount()} games on shard ${global.client.shard.ids}`);
   var gameDump = this.gameHandler.dumpGames();
-
+  
   Object.keys(gameDump).forEach((key) => {
-    var channel = Trivia.gameHandler.getActiveGame(key);
-    Trivia.stopGame(key, 1);
+    var game = Trivia.gameHandler.getActiveGame(key);
+    game.endGame();
 
     game.broadcast("TriviaBot is being temporarily shut down for maintenance. Please try again in a few minutes.");
   });
