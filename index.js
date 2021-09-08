@@ -87,7 +87,7 @@ if(Config["allow-eval"] === true) {
 
 // # Discord # //
 var token = Config.token;
-const manager = new ShardingManager(`${__dirname}/shard.js`, {
+const manager = new ShardingManager(`${__dirname}/lib/platform/discord_shard.js`, {
   totalShards: Config["shard-count"],
   token,
   shardArgs: [configFile],
