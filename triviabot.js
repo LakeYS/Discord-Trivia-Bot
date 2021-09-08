@@ -212,6 +212,11 @@ Trivia.gameHandler.on("game_create", (game) => {
   game.on("round_initialize", async (finalString) => {
     var msg;
 
+    // Set a timer to reveal the answer
+    game.timeout = setTimeout(() => {
+      game.endRound();
+    }, game.timer);
+
     var components;
     if(game.gameMode === "standard") {
       components = buildButtons(game.question.answersDisplay, game.question.type === "boolean");
@@ -252,15 +257,21 @@ Trivia.gameHandler.on("game_create", (game) => {
     }
   });
 
-  game.on("round_end", (finalStr, roundTimeout) => {
-    if(finalStr === "") {
+  game.on("round_end", (endInfo) => {
+    if(endInfo.str === "") {
       return;
+    }
+
+    if(!endInfo.gameIsEnding) {
+      game.timeout = setTimeout(() => {
+        game.initializeRound();
+      }, endInfo.roundTimeout);
     }
 
     Trivia.send(channel, void 0, {embed: {
       color: game.color,
       image: {url: game.imageAnswer}, // If any is defined
-      description: finalStr
+      description: endInfo.str
     }})
     .catch(() => {
       game.endGame();
@@ -274,7 +285,7 @@ Trivia.gameHandler.on("game_create", (game) => {
               console.log(`Failed to delete message - ${err.message}`);
             });
           }          
-        }, roundTimeout);
+        }, endInfo.roundTimeout);
       }
 
       if(typeof game.buttons !== "undefined") {
