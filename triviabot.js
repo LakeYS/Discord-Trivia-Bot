@@ -257,7 +257,7 @@ Trivia.gameHandler.on("game_create", (game) => {
     }
   });
 
-  game.on("round_end", (endInfo) => {
+  game.on("round_end", async (endInfo) => {
     if(endInfo.str === "") {
       return;
     }
@@ -268,52 +268,54 @@ Trivia.gameHandler.on("game_create", (game) => {
       }, endInfo.roundTimeout);
     }
 
-    Trivia.send(channel, void 0, {embed: {
-      color: game.color,
-      image: {url: game.imageAnswer}, // If any is defined
-      description: endInfo.str
-    }})
-    .catch(() => {
+    var msg;
+    try {
+      msg = await Trivia.send(channel, void 0, {embed: {
+        color: game.color,
+        image: {url: game.imageAnswer}, // If any is defined
+        description: endInfo.str
+      }});
+    }
+    catch(err) {
       game.endGame();
-    })
-    .then((msg) => {
-      if(typeof game !== "undefined" && !game.cancelled) {
-        setTimeout(() => {
-          if(getConfigVal("auto-delete-msgs", channel)) {
-            msg.delete()
-            .catch((err) => {
-              console.log(`Failed to delete message - ${err.message}`);
-            });
-          }          
-        }, endInfo.roundTimeout);
+    }
+
+    if(typeof game !== "undefined" && !game.cancelled) {
+      setTimeout(() => {
+        if(getConfigVal("auto-delete-msgs", channel)) {
+          msg.delete()
+          .catch((err) => {
+            console.log(`Failed to delete message - ${err.message}`);
+          });
+        }          
+      }, endInfo.roundTimeout);
+    }
+
+    if(typeof game.buttons !== "undefined") {
+      // Button handling
+      for(let i in game.buttons.components) {
+        if(typeof game.buttons.components[i] === "undefined") {
+          console.warn(`Failed to retrieve component ${i} for game ${game.ID}. Buttons may not appear correctly.`);
+          break;
+        }
+
+        var style = parseInt(i) === game.question.displayCorrectID?"SUCCESS":"SECONDARY";
+
+        game.buttons.components[i].setDisabled(true);
+        game.buttons.components[i].setStyle(style);
       }
 
-      if(typeof game.buttons !== "undefined") {
-        // Button handling
-        for(let i in game.buttons.components) {
-          if(typeof game.buttons.components[i] === "undefined") {
-            console.warn(`Failed to retrieve component ${i} for game ${game.ID}. Buttons may not appear correctly.`);
-            break;
-          }
-
-          var style = parseInt(i) === game.question.displayCorrectID?"SUCCESS":"SECONDARY";
-
-          game.buttons.components[i].setDisabled(true);
-          game.buttons.components[i].setStyle(style);
-        }
-
-        var edit = { components: [ game.buttons ] };
-        if(game.message.content !== "") {
-          edit.content = game.message.content;
-        }
-
-        if(game.message.embeds.length !== 0) {
-          edit.embeds = game.message.embeds;
-        }
-
-        game.message.edit(edit);
+      var edit = { components: [ game.buttons ] };
+      if(game.message.content !== "") {
+        edit.content = game.message.content;
       }
-    });
+
+      if(game.message.embeds.length !== 0) {
+        edit.embeds = game.message.embeds;
+      }
+
+      game.message.edit(edit);
+    }
   });
 
   game.on("game_end", (msg) => {
