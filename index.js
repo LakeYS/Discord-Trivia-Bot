@@ -16,7 +16,7 @@ function initLogs(Config) {
   strArray[0] = strArray[0].padEnd(31," ") + "\x1b[0m";
 
   // Optional logo display
-  if(typeof Config !== "undefined" && Config["display-ascii-logo"]) {
+  if(typeof Config !== "undefined" && Config.display_ascii_logo) {
     var useSideStr = process.stdout.columns > 61;
 
     // Use a pattern to properly space the logo.
@@ -80,7 +80,7 @@ const configPrivate = {
 
 require("./lib/init.js")(pjson, Config, configPrivate);
 
-if(Config["allow-eval"] === true) {
+if(Config.allow_eval === true) {
   process.stdin.resume();
   process.stdin.setEncoding("utf8");
 }
@@ -88,15 +88,15 @@ if(Config["allow-eval"] === true) {
 // # Discord # //
 var token = Config.token;
 const manager = new ShardingManager(`${__dirname}/lib/platform/discord_shard.js`, {
-  totalShards: Config["shard-count"],
+  totalShards: Config.shard_count,
   token,
   shardArgs: [configFile],
   respawn: true
 });
 
 // # Custom Package Loading # //
-if(typeof Config["additional-packages-root"] !== "undefined") {
-  Config["additional-packages-root"].forEach((key) => {
+if(typeof Config.additional_packages_root !== "undefined") {
+  Config.additional_packages_root.forEach((key) => {
     require(key)(Config, manager);
   });
 }
@@ -104,16 +104,16 @@ if(typeof Config["additional-packages-root"] !== "undefined") {
 // # Stats # //
 var stats;
 try {
-  stats = JSON.parse(fs.readFileSync(Config["stat-file"]));
+  stats = JSON.parse(fs.readFileSync(Config.stat_file));
 } catch(error) {
   if(typeof error.code !== "undefined" && error.code === "ENOENT") {
     console.warn("No stats file found; one will be created.");
   }
   else {
     // If an error occurs, don't overwrite the old stats.
-    Config["stat-file"] = Config["stat-file"] + ".1";
+    Config.stat_file = Config.stat_file + ".1";
     stats = {};
-    console.log(`Failed to load stats file, stats will be saved to ${Config["stat-file"]}. Received error:\n${error}`);
+    console.log(`Failed to load stats file, stats will be saved to ${Config.stat_file}. Received error:\n${error}`);
   }
 }
 
@@ -253,7 +253,7 @@ manager.on("shardCreate", (shard) => {
     else if(typeof input.stats !== "undefined") {
       // Update stats
 
-      if(Config["fallback-mode"] !== true) {
+      if(Config.fallback_mode !== true) {
         Object.keys(input.stats).forEach((stat) => {
           stats = stats || {};
 
@@ -267,7 +267,7 @@ manager.on("shardCreate", (shard) => {
           }
         });
 
-        fs.writeFile(Config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
+        fs.writeFile(Config.stat_file, JSON.stringify(stats, null, "\t"), "utf8", (err) => {
           if(err) {
             console.error(`Failed to save stats.json with the following err:\n${err}\nMake sure stats.json is not read-only or missing.`);
           }
@@ -282,7 +282,7 @@ manager.on("shardCreate", (shard) => {
 const evalCmds = require("./lib/eval_cmds.js")(manager);
 manager.eCmds = evalCmds;
 
-if(Config["allow-eval"] === true) {
+if(Config.allow_eval === true) {
   process.stdin.on("data", (text) => {
     // Cut newlines, split the command by spaces to represent arguments.
     var cmdFull = text.replace("\r","").replace("\n","").split(" ");
