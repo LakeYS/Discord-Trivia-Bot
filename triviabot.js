@@ -213,7 +213,9 @@ Trivia.gameHandler.on("game_create", (game) => {
     var msg;
 
     // Set a timer to reveal the answer
-    game.timeout = setTimeout(() => {
+    // Insert updateGameButtons to precede the round end.
+    game.timeout = setTimeout(async () => {
+      await Trivia.updateGameButtons(game);
       game.endRound();
     }, game.timer);
 
@@ -291,31 +293,9 @@ Trivia.gameHandler.on("game_create", (game) => {
       }, endInfo.roundTimeout);
     }
 
-    if(typeof game.buttons !== "undefined") {
-      // Button handling
-      for(let i in game.buttons.components) {
-        if(typeof game.buttons.components[i] === "undefined") {
-          console.warn(`Failed to retrieve component ${i} for game ${game.ID}. Buttons may not appear correctly.`);
-          break;
-        }
 
-        var style = parseInt(i) === game.question.displayCorrectID?"SUCCESS":"SECONDARY";
 
-        game.buttons.components[i].setDisabled(true);
-        game.buttons.components[i].setStyle(style);
-      }
 
-      var edit = { components: [ game.buttons ] };
-      if(game.message.content !== "") {
-        edit.content = game.message.content;
-      }
-
-      if(game.message.embeds.length !== 0) {
-        edit.embeds = game.message.embeds;
-      }
-
-      game.message.edit(edit);
-    }
   });
 
   game.on("game_end", (msg) => {
@@ -441,6 +421,40 @@ Trivia.isFallbackMode = (channel) => {
     }
     else {
       return true;
+    }
+  }
+};
+
+Trivia.updateGameButtons = async (game) => {
+  if(typeof game.buttons !== "undefined") {
+    // Button handling
+    for(let i in game.buttons.components) {
+      if(typeof game.buttons.components[i] === "undefined") {
+        console.warn(`Failed to retrieve component ${i} for game ${game.ID}. Buttons may not appear correctly.`);
+        break;
+      }
+
+      var style = parseInt(i) === game.question.displayCorrectID?"SUCCESS":"SECONDARY";
+
+      game.buttons.components[i].setDisabled(true);
+      game.buttons.components[i].setStyle(style);
+    }
+
+    var edit = { components: [ game.buttons ] };
+    if(game.message.content !== "") {
+      edit.content = game.message.content;
+    }
+
+    if(game.message.embeds.length !== 0) {
+      edit.embeds = game.message.embeds;
+    }
+
+    // Wait for the message to edit, up to a timeout of 1000ms. After which, we will display a warning and continue.
+    var timeout = new Promise((resolve) => { setTimeout(() => { resolve("TIMEDOUT"); }, 1000);});
+    var editDone = await Promise.race([timeout, game.message.edit(edit)]);
+
+    if(editDone === "TIMEDOUT") {
+      console.warn(`Timed out while ending round for game ${game.ID}.`);
     }
   }
 };
