@@ -103,7 +103,8 @@ global.client.on("interactionCreate", interaction => {
       var now = new Date();
       // If this was a recent round, display a warning.
       if(now.getTime() < interaction.message.createdAt.getTime()+60000) {
-        console.warn(`Received late response for a recent round that has timed out or already ended. This user's answer will not be counted. Source: ${interaction.user.username} (${interaction.user.id})`);
+        console.warn(`Received late response for a recent round that has already ended. Source: ${interaction.user.username} (${interaction.user.id})`
+        + `\nTiming (curr | message): ${now} | ${interaction.message.createdAt}`);
       }
 
       interaction.reply({ content: "This round has already ended.", ephemeral: true});
