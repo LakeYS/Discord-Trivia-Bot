@@ -14,6 +14,7 @@ update*.sh
 # TriviaBot Info Directories
 Questions_*/*
 Scores*/*
+Config*/*
 
 # Builds
 TriviaBot/*
