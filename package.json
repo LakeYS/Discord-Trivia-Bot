@@ -31,5 +31,8 @@
   "devDependencies": {
     "eslint": "^7.17.0",
     "jsdoc": "^3.6.6"
+  },
+  "engines": {
+    "node": ">=16.6.0"
   }
 }
