@@ -17,7 +17,7 @@
   "rounds-fixed-number": 15,
   "disable-score-display": false,
   "score-value": { "easy": 100, "medium": 200, "hard": 300 },
-  "score-multiplier-max": 0,
+  "unique-multiplier-max": 0,
   "command-whitelist": [],
   "accept-first-answer-only": false,
   "reveal-answers": true,
