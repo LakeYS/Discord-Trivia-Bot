@@ -117,75 +117,6 @@ try {
   }
 }
 
-// # File Handling # //
-// ## refreshGameExports() ##
-// Renames all exported game files to match their corresponding shards.
-// The files will be renamed, merged, and split where necessary.
-// This must be called before importing if the shard count has changed, or games will NOT import.
-// WARNING: There MUST be a complete sequence of exported files; if a number is skipped, this
-//          will not work properly.
-function refreshGameExports() {
-  var i = 0;
-  var gameExports = {};
-
-  var games;
-  while(fs.existsSync("./game."  + i + ".json.bak")) {
-    try {
-      games = JSON.parse(fs.readFileSync("./game."  + i + ".json.bak"));
-    } catch(error) {
-      console.log(`refreshGameExports - Failed to import file for shard ${i}: ${error.message}`);
-      i++;
-      continue;
-    }
-
-    var shardId;
-    // We only need to sample one guild ID in the file to determine its corresponding shard.
-    if(typeof Object.values(games)[0] !== "undefined") {
-      if(manager.totalShards === "auto") {
-        console.error("ERROR: manager.totalShards must be a number in order to import properly.");
-        return;
-      }
-
-      // We'll use Discord's sharding formula to determine the corresponding shard.
-      shardId = parseInt((Object.values(games)[0].guildId/2**22) % manager.totalShards);
-      if(isNaN(shardId)) {
-        console.error(`ERROR: Shard ID (${Object.values(games)[0].guildId/2**22} % ${manager.totalShards}) is NaN, defaulting to ${i}`);
-        shardId = i;
-      }
-      console.log(`Contents of file "game.${i}.json.bak" belong to shard ${shardId}`);
-    }
-    else {
-      shardId = i;
-      console.log(`Contents of file "game.${i}.json.bak" are empty, defaulting to shard ${i}`);
-    }
-
-    // Initialize the shard in preparation for exporting
-    gameExports[shardId] = gameExports[shardId] || {};
-
-    // Define the old shard if it does not exist yet.
-    gameExports[i] = gameExports[i] || {};
-
-    Object.keys(games).forEach((key) => {
-      gameExports[shardId][key] = games[key];
-    });
-
-    i++;
-  }
-
-  // Now, we re-export the data.
-  Object.keys(gameExports).forEach((key) => {
-    var file = "./game."  + key + ".json.bak";
-
-    try {
-      fs.writeFileSync(file, JSON.stringify(gameExports[key], null, "\t"), "utf8");
-      console.log(`Exported ${Object.keys(gameExports[key]).length} game(s) to ${file}`);
-    }
-    catch(err) {
-      console.error(`Failed to rewrite to game.json.bak with the following err:\n ${err}`);
-    }
-  });
-}
-
 // # ShardingManager # //
 manager.spawn()
 .catch((err) => {
@@ -224,11 +155,6 @@ manager.on("shardCreate", (shard) => {
   var shardId = shard.id;
 
   console.log(`Successfully launched shard ${shardId} of ${manager.totalShards-1}`);
-  if(shardId === 0) {
-    // Refresh exports before the first shard spawns.
-    // This is done on launch because it requires totalShards to be a number.
-    refreshGameExports();
-  }
 
   // TODO: Rate limit this to prevent API flooding
   shard.on("death", (process) => {
