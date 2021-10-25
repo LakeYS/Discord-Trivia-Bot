@@ -22,6 +22,8 @@
   "accept-first-answer-only": false,
   "reveal-answers": true,
   "display-pregame-rules": false,
+  "participant-role-name": "Trivia Player",
+  "participant-role-points-required": -1,
 
   "prefix": "trivia ",
   "allow-eval": true,
