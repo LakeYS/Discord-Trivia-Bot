@@ -34,6 +34,7 @@
   "database-merge": false,
   "databaseURL": "https://opentdb.com",
   "disable-admin-commands": false,
+  "disable-discord-presence": false,
   "disable-version-check": false,
   "embed-color": "006CFF",
   "prefix": "trivia ",
