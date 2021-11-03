@@ -6,14 +6,17 @@ process.title = `TriviaBot ${pjson.version}`;
 
 function initLogs(Config) {
   // process.stdout.columns returns "undefined" in certain situations
-  var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version}        `,
-                   "\x1b[7m Copyright (c) 2018-2021 Lake Y \x1b[0m",
-                   "\x1b[7m https://lakeys.net             \x1b[0m" ];
+  var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version}`,
+                   "\x1b[7m Copyright (c) 2018-2021 Lake Y",
+                   "\x1b[7m https://lakeys.net" ];
+
+  var padLen = Math.max(strArray[1].length+1, strArray[0].length+1);
+  // Adjust length of the first line
+  for(var i = 0; i <= strArray.length-1; i++) {
+    strArray[i] = strArray[i].padEnd(padLen, " ") + "\x1b[0m";
+  }
 
   var strHeader = `${strArray[0]}\n${strArray[1]}\n${strArray[2]}`;
-
-  // Adjust length of the first line
-  strArray[0] = strArray[0].padEnd(31," ") + "\x1b[0m";
 
   // Optional logo display
   if(typeof Config !== "undefined" && Config["display-ascii-logo"]) {
