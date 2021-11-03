@@ -4,7 +4,7 @@ const { ShardingManager } = require("discord.js");
 
 process.title = `TriviaBot ${pjson.version}`;
 
-function initLogs(Config) {
+function initLogs(config) {
   // process.stdout.columns returns "undefined" in certain situations
   var strArray = [ `\x1b[7m TriviaBot Version ${pjson.version}`,
                    "\x1b[7m Copyright (c) 2018-2021 Lake Y",
@@ -19,7 +19,7 @@ function initLogs(Config) {
   var strHeader = `${strArray[0]}\n${strArray[1]}\n${strArray[2]}`;
 
   // Optional logo display
-  if(typeof Config !== "undefined" && Config["display-ascii-logo"]) {
+  if(typeof config !== "undefined" && config["display-ascii-logo"]) {
     var useSideStr = process.stdout.columns > 61;
 
     // Use a pattern to properly space the logo.
@@ -55,7 +55,7 @@ function initLogs(Config) {
 }
 
 // # Initialize Config Args # //
-var Config;
+var config;
 var configFile;
 for(let i = 0; i <= process.argv.length; i++) {
   if(typeof process.argv[i] !== "undefined" && process.argv[i].startsWith("--configfile=")) {
@@ -64,7 +64,7 @@ for(let i = 0; i <= process.argv.length; i++) {
 }
 
 try {
-  Config = require("./lib/config.js")(configFile, true).config;
+  config = require("./lib/config.js")(configFile, true).config;
 }
 catch(err) {
   // Config file broken or missing -- display the initial message and an error
@@ -73,7 +73,7 @@ catch(err) {
   process.exit();
 }
 
-initLogs(Config);
+initLogs(config);
 
 // # Requirements/Init # //
 const configPrivate = {
@@ -81,42 +81,42 @@ const configPrivate = {
   githubName: "Discord-Trivia-Bot"
 };
 
-require("./lib/init.js")(pjson, Config, configPrivate);
+require("./lib/init.js")(pjson, config, configPrivate);
 
-if(Config["allow-eval"] === true) {
+if(config["allow-eval"] === true) {
   process.stdin.resume();
   process.stdin.setEncoding("utf8");
 }
 
 // # Discord # //
-var token = Config.token;
+var token = config.token;
 const manager = new ShardingManager(`${__dirname}/lib/platform/discord_shard.js`, {
-  totalShards: Config["shard-count"],
+  totalShards: config["shard-count"],
   token,
   shardArgs: [configFile],
   respawn: true
 });
 
 // # Custom Package Loading # //
-if(typeof Config["additional-packages-root"] !== "undefined") {
-  Config["additional-packages-root"].forEach((key) => {
-    require(key)(Config, manager);
+if(typeof config["additional-packages-root"] !== "undefined") {
+  config["additional-packages-root"].forEach((key) => {
+    require(key)(config, manager);
   });
 }
 
 // # Stats # //
 var stats;
 try {
-  stats = JSON.parse(fs.readFileSync(Config["stat-file"]));
+  stats = JSON.parse(fs.readFileSync(config["stat-file"]));
 } catch(error) {
   if(typeof error.code !== "undefined" && error.code === "ENOENT") {
     console.warn("No stats file found; one will be created.");
   }
   else {
     // If an error occurs, don't overwrite the old stats.
-    Config["stat-file"] = Config["stat-file"] + ".1";
+    config["stat-file"] = config["stat-file"] + ".1";
     stats = {};
-    console.log(`Failed to load stats file, stats will be saved to ${Config["stat-file"]}. Received error:\n${error}`);
+    console.log(`Failed to load stats file, stats will be saved to ${config["stat-file"]}. Received error:\n${error}`);
   }
 }
 
@@ -182,7 +182,7 @@ manager.on("shardCreate", (shard) => {
     else if(typeof input.stats !== "undefined") {
       // Update stats
 
-      if(Config["fallback-mode"] !== true) {
+      if(config["fallback-mode"] !== true) {
         Object.keys(input.stats).forEach((stat) => {
           stats = stats || {};
 
@@ -196,7 +196,7 @@ manager.on("shardCreate", (shard) => {
           }
         });
 
-        fs.writeFile(Config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
+        fs.writeFile(config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
           if(err) {
             console.error(`Failed to save stats.json with the following err:\n${err}\nMake sure stats.json is not read-only or missing.`);
           }
@@ -211,7 +211,7 @@ manager.on("shardCreate", (shard) => {
 const evalCmds = require("./lib/eval_cmds.js")(manager);
 manager.eCmds = evalCmds;
 
-if(Config["allow-eval"] === true) {
+if(config["allow-eval"] === true) {
   process.stdin.on("data", (text) => {
     // Cut newlines, split the command by spaces to represent arguments.
     var cmdFull = text.replace("\r","").replace("\n","").split(" ");
