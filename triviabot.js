@@ -1163,7 +1163,15 @@ if(isFirstQuestion && getConfigVal("use-fixed-rounds", channel) === true) {
       infoString = `${infoString}Type a letter to answer! `;
     }
 
-    infoString = `${infoString}The answer will be revealed in ${timer/1000} seconds.`;
+    var timerStr = "";
+    var numStr;
+    var seconds = timer/1000;
+
+    if(seconds > 3600) timerStr = `${numStr = Math.round(seconds/3600)} hour${numStr===1?"":"s"}`;
+    else if(seconds > 60) timerStr = `${numStr = Math.round(seconds/60)} minute${numStr===1?"":"s"}`;
+    else timerStr = `${seconds} seconds`;
+
+    infoString = `${infoString}The answer will be revealed in ${timerStr}.`;
 
     // Add an extra initial message to let users know the game will insta-end with no answers.
     if(!getConfigVal("round-end-warnings-disabled", channel) && getConfigVal("rounds-end-after", channel) === 1 && !game[id].config.customRoundCount) {
