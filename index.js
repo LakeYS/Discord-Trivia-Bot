@@ -85,7 +85,7 @@ manager.spawn()
       warning += "\nPlease double-check your token and try again.";
 
       if(token.length < 50) {
-        warning = "\nIt appears that you have entered a client secret or other invalid string. Please ensure that you have entered a token and try again.";
+        warning = "\nIt appears that you have entered a client secret or other invalid data. Please ensure that you have entered a token and try again.";
       }
     }
   }
