@@ -111,7 +111,6 @@ manager.on("shardCreate", (shard) => {
 
   console.log(`Successfully launched shard ${shardId} of ${manager.totalShards-1}`);
 
-  // TODO: Rate limit this to prevent API flooding
   shard.on("death", (process) => {
     console.error("Shard " + shardId + " closed unexpectedly! PID: " + process.pid + "; Exit code: " + process.exitCode + ".");
 
