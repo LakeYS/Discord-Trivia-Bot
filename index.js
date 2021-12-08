@@ -20,7 +20,7 @@ try {
 }
 catch(err) {
   // Config file broken or missing -- display the initial message and an error
-  logs.initLogs({ displayAsciiLogo: config["display-ascii-logo"] });
+  logs.initLogs({ displayAsciiLogo: false });
   console.error("Unable to load config file: " + err.message);
   process.exit();
 }
