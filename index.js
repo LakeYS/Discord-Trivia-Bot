@@ -73,7 +73,7 @@ try {
 }
 
 // # ShardingManager # //
-manager.spawn()
+manager.spawn({ timeout: config["login-timeout"]})
 .catch((err) => {
   var warning = "";
 
