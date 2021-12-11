@@ -107,18 +107,28 @@ global.client.on("interactionCreate", interaction => {
         + `\nTiming (curr | message): ${now} | ${interaction.message.createdAt}`);
       }
 
-      interaction.reply({ content: "This round has already ended.", ephemeral: true});
+      try {
+        interaction.reply({ content: "This round has already ended.", ephemeral: true});
+      }
+      catch(err) {
+        console.log(`Failed to reply to interaction: (${err}). This will be ignored.`);
+      }
+
       return;
     }
 
-    if(participants === 1) {
-      interaction.update("Answered!");
+    try {
+      if(participants === 1) {
+        interaction.update("Answered!");
+      }
+      else {
+        interaction.update(`${participants} answers`);
+      }
     }
-    else {
-      interaction.update(`${participants} answers`);
+    catch(err) {
+      console.log(`Failed to update interaction: (${err}). This round may not end correctly.`);
     }
   }
-
 });
 
 global.client.on("guildCreate", () => {
