@@ -1,7 +1,7 @@
 {
   "name": "triviabot",
   "version": "2.0.0-pre.1",
-  "description": "Play trivia in Discord! Featuring three modes of play and 24 categories, including Anime & Manga, Video Games, Sports, Science, and more.",
+  "description": "A Discord bot that runs trivia games. Features three modes of play and 24 categories through OpenTDB, as well as support for custom question sets.",
   "main": "index.js",
   "isGitBuild": true,
   "scripts": {
