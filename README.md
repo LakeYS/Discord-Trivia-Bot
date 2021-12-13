@@ -2,6 +2,8 @@
 
 [![top.gg Badge](https://top.gg/api/widget/servers/337654994461261825.svg?noavatar=true)](https://top.gg/bot/337654994461261825)
 
+**Please note that you are currently viewing a pre-release of an upcoming TriviaBot build. For the latest stable releases, see the releases page: https://github.com/LakeYS/Discord-Trivia-Bot/releases**
+
 # TriviaBot
 TriviaBot brings multiplayer trivia games to your Discord server! With over 3,000 questions and 24 categories, TriviaBot offers endless multiplayer trivia fun.
 
