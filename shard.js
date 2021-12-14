@@ -126,7 +126,7 @@ global.client.on("interactionCreate", async interaction => {
       }
     }
     catch(err) {
-      console.log(`Failed to update interaction: (${err}). This round may not end correctly.`);
+      console.log(`Failed to update interaction: (${err}). Answer will still be counted.`);
     }
   }
 });
