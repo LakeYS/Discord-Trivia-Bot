@@ -89,7 +89,7 @@ global.client.on("messageReactionAdd", (reaction, user) => {
   global.Trivia.reactionAdd(reaction, user);
 });
 
-global.client.on("interactionCreate", interaction => {
+global.client.on("interactionCreate", async interaction => {
 	if (!interaction.isButton()) return;
   if (global.Trivia.isFallbackMode(interaction.channel.id)) return;
 
@@ -108,7 +108,7 @@ global.client.on("interactionCreate", interaction => {
       }
 
       try {
-        interaction.reply({ content: "This round has already ended.", ephemeral: true});
+        await interaction.reply({ content: "This round has already ended.", ephemeral: true});
       }
       catch(err) {
         console.log(`Failed to reply to interaction: (${err}). This will be ignored.`);
@@ -119,10 +119,10 @@ global.client.on("interactionCreate", interaction => {
 
     try {
       if(participants === 1) {
-        interaction.update("Answered!");
+        await interaction.update("Answered!");
       }
       else {
-        interaction.update(`${participants} answers`);
+        await interaction.update(`${participants} answers`);
       }
     }
     catch(err) {
