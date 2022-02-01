@@ -109,7 +109,7 @@ manager.spawn({ timeout: config["login-timeout"]})
 manager.on("shardCreate", (shard) => {
   var shardId = shard.id;
 
-  console.log(`Successfully launched shard ${shardId} of ${manager.totalShards-1}`);
+  console.log(`Logging in on shard ${shardId} of ${manager.totalShards-1}`);
 
   shard.on("death", (process) => {
     console.error("Shard " + shardId + " closed unexpectedly! PID: " + process.pid + "; Exit code: " + process.exitCode + ".");
@@ -121,7 +121,7 @@ manager.on("shardCreate", (shard) => {
   });
 
   shard.on("shardDisconnect", () => {
-    console.warn("Shard " + shardId + " disconnected.");
+    console.warn("Disconnected on shard " + shardId + ".");
   });
 
   // ## Manager Messages ## //
