@@ -77,7 +77,7 @@ Trivia.postStat = async (stat, value) => {
   try {
     var post = { stats: {}};
     post.stats[stat] = value;
-    global.client.shard.send(post);
+    await global.client.shard.send(post);
   }
   catch(err) {
     console.warn(`Failed to post stat ${stat}: ${err}`);
