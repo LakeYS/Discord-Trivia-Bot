@@ -21,10 +21,6 @@
             "error",
             "always"
         ],
-        "eqeqeq": [
-            "warn",
-            "always"
-        ],
         "no-console": "off",
         "no-irregular-whitespace": "off",
         "block-scoped-var": [
