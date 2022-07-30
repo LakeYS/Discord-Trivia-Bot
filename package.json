@@ -21,7 +21,7 @@
   },
   "homepage": "http://lakeys.net/triviabot",
   "dependencies": {
-    "discord.js": "^14.0.3",
+    "discord.js": "^14.1.1",
     "html-entities": "^1.4.0",
     "https": "^1.0.0",
     "js-yaml": "^3.14.1",
