@@ -52,7 +52,6 @@
   "debug-users": false,
   "display-ascii-logo": false,
   "fallback-mode": false,
-  "fallback-silent": false,
   "fallback-exceptions": [],
   "fallback-intents": false,
 
