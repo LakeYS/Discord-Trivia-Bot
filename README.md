@@ -32,7 +32,7 @@ If you'd like to install and host TriviaBot yourself, you can find out how to do
 Support for custom questions is available for self-hosted bots.
 
 # Commands
-- `trivia play <category>` - The command to start a trivia game.
-- `trivia help` - Shows information about the bot.
-- `trivia categories` - Sends you a list of categories via DM.
-- `trivia stop`
+- `/play <category (optional)>` - The command to start a trivia game.
+- `/help` - Shows information about the bot.
+- `/categories` - Sends you a list of categories via DM.
+- `/stop` (Admin only)
