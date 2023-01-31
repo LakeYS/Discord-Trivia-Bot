@@ -32,7 +32,7 @@
   "devDependencies": {
     "eslint": "^8.18.0",
     "eslint-plugin-jsdoc": "^39.3.3",
-    "jsdoc": "^3.6.6"
+    "jsdoc": "^4.0.0"
   },
   "engines": {
     "node": ">=16.9.0"
