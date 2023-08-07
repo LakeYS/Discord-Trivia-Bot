@@ -61,7 +61,7 @@ global.client.on("ready", async () => {
 global.client.on("shardDisconnect", (event) => {
   console.log("Discord client disconnected with code " + event.code);
   
-  if(event.reason !== "" && typeof event.reason !== undefined) {
+  if(event.reason !== "" && event.reason !== undefined) {
     console.log("Disconnect reason: " + event.reason);
   }
 });
