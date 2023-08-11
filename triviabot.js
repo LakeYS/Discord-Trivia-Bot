@@ -1,4 +1,4 @@
-const { MessageActionRow, MessageButton } = require("discord.js");
+const { ButtonBuilder, ChannelType, ActionRowBuilder, ButtonStyle } = require("discord.js");
 const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
@@ -18,11 +18,11 @@ var Trivia = exports;
 function getConfigVal(value, channel, guild) {
   if(typeof channel !== "undefined") {
     // discord.js class auto-detection
-    if(channel.type === "GUILD_TEXT") {
+    if(channel.type === ChannelType.GuildText) {
       guild = channel.guild.id;
       channel = channel.id;
     }
-    else if(channel.type === "DM") {
+    else if(channel.type === ChannelType.DM) {
       channel = channel.id;
     }
   }
@@ -220,7 +220,7 @@ Trivia.send = function(channel, author, msg, callback, noDelete) {
   channel.send(msg)
   .catch((err) => {
     if(typeof author !== "undefined") {
-      if(channel.type !== "DM") {
+      if(channel.type !== ChannelType.DM) {
         var str = "";
         var known = false;
         if(err.message.includes("Missing Permissions")) {
@@ -515,7 +515,7 @@ Trivia.doAnswerReveal = (id, channel, answer, importOverride) => {
         break;
       }
 
-      var style = parseInt(i) === game[id].correctId?"SUCCESS":"SECONDARY";
+      var style = parseInt(i) === game[id].correctId?ButtonStyle.Success:ButtonStyle.Secondary;
 
       game[id].buttons.components[i].setDisabled(true);
       game[id].buttons.components[i].setStyle(style);
@@ -915,13 +915,13 @@ function doHangmanHint(channel, answer) {
 // Creates button components.
 // Returns the button action row, and an array of the button components, with the one for the correct answer first.
 function buildButtons(answers) {
-  var buttons = new MessageActionRow();
+  var buttons = new ActionRowBuilder();
 
   for(var i = 0; i <= answers.length-1; i++) {
     var style, text;
 
     text = `${Letters[i]}: ${Trivia.formatStr(answers[i])}`;
-    style = "SECONDARY";
+    style = ButtonStyle.Secondary;
 
     if(text.length > 80) {
       text = text.slice(0, 77);
@@ -929,7 +929,7 @@ function buildButtons(answers) {
     }
 
     buttons.addComponents(
-      new MessageButton()
+      new ButtonBuilder()
       .setCustomId("answer_" + Letters[i])
       .setLabel(text)
       .setStyle(style),
@@ -987,7 +987,7 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     gameMode = game[id].gameMode;
   }
   else {
-    if(channel.type !== "DM" && typeof modeInput === "undefined") {
+    if(channel.type !== ChannelType.DM && typeof modeInput === "undefined") {
       if(getConfigVal("use-reactions", channel)) {
         gameMode = 1;
       }
@@ -1023,10 +1023,10 @@ Trivia.doGame = async function(id, channel, author, scheduled, config, category,
     "inProgress": 1,
     "inRound": 1,
 
-    "guildId": channel.type==="GUILD_TEXT"?channel.guild.id:void 0,
-    "userId": channel.type!=="DM"?void 0:channel.recipient.id,
+    "guildId": channel.type===ChannelType.GuildText?channel.guild.id:void 0,
+    "userId": channel.type!==ChannelType.DM?void 0:channel.recipient.id,
 
-    "isDMGame": channel.type==="DM",
+    "isDMGame": channel.type===ChannelType.DM,
 
     gameMode,
     "category": typeof game[id]!=="undefined"?game[id].category:category,
@@ -1393,7 +1393,7 @@ function parseCommand(msg, cmd, isAdmin) {
         }
 
 
-        if(msg.channel.type !== "DM") {
+        if(msg.channel.type !== ChannelType.DM) {
           Trivia.send(msg.channel, void 0, "Config has been sent to you via DM.");
         }
 
@@ -1609,7 +1609,7 @@ Trivia.parse = (str, msg) => {
     if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) {
       isAdmin = true;
     }
-    else if(msg.channel.type === "DM") {
+    else if(msg.channel.type === ChannelType.DM) {
       // Admin if the game is run in a DM.
       isAdmin = true;
     }

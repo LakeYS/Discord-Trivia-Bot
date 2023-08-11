@@ -1,16 +1,19 @@
-const Discord = require("discord.js");
-const { Client, Intents } = Discord;
+const { Client, GatewayIntentBits, Partials, ChannelType } = require("discord.js");
 
 var Config = require("./lib/config.js")(process.argv[2]).config;
-var intents = ["GUILDS", "GUILD_MESSAGE_REACTIONS", "DIRECT_MESSAGE_REACTIONS"];
+var intents = [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.DirectMessageReactions];
 
 if(!Config["fallback-intents"]) {
-  intents.push("GUILD_MESSAGES", "DIRECT_MESSAGES");
+  intents.push(GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages);
+
+  if(!Config["use-slash-commands"]) {
+    intents.push(GatewayIntentBits.MessageContent);
+  }
 }
 
 global.client = new Client({
-  intents: new Intents(intents),
-  partials: [ "CHANNEL" ],
+  intents,
+  partials: [ Partials.Channel ],
   retryLimit: 3,
   messageCacheMaxSize: 50
 });
@@ -80,7 +83,7 @@ global.client.on("messageCreate", async (msg) => {
 
   var str = msg.toString().toUpperCase();
 
-  if(msg.channel.type === "GUILD_TEXT" || msg.channel.type === "DM") {
+  if(msg.channel.type === ChannelType.GuildText || msg.channel.type === ChannelType.DM) {
     global.Trivia.parse(str, msg);
   }
 });
