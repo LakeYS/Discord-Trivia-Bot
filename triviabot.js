@@ -1,4 +1,4 @@
-const { ButtonBuilder, ChannelType, ActionRowBuilder, ButtonStyle } = require("discord.js");
+const { ButtonBuilder, ChannelType, ActionRowBuilder, ButtonStyle, PermissionsBitField } = require("discord.js");
 const entities = require("html-entities").AllHtmlEntities;
 const fs = require("fs");
 const JSON = require("circular-json");
@@ -1606,7 +1606,7 @@ Trivia.parse = (str, msg) => {
   var isAdmin;
   if(getConfigVal("disable-admin-commands", msg.channel) !== true) {
     // Admin if there is a valid member object and they have permission.
-    if(msg.member !== null && msg.member.permissions.has("MANAGE_GUILD")) {
+    if(msg.member !== null && msg.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
       isAdmin = true;
     }
     else if(msg.channel.type === ChannelType.DM) {
