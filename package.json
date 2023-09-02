@@ -29,6 +29,6 @@
     "semver-compare": "^1.0.0"
   },
   "engines": {
-    "node": ">=16.6.0"
+    "node": ">=16.11.0"
   }
 }
