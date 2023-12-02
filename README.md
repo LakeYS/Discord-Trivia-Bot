@@ -5,11 +5,8 @@
 # TriviaBot
 TriviaBot brings multiplayer trivia games to your Discord server! With over 3,000 questions and 24 categories, TriviaBot offers endless multiplayer trivia fun.
 
-[__Invite TriviaBot to a server__](https://lakeys.net/triviabot/invite) | [Support it on Patreon](https://www.patreon.com/LakeYS) | [View updates & progress on Trello](https://trello.com/b/8QQm4ZPe/triviabot) | [Join the Discord](https://discord.gg/s3vCQba)
------------- | ------------- | ------------- | -------------
-
-View TriviaBot on:
-[top.gg](https://top.gg/bot/337654994461261825) | [discord.bots.gg](https://discord.bots.gg/bots/337654994461261825)
+[__Invite TriviaBot to a server__](https://lakeys.net/triviabot/invite) | [Support it on Patreon](https://www.patreon.com/LakeYS) | [Join the Discord](https://discord.gg/s3vCQba)
+------------ | ------------- | ------------- 
 
 # Development and Support
 For support, questions, and comments, you can join the Discord server or contact me directly at contact@LakeYS.net. You can also [submit an issue](https://github.com/LakeYS/Discord-Trivia-Bot/issues/new) for bugs and support.
