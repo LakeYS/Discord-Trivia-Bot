@@ -43,16 +43,17 @@
   "shard-count": "auto",
   "stat-file": "./stats.json",
   "stat-guild-recording": false,
+  "use-slash-commands": true,
 
   "additional-packages": [],
   "additional-packages-root": [],
   "debug-mode": false,
   "debug-log": false,
   "debug-database-flush": false,
+  "debug-slash-commands-guild": "",
   "debug-users": false,
   "display-ascii-logo": false,
   "fallback-mode": false,
-  "fallback-silent": false,
   "fallback-exceptions": [],
   "fallback-intents": false,
 

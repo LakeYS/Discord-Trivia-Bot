@@ -1,6 +1,6 @@
 {
   "name": "triviabot",
-  "version": "2.0.0",
+  "version": "2.0.0-pre.4",
   "description": "A Discord bot that runs trivia games. Features three modes of play and 24 categories through OpenTDB, as well as support for custom question sets.",
   "main": "index.js",
   "isGitBuild": true,
@@ -21,7 +21,8 @@
   },
   "homepage": "http://lakeys.net/triviabot",
   "dependencies": {
-    "discord.js": "^14.2.0",
+    "@discordjs/rest": "^2.0.1",
+    "discord.js": "^14.16.3",
     "html-entities": "^1.4.0",
     "https": "^1.0.0",
     "js-yaml": "^3.14.1",
@@ -31,7 +32,7 @@
   "devDependencies": {
     "eslint": "^8.18.0",
     "eslint-plugin-jsdoc": "^39.3.3",
-    "jsdoc": "^3.6.6"
+    "jsdoc": "^4.0.0"
   },
   "engines": {
     "node": ">=16.9.0"

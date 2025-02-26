@@ -157,7 +157,6 @@ manager.on("shardCreate", (shard) => {
   });
 });
 
-
 // # Console Functions # //
 const evalCmds = require("./lib/eval_cmds.js")(manager);
 manager.eCmds = evalCmds;
