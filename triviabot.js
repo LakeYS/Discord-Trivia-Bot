@@ -158,10 +158,6 @@ global.client.on("ready", () => {
       for(var i in restrictedChannelsInput) {
         var channelInput = restrictedChannelsInput[i];
 
-        if(Trivia.restrictedChannels.length === restrictedChannelsInput.length) {
-          break;
-        }
-
         if(channelInput === channel.id.toString()) {
           Trivia.restrictedChannels.push(channel.id);
         }
