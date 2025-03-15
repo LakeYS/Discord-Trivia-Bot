@@ -1,7 +1,7 @@
 const { Client, GatewayIntentBits, Partials, ChannelType } = require("discord.js");
 
 var Config = require("./lib/config.js")(process.argv[2]).config;
-var intents = [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.DirectMessageReactions];
+var intents = [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.DirectMessageReactions, GatewayIntentBits.MessageContent];
 
 if(!Config["fallback-intents"]) {
   intents.push(GatewayIntentBits.GuildMessages, GatewayIntentBits.DirectMessages);
