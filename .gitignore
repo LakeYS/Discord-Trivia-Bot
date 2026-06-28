@@ -25,9 +25,6 @@ TriviaBot.zip
 bin/*
 node.exe
 
-# Environment directories
-.vscode/*
-
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
