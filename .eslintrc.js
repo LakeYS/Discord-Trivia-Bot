@@ -14,10 +14,6 @@ module.exports = {
     "jsdoc"
   ],
   "rules": {
-    "linebreak-style": [
-      "error",
-      "windows"
-    ],
     "quotes": [
       "error",
       "double"
