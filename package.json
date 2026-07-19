@@ -24,7 +24,7 @@
   "homepage": "http://lakeys.net/triviabot",
   "dependencies": {
     "@discordjs/rest": "2.6.1",
-    "discord.js": "14.26.4",
+    "discord.js": "14.27.0",
     "html-entities": "2.6.0",
     "js-yaml": "5.2.0",
     "semver-compare": "1.0.0"
