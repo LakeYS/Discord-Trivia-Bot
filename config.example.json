@@ -38,7 +38,6 @@
   "disable-version-check": false,
   "embed-color": "006CFF",
   "login-timeout": 30000,
-  "prefix": "trivia ",
   "shard-count": "auto",
   "stat-file": "./stats.json",
   "stat-guild-recording": false,
