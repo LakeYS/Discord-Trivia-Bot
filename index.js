@@ -70,7 +70,7 @@ manager.spawn({ timeout: config["login-timeout"]})
 .catch((err) => {
   var warning = "";
 
-  if(err.name === "Error [TOKEN_INVALID]") {
+  if(err.code === "TokenInvalid") {
     if(token === "yourtokenhere") {
       warning = "\nIt appears that you have not yet added a token. Please replace \"yourtokenhere\" with a valid token in the config file.";
     }
