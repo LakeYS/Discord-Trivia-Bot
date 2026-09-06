@@ -1,7 +1,7 @@
 {
   "token": "yourtokenhere",
 
-  "disallow-answer-changes": false,
+  "accept-first-answer-only": false,
   "auto-delete-msgs": false,
   "auto-delete-msgs-timer": 15000,
   "auto-delete-answers": true,
@@ -12,17 +12,17 @@
   "display-pregame-rules": false,
   "hangman-hints": true,
   "hangman-mode": false,
-  "hide-answers": false,
   "hide-difficulty": false,
   "participant-role-name": "Trivia Player",
   "participant-role-points-required": -1,
+  "reveal-answers": true,  
   "round-end-warnings-disabled": false,
   "round-length": 15000,
   "round-timeout": 4000,
   "rounds-end-after": 2,
   "rounds-fixed-number": 15,
+  "score-multiplier-max": 0,
   "score-value": { "easy": 100, "medium": 200, "hard": 300 },
-  "unique-multiplier-max": 0,
   "use-fixed-rounds": false,
   "use-reactions": false,
 
