@@ -29,7 +29,6 @@
   "allow-bots": false,
   "allow-eval": true,
   "channel-whitelist": [],
-  "config-commands-enabled": false,
   "database-allow-long-answers": false,
   "database-cache-size": 32,
   "database-merge": false,
