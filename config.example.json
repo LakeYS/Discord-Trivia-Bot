@@ -27,7 +27,7 @@
   "use-reactions": false,
 
   "allow-bots": false,
-  "allow-eval": true,
+  "allow-eval-console": false,
   "channel-whitelist": [],
   "database-allow-long-answers": false,
   "database-cache-size": 32,

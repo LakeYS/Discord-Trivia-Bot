@@ -35,7 +35,7 @@ const configPrivate = {
 
 require("./lib/init.js")(pkg, config, configPrivate);
 
-if(config["allow-eval"] === true) {
+if(config["allow-eval-console"] === true) {
   process.stdin.resume();
   process.stdin.setEncoding("utf8");
 }
@@ -154,7 +154,7 @@ manager.on("shardCreate", (shard) => {
 const evalCmds = require("./lib/eval_cmds.js")(manager);
 manager.eCmds = evalCmds;
 
-if(config["allow-eval"] === true) {
+if(config["allow-eval-console"] === true) {
   process.stdin.on("data", (text) => {
     // Cut newlines, split the command by spaces to represent arguments.
     var cmdFull = text.replace("\r","").replace("\n","").split(" ");
