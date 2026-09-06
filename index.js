@@ -49,13 +49,6 @@ const manager = new ShardingManager(`${__dirname}/lib/platform/discord_shard.js`
   respawn: true
 });
 
-// # Custom Package Loading # //
-if(typeof config["additional-packages-root"] !== "undefined") {
-  config["additional-packages-root"].forEach((key) => {
-    require(key)(config, manager);
-  });
-}
-
 // # Stats # //
 var stats;
 try {

@@ -44,8 +44,6 @@
   "stat-guild-recording": false,
   "use-slash-commands": true,
 
-  "additional-packages": [],
-  "additional-packages-root": [],
   "debug-mode": false,
   "debug-log": false,
   "debug-database-flush": false,
