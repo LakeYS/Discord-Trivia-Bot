@@ -4,6 +4,7 @@
   "description": "A Discord bot that runs trivia games. Features three modes of play and 24 categories through OpenTDB, as well as support for custom question sets.",
   "main": "index.js",
   "isGitBuild": true,
+  "type": "module",
   "scripts": {
     "build:win": "./script/package_win.sh",
     "build:linux": "./script/package_linux.sh",
@@ -33,6 +34,7 @@
     "@eslint/eslintrc": "^3.3.7",
     "@eslint/js": "^10.0.1",
     "eslint": "^10.10.0",
+    "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-jsdoc": "^64.3.6",
     "globals": "^17.12.0",
     "jsdoc": "^4.0.5"

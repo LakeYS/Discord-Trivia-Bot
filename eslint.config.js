@@ -1,22 +1,17 @@
-const {
-    defineConfig,
-} = require("eslint/config");
-
-const globals = require("globals");
-const jsdoc = require("eslint-plugin-jsdoc");
-const js = require("@eslint/js");
-
-const {
-    FlatCompat,
-} = require("@eslint/eslintrc");
+import {FlatCompat} from "@eslint/eslintrc";
+import js from "@eslint/js";
+import {defineConfig} from "eslint/config";
+import { importX } from "eslint-plugin-import-x";
+import eslintPluginJsdoc from "eslint-plugin-jsdoc";
+import globals from "globals";
 
 const compat = new FlatCompat({
-    baseDirectory: __dirname,
+    baseDirectory: import.meta.dirname,
     recommendedConfig: js.configs.recommended,
     allConfig: js.configs.all
 });
 
-module.exports = defineConfig([{
+const config = defineConfig([{
     languageOptions: {
         globals: {
             ...globals.node,
@@ -27,10 +22,13 @@ module.exports = defineConfig([{
         parserOptions: {},
     },
 
-    extends: compat.extends("eslint:recommended"),
+    extends: [
+        compat.extends("eslint:recommended"),
+        importX.flatConfigs.recommended
+    ],
 
     plugins: {
-        jsdoc,
+        jsdoc: eslintPluginJsdoc,
     },
 
     "rules": {
@@ -38,6 +36,14 @@ module.exports = defineConfig([{
         "semi": ["error", "always"],
         "no-var-requires": "off",
         "indent": "off",
+        "import-x/order": ["error", {
+            alphabetize: {
+                caseInsensitive: true,
+                order: "asc",
+            },
+            groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
+            "newlines-between": "always",
+        }],
         "no-console": "off",
         "no-irregular-whitespace": "off",
         "jsdoc/check-access": 1,
@@ -71,3 +77,5 @@ module.exports = defineConfig([{
         "jsdoc/valid-types": 1,
     },
 }]);
+
+export default config;
