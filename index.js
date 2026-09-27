@@ -1,7 +1,12 @@
-const pkg = require("./package.json");
-const fs = require("fs");
-const { ShardingManager } = require("discord.js");
-const LogManager = require("./lib/log_manager.js");
+import { readFileSync, writeFile  } from "fs";
+
+import { ShardingManager } from "discord.js";
+
+import configFunc from "./lib/config.js";
+import evalCmdsFunc from "./lib/eval_cmds.js";
+import initFunc from "./lib/init.js";
+import LogManager from "./lib/log_manager.js";
+import pkg from "./package.json" with { type: "json" };
 
 var logs = new LogManager(pkg.version);
 process.title = `TriviaBot ${pkg.version}`;
@@ -16,7 +21,7 @@ for(let i = 0; i <= process.argv.length; i++) {
 }
 
 try {
-  config = require("./lib/config.js")(configFile, true).config;
+  config = configFunc(configFile, true).config;
 }
 catch(err) {
   // Config file broken or missing -- display the initial message and an error
@@ -33,33 +38,26 @@ const configPrivate = {
   githubName: "Discord-Trivia-Bot"
 };
 
-require("./lib/init.js")(pkg, config, configPrivate);
+await initFunc(pkg, config, configPrivate);
 
-if(config["allow-eval"] === true) {
+if(config["allow-eval-console"] === true) {
   process.stdin.resume();
   process.stdin.setEncoding("utf8");
 }
 
 // # Discord # //
 var token = config.token;
-const manager = new ShardingManager(`${__dirname}/lib/platform/discord_shard.js`, {
+const manager = new ShardingManager("./lib/platform/discord_shard.js", {
   totalShards: config["shard-count"],
   token,
   shardArgs: [configFile],
   respawn: true
 });
 
-// # Custom Package Loading # //
-if(typeof config["additional-packages-root"] !== "undefined") {
-  config["additional-packages-root"].forEach((key) => {
-    require(key)(config, manager);
-  });
-}
-
 // # Stats # //
 var stats;
 try {
-  stats = JSON.parse(fs.readFileSync(config["stat-file"]));
+  stats = JSON.parse(readFileSync(config["stat-file"]));
 } catch(error) {
   if(typeof error.code !== "undefined" && error.code === "ENOENT") {
     console.warn("No stats file found; one will be created.");
@@ -77,7 +75,7 @@ manager.spawn({ timeout: config["login-timeout"]})
 .catch((err) => {
   var warning = "";
 
-  if(err.name === "Error [TOKEN_INVALID]") {
+  if(err.code === "TokenInvalid") {
     if(token === "yourtokenhere") {
       warning = "\nIt appears that you have not yet added a token. Please replace \"yourtokenhere\" with a valid token in the config file.";
     }
@@ -147,7 +145,7 @@ manager.on("shardCreate", (shard) => {
           }
         });
 
-        fs.writeFile(config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
+        writeFile(config["stat-file"], JSON.stringify(stats, null, "\t"), "utf8", (err) => {
           if(err) {
             console.error(`Failed to save stats.json with the following err:\n${err}\nMake sure stats.json is not read-only or missing.`);
           }
@@ -158,10 +156,10 @@ manager.on("shardCreate", (shard) => {
 });
 
 // # Console Functions # //
-const evalCmds = require("./lib/eval_cmds.js")(manager);
+const evalCmds = evalCmdsFunc(manager);
 manager.eCmds = evalCmds;
 
-if(config["allow-eval"] === true) {
+if(config["allow-eval-console"] === true) {
   process.stdin.on("data", (text) => {
     // Cut newlines, split the command by spaces to represent arguments.
     var cmdFull = text.replace("\r","").replace("\n","").split(" ");
