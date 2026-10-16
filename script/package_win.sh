@@ -2,6 +2,7 @@
 # Package the bot for distribution on Windows
 
 mkdir TriviaBot && \
+cp ./CHANGELOG.md TriviaBot && \
 cp ./config.example.json TriviaBot && \
 cp ./package.json TriviaBot && \
 cp ./index.js TriviaBot && \
