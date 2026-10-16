@@ -1,5 +1,64 @@
 # Changelog
 
+## v2.0.0
+
+Hello! This is a 'catch-up' update to help get things back up and running. This is a transitional release and does not include many feature additions aside from slash commands.
+
+### What's new
++ Single player games will now display the player's score after each answer.
++ Updated database error messages ("Failed to query the trivia database...") to be more clear.
+* Remedied cases of "This round has already ended." frequently showing up after selecting an answer too late. Buttons are now updated synchronously with the game to remedy latency issues. Due to the nature of Discord's interactions, you may still see "This interaction failed." if you select an answer too late.
+
+### Changes for self-hosted instances
+
+#### Breaking changes
+* **v2.0 requires [Node.js 22 or higher](https://nodejs.org/en/) ([windows installer here](https://nodejs.org/en/download/archive/current)). Make sure your version of Node.js is up-to-date. You can check by running 
+`node -v` in a terminal.**
+* The "config" command has been removed.
+* The "additional-packages" and "additional-packages-root" config options have been removed.
+* There are a number of changes and refactors between this version and "2.0.0-pre.4" versions. There are a *lot* of code changes between this version and 1.x (1.8.7 and earlier). Be aware of this if you have made modifications to the code.
+* The 'allow-eval' config option has been renamed to 'allow-eval-console' and made false by default. The renaming is to intentionally force this off in configurations that are imported from v1.x. If you need this feature and you are bringing a config.json from a previous version, you will need to rename the option in your config file.
+* 'Reaction mode' has been removed.
+
+#### Other changes
+
++ Slash commands are now optionally available for use in place of the 'trivia [...]' commands. You can enable this adding or setting "use-slash-commands" to "true" in your  config file. 
++ Added "disable-discord-presence" to disable the bot's status ("Playing Trivia!...")
++ Added the "login-timeout" config option to remedy "took too long to become ready" errors.
++ Added the "disable-score-display-midround" and "disable-score-display-final" options to more finely control when scores are shown.
++ Added the "participant-role-name" and "participant-role-points-required" config options, which allow for automatically assigning a role to game participants.
++ Added the "display-pregame-rules" option. When enabled, a pre-game message will appear describing how the game works based on the configuration. Thanks to @Deldaflyer for contributing this feature!
+* Internal reworks to error handling. You may find that the bot will no longer "crash" (requiring the whole program to restart) for many types of errors now.
+* In button-based configurations with "disallow-answer-changes" enabled, players will now receive a message when they try to change their answer.
+* Fixed the "hide-answers" option failing to stop the correct answer's button from turning green when a round ends.
+* Made database URL fetching errors more readable. (Now includes an "[...]invalid response from the database" instead of just "Unexpected token < in JSON at position 0")
+* Updated the console error that occurs when the database is inaccessible (for both OpenTDB and File DB) for clarity.
+* Fixed disconnect reasons not always showing up in the console.
+* Fixed error when attempting to create an advanced game in another channel where a game is already running.
+* Fixed error when running "trivia stop" with an argument in a direct message (i.e. "trivia stop test") due to the bot looking for a guild channel.
+
+#### Note on config from 2.x pre-releases
+
+The original plan was for 2.0 to overhaul the config, changing the names of several config options along the way. This has been scrapped in order to simplify upgrading to 2.x. If you are using a config.json file from a 2.x pre-release (indicated by 2.0.0-pre.4 or an earlier -pre.x version), your config may have options that are named differently. Config shims have been included so that your config file will work regardless of which version it comes from.
+
+If you see an option in your config.json that does not match [the documentation](https://lakeys.net/triviabot/install#useConfig), check this config shim list:
+
+* unique-multiplier-max **is the same as** score-multiplier-max
+* disallow-answer-changes **is the same as** accept-first-answer-only
+* hide-answers **is treated as the opposite of** reveal-answers
+
+### Developer info
+Please note: If you have any custom code modifications set up for TriviaBot, v2.0 will likely not be compatible with your code without modifications.
+
+Here's a simplified rundown of what has changed internally:
+- File structure has changed for the largest script files. In effect: shard.js -> lib/platform/discord_shard.js, triviabot.js -> lib/platform/discord_main.js. This is planned to be further overhauled to simplify development.
+- Commands have moved from lib/cmd_*.js to lib/commands/*.js.
+- The functionality for running, scoring, and processing games has been cleaned up and separated from Discord API code. See: lib/game/game.js, lib/game/game_handler.js.
+- The interfaces for OpenTDB, FileDB, and Merger DB have been migrated to classes.
+- Experimental failover features and all related commands have been removed.
+- Leaderboard has been converted to a class and expanded to take over functionality that was previously handled by game functions.
+- All code has been migrated from CommonJS to ESM syntax. 
+
 ## v1.8.7 - Message intent fix, channel whitelist fix - 2025-03-29
 * Fixed issues with the bot ignoring messages due to missing intent.
 * Fixed the 'channel-whitelist' config option breaking if the same channel name is used in multiple servers.
