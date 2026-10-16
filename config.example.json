@@ -13,7 +13,7 @@
   "hangman-hints": true,
   "hangman-mode": false,
   "hide-difficulty": false,
-  "participant-role-name": "Trivia Player",
+  "participant-role-name": "",
   "participant-role-points-required": -1,
   "reveal-answers": true,  
   "round-end-warnings-disabled": false,
