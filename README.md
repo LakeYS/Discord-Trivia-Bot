@@ -10,14 +10,11 @@ TriviaBot brings multiplayer trivia games to your Discord server! With over 3,00
 For support, questions, and comments, you can join the Discord server or contact me directly at contact@LakeYS.net.
 
 # Features
-- Access to a complete database of over 3,000 categorized, multiple-choice trivia questions. (Thanks to [OpenTDB](https://opentdb.com))
+- Access to a complete database of over 3,000 categorized, multiple-choice trivia questions. (Thanks to the [Open Trivia Database](https://opentdb.com))
 - Works across simultaneous channels and Discord servers. (For example, large servers can have multiple trivia channels)
-- Responsive game system that automatically adapts to the player count.
-- Single-player trivia games via DM.
 - Easy to install and configure for server owners that wish to host the bot themselves.
 - Play in random categories or choose a category to play in.
 - A dynamic scoring system.
-- Multiple modes of play to choose from.
 
 # How to Install
 If you'd like to install and host TriviaBot yourself, you can find out how to do so [here](http://lakeys.net/triviabot/install.html).
@@ -25,7 +22,9 @@ If you'd like to install and host TriviaBot yourself, you can find out how to do
 Support for custom questions is available for self-hosted bots.
 
 # Commands
-- `/play <category (optional)>` - The command to start a trivia game.
+- `/play <category (optional)>` - Start a simple trivia game.
+- `/hangman <category (optional)>` - Start a trivia game with hangman-style answers.
+- `/setup` - Start a trivia game with customized options. See the options within Discord for more information.
 - `/help` - Shows information about the bot.
-- `/categories` - Sends you a list of categories via DM.
-- `/stop` (Admin only)
+- `/categories` - Shows you a list of categories available to play.
+- `/stop <channel (optional)>` (Admin only) - Ends a game.
