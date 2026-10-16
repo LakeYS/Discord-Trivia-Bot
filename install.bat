@@ -1,2 +1,2 @@
-call npm install --only=prod
+call npm install --omit=dev
 pause
