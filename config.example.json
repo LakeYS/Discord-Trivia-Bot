@@ -39,7 +39,6 @@
   "login-timeout": 30000,
   "shard-count": "auto",
   "stat-file": "./stats.json",
-  "stat-guild-recording": false,
   "use-slash-commands": true,
 
   "debug-mode": false,
