@@ -1,5 +1,6 @@
 # Category 2 - Music
 ---
+$schema: https://lakeys.net/triviabot/trivia-db-question-schema.json
 questions:
 - question: "Panic! At The Disco has currently released how many studio albums?"
   difficulty: "easy"

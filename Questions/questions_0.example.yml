@@ -1,5 +1,6 @@
 # Category 0 - Science
 ---
+$schema: https://lakeys.net/triviabot/trivia-db-question-schema.json
 questions:
 - question: "Compared to Earth, what is the approximate force of gravity on the moon?"
   difficulty: "medium"

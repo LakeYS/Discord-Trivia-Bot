@@ -1,4 +1,6 @@
 {
+  "$schema": "https://lakeys.net/triviabot/trivia-config-schema.json",
+
   "token": "yourtokenhere",
 
   "accept-first-answer-only": false,
