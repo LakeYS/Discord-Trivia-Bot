@@ -4,6 +4,7 @@ import {defineConfig} from "eslint/config";
 import { importX } from "eslint-plugin-import-x";
 import eslintPluginJsdoc from "eslint-plugin-jsdoc";
 import globals from "globals";
+import eslintPluginTypescript from "typescript-eslint";
 
 const compat = new FlatCompat({
     baseDirectory: import.meta.dirname,
@@ -19,12 +20,15 @@ const config = defineConfig([{
 
         "ecmaVersion": "latest",
         "sourceType": "module",
-        parserOptions: {},
+        parserOptions: {
+            projectService: true,
+        },
     },
 
     extends: [
         compat.extends("eslint:recommended"),
-        importX.flatConfigs.recommended
+        importX.flatConfigs.recommended,
+        eslintPluginTypescript.configs.recommendedTypeCheckedOnly
     ],
 
     plugins: {
@@ -75,6 +79,11 @@ const config = defineConfig([{
         "jsdoc/require-yields-check": 1,
         "jsdoc/tag-lines": 1,
         "jsdoc/valid-types": 1,
+        "@typescript-eslint/no-unsafe-argument": "off",
+        "@typescript-eslint/no-unsafe-assignment": "off",
+        "@typescript-eslint/no-unsafe-call": "off",
+        "@typescript-eslint/no-unsafe-member-access": "off",
+        "@typescript-eslint/no-unsafe-return": "off",
     },
 }]);
 
