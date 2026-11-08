@@ -1,6 +1,7 @@
 # Node.js and TriviaBot Files
 node_modules
 game*.json.bak
+config.json
 config_*.json
 stats*.json*
 auth*.json
