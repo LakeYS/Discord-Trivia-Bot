@@ -59,10 +59,18 @@ Here's a simplified rundown of what has changed internally:
 - Leaderboard has been converted to a class and expanded to take over functionality that was previously handled by game functions.
 - All code has been migrated from CommonJS to ESM syntax. 
 
+---
+
+None of the contents of this update were generated directly by AI. AI was used in a handful of instances for other purposes including brainstorming, troubleshooting, and code review.
+
 ## v1.8.7 - Message intent fix, channel whitelist fix - 2025-03-29
 * Fixed issues with the bot ignoring messages due to missing intent.
 * Fixed the 'channel-whitelist' config option breaking if the same channel name is used in multiple servers.
 * Updated dependencies.
+
+---
+
+AI was not used for this update in any way.
 
 ## v1.8.6 - Hotfix 9/2/2023  2023-09-02
 * Updated discord.js from 13.2.0 to 14.13.0.
