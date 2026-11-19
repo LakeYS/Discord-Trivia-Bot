@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.0.0
+## v2.0.0 - Slash Commands, Cumulative Update - 2026-10-16
 
 Hello! This is a 'catch-up' update to help get things back up and running. This is a transitional release and does not include many feature additions aside from slash commands.
 
