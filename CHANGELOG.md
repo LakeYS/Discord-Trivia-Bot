@@ -31,7 +31,7 @@ Hello! This is a 'catch-up' update to help get things back up and running. This 
 * Internal reworks to error handling. You may find that the bot will no longer "crash" (requiring the whole program to restart) for many types of errors now.
 * In button-based configurations with "disallow-answer-changes" enabled, players will now receive a message when they try to change their answer.
 * Fixed the "hide-answers" option failing to stop the correct answer's button from turning green when a round ends.
-* Made database URL fetching errors more readable. (Now includes an "[...]invalid response from the database" instead of just "Unexpected token < in JSON at position 0")
+* Made database URL fetching errors more readable. (Message now reads "[...]invalid response from the database" instead of just "Unexpected token < in JSON at position 0")
 * Updated the console error that occurs when the database is inaccessible (for both OpenTDB and File DB) for clarity.
 * Fixed disconnect reasons not always showing up in the console.
 * Fixed error when attempting to create an advanced game in another channel where a game is already running.
