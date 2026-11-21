@@ -1,5 +1,36 @@
 # Changelog
 
+## v2.1.0 - 9th Birthday Update, Fact Command - 2026/11/20
+
+Today marks 9 years of the bot! This update marks the occasion with another round of improvements and, just for fun, a teensy new experimental feature. This is a small preview of what's being worked on for future updates. Try it out now with the /fact command!
+
+### What's new
+
++ **Experimental**: Fact command - A new command that retrieves a random fun fact from the trivia database.
+* Small cosmetic changes to /help for readability.
+* More stability improvements, especially around latency-related issues (such as answering a question at the last second).
+
+### Changes for self-hosted instances
++ Added a new config option to enable or disable individual commands.
+* Further improvements to error handling to prevent the bot from crashing in certain situations.
+* [a5544ea] Added schemas to the example config and question files (see: the $schema property at the top). If you edit these files in a feature-rich editor like Visual Studio Code, you can now do things like hover over a config option to see the documentation for that option.
+* [69f308e] Errors from the database now log the error code.
+- [56beee1] Removed the stat-guild-recording config option.
+
+### Developer info
+* [2ddecce] Fixed the shardCreate event being registered after calling ShardingManager.spawn.
+* [35e7f69] Added a disconnect event to shard processes. This fixes errors when restarting the bot with a debugger attached, and it ensures that processes are not left hanging.
+
+This update includes a sweeping cleanup of the async handling within the code. This should fix some longstanding issues with error handling as well as latency/concurrency issues with Discord interactions.
+
+This is only one step out of many refactors and cleanups that are needed. Expect more of this over the next several updates, as there are plenty more cobwebs that need to be dusted off.
+
+The new /fact command is a test of one such cleanup task: a new helper class that can handle caching questions, with versatility for different use cases. For now, it's a bare-bones implementation to test out the idea at scale. You can check out the code in `lib/cache.js`.
+
+---
+
+None of the contents of this update were generated directly by AI. Generative AI was used in a few situations for research, troubleshooting, code review, and checking for bugs.
+
 ## v2.0.0 - Slash Commands, Cumulative Update - 2026-10-16
 
 Hello! This is a 'catch-up' update to help get things back up and running. This is a transitional release and does not include many feature additions aside from slash commands.
