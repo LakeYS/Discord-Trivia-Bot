@@ -70,40 +70,6 @@ try {
   }
 }
 
-// # ShardingManager # //
-manager.spawn({ timeout: config["login-timeout"]})
-.catch((err) => {
-  var warning = "";
-
-  if(err.code === "TokenInvalid") {
-    if(token === "yourtokenhere") {
-      warning = "\nIt appears that you have not yet added a token. Please replace \"yourtokenhere\" with a valid token in the config file.";
-    }
-    else {
-      warning += "\nPlease double-check your token and try again.";
-
-      if(token.length < 50) {
-        warning = "\nIt appears that you have entered a client secret or other invalid data. Please ensure that you have entered a token and try again.";
-      }
-    }
-  }
-
-  var str;
-  if(typeof err.status !== "undefined") {
-    str = `${err.status} ${err.statusText}`;
-  }
-  else {
-    str = err.message;
-  }
-
-  console.error(`Discord client login failed - ${str}${warning}`);
-
-  // Exit if single shard
-  if(manager.totalShards === 1) {
-    process.exit();
-  }
-});
-
 manager.on("shardCreate", (shard) => {
   var shardId = shard.id;
 
@@ -153,6 +119,40 @@ manager.on("shardCreate", (shard) => {
       }
     }
   });
+});
+
+// # ShardingManager # //
+manager.spawn({ timeout: config["login-timeout"]})
+.catch((err) => {
+  var warning = "";
+
+  if(err.code === "TokenInvalid") {
+    if(token === "yourtokenhere") {
+      warning = "\nIt appears that you have not yet added a token. Please replace \"yourtokenhere\" with a valid token in the config file.";
+    }
+    else {
+      warning += "\nPlease double-check your token and try again.";
+
+      if(token.length < 50) {
+        warning = "\nIt appears that you have entered a client secret or other invalid data. Please ensure that you have entered a token and try again.";
+      }
+    }
+  }
+
+  var str;
+  if(typeof err.status !== "undefined") {
+    str = `${err.status} ${err.statusText}`;
+  }
+  else {
+    str = err.message;
+  }
+
+  console.error(`Discord client login failed - ${str}${warning}`);
+
+  // Exit if single shard
+  if(manager.totalShards === 1) {
+    process.exit();
+  }
 });
 
 // # Console Functions # //
