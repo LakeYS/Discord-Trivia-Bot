@@ -10,7 +10,8 @@
     "build:linux": "./script/package_linux.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "lint": "eslint ./"
+    "lint": "eslint ./",
+    "lint:type": "tsc -p jsconfig.json --noEmit"
   },
   "repository": {
     "type": "git",
