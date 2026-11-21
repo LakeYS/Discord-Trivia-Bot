@@ -9,6 +9,29 @@
   "auto-delete-answers": true,
   "auto-delete-answers-timer": 0,
   "command-whitelist": [],
+  "commands": {
+    "triviaCategories": {
+      "enabled": true
+    },
+    "triviaFact": {
+      "enabled": false
+    },
+    "triviaHelp": {
+      "enabled": true
+    },
+    "triviaPing": {
+      "enabled": true
+    },
+    "triviaPlay": {
+      "enabled": true
+    },
+    "triviaSetup": {
+      "enabled": true
+    },
+    "triviaStop": {
+      "enabled": true
+    }
+  },
   "disable-score-display-midround": false,
   "disable-score-display-final": false,
   "display-pregame-rules": false,
