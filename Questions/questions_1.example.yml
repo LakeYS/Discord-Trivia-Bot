@@ -1,5 +1,6 @@
 # Category 1 - Video Games
 ---
+$schema: https://lakeys.net/triviabot/trivia-db-question-schema.json
 questions:
 - question: "In the video game Terraria, the Moon Lord is a hardmode boss."
   difficulty: "easy"

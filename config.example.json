@@ -1,4 +1,6 @@
 {
+  "$schema": "https://lakeys.net/triviabot/trivia-config-schema.json",
+
   "token": "yourtokenhere",
 
   "accept-first-answer-only": false,
@@ -7,6 +9,29 @@
   "auto-delete-answers": true,
   "auto-delete-answers-timer": 0,
   "command-whitelist": [],
+  "commands": {
+    "triviaCategories": {
+      "enabled": true
+    },
+    "triviaFact": {
+      "enabled": false
+    },
+    "triviaHelp": {
+      "enabled": true
+    },
+    "triviaPing": {
+      "enabled": true
+    },
+    "triviaPlay": {
+      "enabled": true
+    },
+    "triviaSetup": {
+      "enabled": true
+    },
+    "triviaStop": {
+      "enabled": true
+    }
+  },
   "disable-score-display-midround": false,
   "disable-score-display-final": false,
   "display-pregame-rules": false,
@@ -39,7 +64,6 @@
   "login-timeout": 30000,
   "shard-count": "auto",
   "stat-file": "./stats.json",
-  "stat-guild-recording": false,
   "use-slash-commands": true,
 
   "debug-mode": false,

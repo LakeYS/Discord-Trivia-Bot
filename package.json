@@ -1,6 +1,6 @@
 {
   "name": "triviabot",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A Discord bot that runs trivia games. Features three modes of play and 24 categories through OpenTDB, as well as support for custom question sets.",
   "main": "index.js",
   "isGitBuild": true,
@@ -10,7 +10,8 @@
     "build:linux": "./script/package_linux.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "lint": "eslint ./"
+    "lint": "eslint ./",
+    "lint:type": "tsc -p jsconfig.json --noEmit"
   },
   "repository": {
     "type": "git",
@@ -25,19 +26,20 @@
   "homepage": "http://lakeys.net/triviabot",
   "dependencies": {
     "@discordjs/rest": "2.6.3",
-    "discord.js": "14.27.0",
+    "discord.js": "14.28.1",
     "html-entities": "2.6.0",
-    "js-yaml": "5.4.3",
+    "js-yaml": "5.5.0",
     "semver-compare": "1.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.10.0",
-    "eslint-plugin-import-x": "^4.17.1",
-    "eslint-plugin-jsdoc": "^64.3.6",
-    "globals": "^17.12.0",
-    "jsdoc": "^4.0.5"
+    "eslint": "10.15.0",
+    "eslint-plugin-import-x": "4.18.1",
+    "eslint-plugin-jsdoc": "65.4.10",
+    "globals": "17.14.0",
+    "jsdoc": "^4.0.5",
+    "typescript-eslint": "^8.73.0"
   },
   "engines": {
     "node": ">=22"
